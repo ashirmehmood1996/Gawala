@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Gawala</string>
+
+    <string-array name="user_type">
+        <item>producer</item>
+        <item>consumer</item>
+    </string-array>
+
 </resources>
