@@ -4,4 +4,8 @@
     <item
         android:id="@+id/nav_producer_logout"
         android:title="logout"/>
+
+    <item
+        android:id="@+id/nav_producer_share_id"
+        android:title="share id"/>
 </menu>

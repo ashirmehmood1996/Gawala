@@ -46,11 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isInternetAvailable() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-        if (networkInfo != null && networkInfo.isConnected()) {
-            return true;
-        } else {
-            return false;
-        }
+        return networkInfo != null && networkInfo.isConnected();
     }
 
     private void sendUserToRelevantActiviy() {
@@ -89,12 +85,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 }
+
+
+// TODO: 7/13/2019 NOW should do all these in this weekend
 // TODO: 6/26/2019  make an early version of this app with in these 5 days
 //  below are some abstract level steps each one need further expalanation.
-//  1) make a connection to firebase // now here
-//  2) initially no map is to be displayed
-//  3) create a  mechanism to have connections of the consumers and providers
+//  3) create a  mechanism to have connections of the consumers and providers //now here
 //  4) on the tap of a button producer will share location to consumer
 //  5) consimer will simple get the values initilly then we will go for the map later
 //  6) its time to add maps on both sides
-//  7) now make the things funtional on the app.
+//  7) now make the things funtional on the app
+//  later work is below.
+//  in a fragment of activity we can show near by producers and their image rates distance, reviews, along with an option for connection request and adjust timmings .
