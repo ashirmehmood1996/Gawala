@@ -4,8 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -87,13 +87,8 @@ public class MainActivity extends AppCompatActivity {
 }
 
 
-// TODO: 7/13/2019 NOW should do all these in this weekend
-// TODO: 6/26/2019  make an early version of this app with in these 5 days
-//  below are some abstract level steps each one need further expalanation.
-//  3) create a  mechanism to have connections of the consumers and providers //now here
-//  4) on the tap of a button producer will share location to consumer
-//  5) consimer will simple get the values initilly then we will go for the map later
-//  6) its time to add maps on both sides
-//  7) now make the things funtional on the app
-//  later work is below.
-//  in a fragment of activity we can show near by producers and their image rates distance, reviews, along with an option for connection request and adjust timmings .
+// TODO: 7/27/2019
+//  get your initial location and mark dstination location  show this on map calculate the time required to reach the destination once
+//  a start journy button is pressed. the time will be calculated on the bases of velocity of the person and path can be straight initially for testing
+//  .
+//  in a fragment of activity we can show near by producers and their image rates distance, reviews, along with an option for connection request and adjust timmings ..

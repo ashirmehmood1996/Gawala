@@ -4,11 +4,12 @@ import android.app.Service;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Intent;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
+import android.content.IntentSender;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,7 +23,15 @@ import com.android.example.gawala.Models.ConnectedConsumersModel;
 import com.android.example.gawala.Models.RequestModel;
 import com.android.example.gawala.R;
 import com.firebase.ui.auth.AuthUI;
+import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -58,6 +67,9 @@ public class ProducerActivity extends AppCompatActivity implements RequestsAdapt
         loadRequests();
 
         loadConnectedConsumers();
+
+        //// TODO: 7/27/2019 need runtime permissions for accessing fine locations
+        createLocationRequest();
     }
 
 
@@ -222,6 +234,48 @@ public class ProducerActivity extends AppCompatActivity implements RequestsAdapt
                 requestsAdapter.notifyItemRemoved(position);
                 requestsAdapter.notifyItemRangeChanged(position, requestModelArrayList.size());
                 loadConnectedConsumers();
+            }
+        });
+    }
+
+    //location related
+    protected void createLocationRequest() {
+        final LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setInterval(1000);
+        locationRequest.setFastestInterval(500);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(locationRequest);
+
+        SettingsClient client = LocationServices.getSettingsClient(this);
+
+        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
+
+        task.addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
+            @Override
+            public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                Toast.makeText(ProducerActivity.this, "Success", Toast.LENGTH_SHORT).show();
+
+            }
+        });
+        task.addOnFailureListener(this, new OnFailureListener() {
+            @Override
+            public void onFailure(@androidx.annotation.NonNull Exception e) {
+                if (e instanceof ResolvableApiException) {
+                    Toast.makeText(ProducerActivity.this, "resolvable failure", Toast.LENGTH_SHORT).show();
+//               try {
+//                   // Show the dialog by calling startResolutionForResult(),
+//                   // and check the result in onActivityResult().
+////                   ResolvableApiException resolvable = (ResolvableApiException) e;
+////                   resolvable.startResolutionForResult(ProducerActivity.this,
+////                           REQUEST_CHECK_SETTINGS);
+//               } catch (IntentSender.SendIntentException sendEx) {
+//                   // Ignore the error.
+//               }
+                } else {
+                    Toast.makeText(ProducerActivity.this, "non resolvable failure", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
