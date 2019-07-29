@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-
     <item
-        android:id="@+id/nav_producer_logout"
+        android:id="@+id/nav_producer_map_logout"
         android:title="logout"/>
 
     <item
-        android:id="@+id/nav_producer_share_id"
+        android:id="@+id/nav_producer_map_share_id"
         android:title="share id"/>
+
+    <item  android:id="@+id/nav_producer_map_requests"
+        android:title="Requests"/>
 </menu>

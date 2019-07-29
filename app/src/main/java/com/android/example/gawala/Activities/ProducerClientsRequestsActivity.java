@@ -1,17 +1,17 @@
 package com.android.example.gawala.Activities;
 
-import android.app.Service;
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Intent;
-import android.content.IntentSender;
+import android.Manifest;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import android.view.Menu;
-import android.view.MenuItem;
+
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,9 +22,11 @@ import com.android.example.gawala.Interfaces.RequestsAdapterCallbacks;
 import com.android.example.gawala.Models.ConnectedConsumersModel;
 import com.android.example.gawala.Models.RequestModel;
 import com.android.example.gawala.R;
-import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
@@ -42,7 +44,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
-public class ProducerActivity extends AppCompatActivity implements RequestsAdapterCallbacks {
+public class ProducerClientsRequestsActivity extends AppCompatActivity implements RequestsAdapterCallbacks {
 
     private TextView newRequestsTitleTextView;
     private RecyclerView requestsRecyclerView;
@@ -63,12 +65,16 @@ public class ProducerActivity extends AppCompatActivity implements RequestsAdapt
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_producer);
 
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         initfields();
         loadRequests();
 
         loadConnectedConsumers();
 
         //// TODO: 7/27/2019 need runtime permissions for accessing fine locations
+        // TODO: 7/27/2019 ur on GPS if not active
+        //// TODO: 7/27/2019 for the purpose of Gps use a broadcast reciever for making changes as desired
+        //now i am able to ge the location now further take the next lessonss
         createLocationRequest();
     }
 
@@ -148,40 +154,7 @@ public class ProducerActivity extends AppCompatActivity implements RequestsAdapt
                 });
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.producer, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        if (item.getItemId() == R.id.nav_producer_logout) {
-            if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-                AuthUI.getInstance()
-                        .signOut(this)
-                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if (task.isSuccessful()) {
-                                    Toast.makeText(ProducerActivity.this, "logout successfull", Toast.LENGTH_SHORT).show();
-                                    startActivity(new Intent(ProducerActivity.this, LoginActivity.class));
-                                    finish();
-                                }
-                            }
-                        });
-            } else {
-                Toast.makeText(this, "already logged out", Toast.LENGTH_SHORT).show();
-            }
-        } else if (item.getItemId() == R.id.nav_producer_share_id) {
-            ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Service.CLIPBOARD_SERVICE);
-            ClipData clipData = ClipData.newPlainText("user_id", FirebaseAuth.getInstance().getCurrentUser().getUid());
-            clipboardManager.setPrimaryClip(clipData);
-            Toast.makeText(this, "id copied to clipboard", Toast.LENGTH_SHORT).show();
-        }
-        return super.onOptionsItemSelected(item);
-    }
 
     @Override
     public void onRequestCancel(int position) {
@@ -205,7 +178,7 @@ public class ProducerActivity extends AppCompatActivity implements RequestsAdapt
                         if (task.isSuccessful()) {
                             removeRequestNode(requestModel.getSender_id(), true, position);
                         } else {
-                            Toast.makeText(ProducerActivity.this, "something went wrong try later", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ProducerClientsRequestsActivity.this, "something went wrong try later", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -221,13 +194,13 @@ public class ProducerActivity extends AppCompatActivity implements RequestsAdapt
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
                     if (isAccepted) {
-                        Toast.makeText(ProducerActivity.this, "Client added successfully", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ProducerClientsRequestsActivity.this, "Client added successfully", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(ProducerActivity.this, "request removed successfully", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ProducerClientsRequestsActivity.this, "request removed successfully", Toast.LENGTH_SHORT).show();
 
                     }
                 } else {
-                    Toast.makeText(ProducerActivity.this, "something went wrong try later", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ProducerClientsRequestsActivity.this, "something went wrong try later", Toast.LENGTH_SHORT).show();
                 }
                 requestModelArrayList.remove(position);
                 requestsAdapter.notifyItemRemoved(position);
@@ -255,7 +228,8 @@ public class ProducerActivity extends AppCompatActivity implements RequestsAdapt
         task.addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
             @Override
             public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                Toast.makeText(ProducerActivity.this, "Success", Toast.LENGTH_SHORT).show();
+                Toast.makeText(ProducerClientsRequestsActivity.this, "Success", Toast.LENGTH_SHORT).show();
+                requestLocationUpdates();
 
             }
         });
@@ -263,20 +237,63 @@ public class ProducerActivity extends AppCompatActivity implements RequestsAdapt
             @Override
             public void onFailure(@androidx.annotation.NonNull Exception e) {
                 if (e instanceof ResolvableApiException) {
-                    Toast.makeText(ProducerActivity.this, "resolvable failure", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ProducerClientsRequestsActivity.this, "resolvable failure", Toast.LENGTH_SHORT).show();
 //               try {
 //                   // Show the dialog by calling startResolutionForResult(),
 //                   // and check the result in onActivityResult().
 ////                   ResolvableApiException resolvable = (ResolvableApiException) e;
-////                   resolvable.startResolutionForResult(ProducerActivity.this,
+////                   resolvable.startResolutionForResult(ProducerClientsRequestsActivity.this,
 ////                           REQUEST_CHECK_SETTINGS);
 //               } catch (IntentSender.SendIntentException sendEx) {
 //                   // Ignore the error.
 //               }
+
                 } else {
-                    Toast.makeText(ProducerActivity.this, "non resolvable failure", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ProducerClientsRequestsActivity.this, "non resolvable failure", Toast.LENGTH_SHORT).show();
                 }
             }
         });
+    }
+
+    private void requestLocationUpdates() {
+        LocationRequest request = new LocationRequest();
+        request.setInterval(10000);
+        request.setFastestInterval(5000);
+        request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(this);
+        //final String path = getString(R.string.firebase_path) + "/" + getString(R.string.transport_id);
+        int permission = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION);
+        if (permission == PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "have permissions", Toast.LENGTH_SHORT).show();
+            // Request location updates and when an update is
+            // received, store the location in Firebase
+            client.requestLocationUpdates(request, new LocationCallback() {
+                @Override
+                public void onLocationResult(LocationResult locationResult) {
+
+                    Toast.makeText(ProducerClientsRequestsActivity.this, "", Toast.LENGTH_SHORT).show();
+                    FirebaseDatabase.getInstance().getReference().child("locationUpdaes")
+                            .push().setValue(locationResult).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(ProducerClientsRequestsActivity.this, "node updated", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(ProducerClientsRequestsActivity.this, "error updatinf firebase", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+//                    DatabaseReference ref = FirebaseDatabase.getInstance().getReference(path);
+//                    Location location = locationResult.getLastLocation();
+//                    if (location != null) {
+//                        Log.d(TAG, "location update " + location);
+//                        ref.setValue(location);
+//                    }
+                }
+            }, null);
+        } else {
+            Toast.makeText(this, "no permissions", Toast.LENGTH_SHORT).show();
+        }
     }
 }

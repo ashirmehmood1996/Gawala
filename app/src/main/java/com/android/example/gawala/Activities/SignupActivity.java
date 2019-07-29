@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.android.example.gawala.NavProducerMapActivity;
 import com.android.example.gawala.R;
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -147,7 +148,7 @@ public class SignupActivity extends AppCompatActivity {
 
         if (userType != null && userType.equals("producer")) {
             //            showProgressBar(false);
-            startActivity(new Intent(this, ProducerActivity.class));
+            startActivity(new Intent(this, NavProducerMapActivity.class));
             finish();
         } else if (userType != null && userType.equals("consumer")) {
             //          showProgressBar(false);

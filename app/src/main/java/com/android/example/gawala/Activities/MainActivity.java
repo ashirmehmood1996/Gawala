@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import com.android.example.gawala.NavProducerMapActivity;
 import com.android.example.gawala.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -62,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
                     String userType = dataSnapshot.getValue(String.class);
                     if (userType != null && userType.equals("producer")) {
                         //            showProgressBar(false);
-                        startActivity(new Intent(MainActivity.this, ProducerActivity.class));
+                        startActivity(new Intent(MainActivity.this, NavProducerMapActivity.class));
                         finish();
                     } else if (userType != null && userType.equals("consumer")) {
                         //          showProgressBar(false);
