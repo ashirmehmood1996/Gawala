@@ -23,5 +23,8 @@
     <string name="menu_tools">Tools</string>
     <string name="menu_share">Share</string>
     <string name="menu_send">Send</string>
+    <string name="distance_matrix_api_key">AIzaSyDoDEsuwoTeQO4SfjqCiJJ3vlHHKi3G_2o</string>
+    <string name="directions_api">AIzaSyDoDEsuwoTeQO4SfjqCiJJ3vlHHKi3G_2o</string>
+
 
 </resources>

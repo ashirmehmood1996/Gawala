@@ -1,8 +1,10 @@
 package com.android.example.gawala.Activities;
 
 import android.content.Intent;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,15 +21,18 @@ import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.Iterator;
+import java.util.Calendar;
+import java.util.HashMap;
 
-public class ConsumerActivity extends AppCompatActivity implements View.OnClickListener {
+public class ConsumerRequestsActivity extends AppCompatActivity implements View.OnClickListener {
 
 
     private EditText searchEditText;
@@ -50,6 +55,8 @@ public class ConsumerActivity extends AppCompatActivity implements View.OnClickL
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_consumer);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 
         initFields();
@@ -83,48 +90,30 @@ public class ConsumerActivity extends AppCompatActivity implements View.OnClickL
     }
 
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.consumer, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        if (item.getItemId() == R.id.nav_consumer_logout) {
-            if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-                AuthUI.getInstance()
-                        .signOut(this)
-                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if (task.isSuccessful()) {
-                                    Toast.makeText(ConsumerActivity.this, "logout successfull", Toast.LENGTH_SHORT).show();
-                                    startActivity(new Intent(ConsumerActivity.this, LoginActivity.class));
-                                    finish();
-                                }
-                            }
-                        });
-            } else {
-                Toast.makeText(this, "already logged out", Toast.LENGTH_SHORT).show();
-            }
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
     private void loadConectedProducers() {
-
-        rootRef.child("clients").orderByChild(myId).equalTo(FirebaseAuth.getInstance().getCurrentUser().getPhoneNumber())
+        //lter deal with query
+        rootRef.child("clients")/*.orderByChild("number").equalTo(FirebaseAuth.getInstance().getCurrentUser().getPhoneNumber())*/
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         if (dataSnapshot.exists()) {
-                            String key = dataSnapshot.getChildren().iterator().next().getKey();//consumer key
 
-                            producerItemConatiner.setVisibility(View.VISIBLE);
-                            producerNameTextView.setText(key);
+                            for (DataSnapshot producerSnap : dataSnapshot.getChildren()) {
 
+                                for (DataSnapshot clientSnap : producerSnap.getChildren()) {
+                                    if (clientSnap.getKey().equals(myId)) {
+                                        String key = producerSnap.getKey();//producer key
+
+                                        producerItemConatiner.setVisibility(View.VISIBLE);
+                                        producerNameTextView.setText(key);
+
+
+                                        break;
+                                    }
+
+                                }
+
+                            }
 
                             // TODO: 7/14/2019  later change the query along with the change in data
                         }
@@ -136,7 +125,6 @@ public class ConsumerActivity extends AppCompatActivity implements View.OnClickL
 
                     }
                 });
-
 
     }
 
@@ -157,7 +145,7 @@ public class ConsumerActivity extends AppCompatActivity implements View.OnClickL
                 break;
             case R.id.bt_con_send_request:
 
-                sendRequestToProducer();
+                sendRequestToProducer(v);
                 break;
         }
     }
@@ -171,13 +159,13 @@ public class ConsumerActivity extends AppCompatActivity implements View.OnClickL
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         if (dataSnapshot.exists()) {
                             if (!dataSnapshot.child("type").getValue(String.class).equals("producer")) {
-                                Toast.makeText(ConsumerActivity.this, "no producer found with this id", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(ConsumerRequestsActivity.this, "no producer found with this id", Toast.LENGTH_SHORT).show();
                                 return;
                             }
                             displayProducerInfo(dataSnapshot);
-                            Toast.makeText(ConsumerActivity.this, "producer found", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ConsumerRequestsActivity.this, "producer found", Toast.LENGTH_SHORT).show();
                         } else
-                            Toast.makeText(ConsumerActivity.this, "no producer found with this id", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ConsumerRequestsActivity.this, "no producer found with this id", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
@@ -209,28 +197,41 @@ public class ConsumerActivity extends AppCompatActivity implements View.OnClickL
         searchResultTextView.setText(result);
     }
 
-    private void sendRequestToProducer() {
+    private void sendRequestToProducer(final View v) {
         if (selectedProducerID == null) {
             Toast.makeText(this, "user is invaid", Toast.LENGTH_SHORT).show();
             return;
         }
+
+
+        HashMap<String, Object> requestMap = new HashMap<>();
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        requestMap.put("number", currentUser.getPhoneNumber());
+        requestMap.put("name", currentUser.getDisplayName());
+        requestMap.put("time_stamp", Calendar.getInstance().getTimeInMillis() + "");// // TODO: 8/8/2019  later deal with time zones
         FirebaseDatabase.getInstance().getReference()
                 .child("requests")
                 .child(selectedProducerID).child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                .setValue(FirebaseAuth.getInstance().getCurrentUser().getPhoneNumber())
+                .setValue(requestMap)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
-                            Toast.makeText(ConsumerActivity.this, "request sent now deal with UI too", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ConsumerRequestsActivity.this, "request sent now deal with UI too", Toast.LENGTH_SHORT).show();
+
+                            ((Button) v).setText("request sent");// FIXME: 8/8/2019 later deal with it more polietly
+                            v.setEnabled(false);
 
                         } else {
-                            Toast.makeText(ConsumerActivity.this, "failed to send request", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ConsumerRequestsActivity.this, "failed to send request", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
     }
 
 // TODO: 6/30/2019  later deal with cancel friend request
+
 // TODO: 6/30/2019  avoid sending request to a producer thats already connected
+
+
 }

@@ -1,8 +1,10 @@
 package com.android.example.gawala.Adapters;
 
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,7 +35,7 @@ public class ConnectedConsumersAdapter extends RecyclerView.Adapter<ConnectedCon
     public void onBindViewHolder(@NonNull ConnectedConsumersHolder connectedConsumersHolder, int i) {
         ConnectedConsumersModel connectedConsumersModel = connectedConsumersModelArrayList.get(i);
         connectedConsumersHolder.nameTextView.setText(connectedConsumersModel.getName());
-        connectedConsumersHolder.locationTextView.setText("implement later");
+        connectedConsumersHolder.locationTextView.setText(connectedConsumersModel.getNumber());
 
 
     }

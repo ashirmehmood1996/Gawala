@@ -1,9 +1,11 @@
 package com.android.example.gawala.Activities;
 
 import android.content.Intent;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -12,12 +14,14 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.android.example.gawala.NavProducerMapActivity;
+import com.android.example.gawala.ProducerNavMapActivity;
 import com.android.example.gawala.R;
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -30,7 +34,7 @@ import java.util.List;
 public class SignupActivity extends AppCompatActivity {
 
     private static final int RC_REGISTER = 101;
-    private EditText numberEditText;
+    private EditText nameEditText, numberEditText;
     private Button registerButton;
     private Spinner typeSpinner;
 
@@ -40,18 +44,20 @@ public class SignupActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-        getSupportActionBar().setTitle("Sign up..");
+        //getSupportActionBar().setTitle("Sign up..");
         initFields();
         attachListeners();
     }
 
 
     private void initFields() {
+        nameEditText = findViewById(R.id.et_register_name);
         numberEditText = findViewById(R.id.et_register_number);
         registerButton = findViewById(R.id.bt_register_register);
         typeSpinner = findViewById(R.id.sp_register_type);
         //setSpinner
         setSpinner();
+
     }
 
     private void setSpinner() {
@@ -65,7 +71,8 @@ public class SignupActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //perform necessary checks
                 String numebr = numberEditText.getText().toString();// TODO: 6/21/2019 check that of number is in valid format take help from tracker
-                if (numebr.isEmpty()) {
+                String name = nameEditText.getText().toString();
+                if (numebr.isEmpty() || name.isEmpty()) {
                     Toast.makeText(SignupActivity.this, "please fill out the fields first", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -84,7 +91,7 @@ public class SignupActivity extends AppCompatActivity {
                     Toast.makeText(SignupActivity.this, "this numeber is already registered", Toast.LENGTH_SHORT).show();
 
                 } else {
-                    createNewAccount();
+                    createNewAccount(number);
 
                 }
             }
@@ -96,10 +103,10 @@ public class SignupActivity extends AppCompatActivity {
         });
     }
 
-    private void createNewAccount() {
+    private void createNewAccount(String number) {
 
         List<AuthUI.IdpConfig> providers = Arrays.asList(new AuthUI.IdpConfig.PhoneBuilder()
-                .setDefaultNumber(numberEditText.getText().toString()).build());
+                .setDefaultNumber(number).build());
         startActivityForResult(AuthUI.getInstance()
                 .createSignInIntentBuilder()
                 .setAvailableProviders(providers).build(), RC_REGISTER);
@@ -119,6 +126,22 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     private void updateDatabaseAndSendToReleventActivity() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        UserProfileChangeRequest userProfileChangeRequest = new UserProfileChangeRequest.Builder()
+                .setDisplayName(nameEditText.getText().toString()).build();
+        currentUser.updateProfile(userProfileChangeRequest).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()){
+                    Toast.makeText(SignupActivity.this, "profile updated successfully", Toast.LENGTH_SHORT).show();
+                }else {
+                    Toast.makeText(SignupActivity.this, "profile updated failed", Toast.LENGTH_SHORT).show();
+                }
+                //// FIXME: 8/8/2019 do some thing if  needed may be uodate dataabse after this step is csuccessfull
+            }
+        });
+
+
         HashMap<String, Object> userMap = new HashMap<>();
 
         final String type;
@@ -128,7 +151,9 @@ public class SignupActivity extends AppCompatActivity {
             type = "consumer";
         }
         userMap.put("number", numberEditText.getText().toString());
+        userMap.put("name", nameEditText.getText().toString().trim());
         userMap.put("type", type);
+
 
         FirebaseDatabase.getInstance().getReference().child("users")
                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
@@ -148,11 +173,11 @@ public class SignupActivity extends AppCompatActivity {
 
         if (userType != null && userType.equals("producer")) {
             //            showProgressBar(false);
-            startActivity(new Intent(this, NavProducerMapActivity.class));
+            startActivity(new Intent(this, ProducerNavMapActivity.class));
             finish();
         } else if (userType != null && userType.equals("consumer")) {
             //          showProgressBar(false);
-            startActivity(new Intent(this, ConsumerActivity.class));
+            startActivity(new Intent(this, ConsumerDashBoardActivity.class));
             finish();
         } else {
             Toast.makeText(this, "some error accured please restart the application", Toast.LENGTH_SHORT).show();

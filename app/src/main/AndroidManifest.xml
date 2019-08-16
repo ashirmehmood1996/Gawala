@@ -12,17 +12,21 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
+        android:name=".App"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity
-            android:name=".NavProducerMapActivity"
-            android:label="@string/title_activity_nav_producer_map"
-            android:theme="@style/AppTheme.NoActionBar">
+        <activity android:name=".Activities.ConsumerDashBoardActivity"
+            >
+
         </activity>
+        <activity
+            android:name=".ProducerNavMapActivity"
+            android:label="@string/title_activity_nav_producer_map"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -35,12 +39,14 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <activity android:name=".Activities.ConsumerActivity" />
+        <activity android:name=".Activities.ConsumerRequestsActivity"
+            android:parentActivityName=".Activities.ConsumerDashBoardActivity"/>
         <activity
             android:name=".Activities.ProducerClientsRequestsActivity"
             android:label="@string/requests"
-            android:parentActivityName=".NavProducerMapActivity" />
-        <activity android:name=".Activities.SignupActivity" />
+            android:parentActivityName=".ProducerNavMapActivity" />
+        <activity android:name=".Activities.SignupActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
         <activity android:name=".Activities.LoginActivity" />
         <activity android:name=".Activities.MainActivity">
             <intent-filter>

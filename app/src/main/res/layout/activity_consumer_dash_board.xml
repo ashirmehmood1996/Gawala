@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".Activities.ConsumerDashBoardActivity">
+
+
+    <TextView
+        android:id="@+id/tv_con_dash_producer_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+
+        android:gravity="center"
+        android:text="Prodcuer is on the way/Prodcuer didnt start his journy/ producer will reach the door in 1 minute approx"
+        android:textColor="@color/textColorConversationListItemTitle"
+        android:textSize="20sp" />
+
+    <Button
+        android:id="@+id/bt_con_dash_goto_requests"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="6dp"
+        android:background="@drawable/bg_button_solid"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:text="Connect to producer"
+        android:textColor="#ffffff"
+        android:visibility="gone" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:layout_marginLeft="6dp"
+
+        android:text="this month summery"
+        android:textColor="@color/textColorConversationListItemTitle"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="6dp"
+        android:background="@drawable/bg_containers"
+        android:orientation="horizontal"
+        android:padding="6dp">
+
+        <TextView
+            android:id="@+id/tv_con_dash_total_milk"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:padding="6dp"
+            android:text="10 liters of milk recieved"
+            android:textSize="18sp" />
+
+        <View
+            android:layout_width="0.4dp"
+            android:layout_height="match_parent"
+            android:background="#000000" />
+
+        <TextView
+            android:id="@+id/tv_con_dash_total_amount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:padding="6dp"
+            android:text="total amount payable 1100 rupees"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="6dp"
+        android:background="@drawable/bg_containers"
+        android:orientation="horizontal"
+        android:padding="6dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Milk Demand Today"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tv_con_dash_demand"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:textSize="22sp"
+            android:textStyle="bold|italic"
+            tools:text="1.5 litre(s)" />
+
+        <ImageButton
+            android:id="@+id/ib_con_dash_edit_demand"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_bt_round"
+            android:elevation="4dp"
+            android:padding="10dp"
+            android:src="@drawable/ic_mode_edit_black_24dp" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/bt_con_dash_not_at_home"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="6dp"
+        android:background="@drawable/bg_button_solid"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:text="I am not at home"
+        android:textColor="#ffffff" />
+
+</LinearLayout>

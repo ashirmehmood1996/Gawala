@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1002137067761",
+    "firebase_url": "https://checkingmaps-588fb.firebaseio.com",
+    "project_id": "checkingmaps-588fb",
+    "storage_bucket": "checkingmaps-588fb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1002137067761:android:9c2e53389d9df2ee",
+        "android_client_info": {
+          "package_name": "com.android.example.gawala"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1002137067761-gi77f3h3nf640qjlfh0inalr7br08qq3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.android.example.gawala",
+            "certificate_hash": "33d8accec0a8eb4608893a71d7fb945bed30a617"
+          }
+        },
+        {
+          "client_id": "1002137067761-u95q7j3cfks4f3q1ib93lecndgq0hcd6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoDEsuwoTeQO4SfjqCiJJ3vlHHKi3G_2o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1002137067761-u95q7j3cfks4f3q1ib93lecndgq0hcd6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

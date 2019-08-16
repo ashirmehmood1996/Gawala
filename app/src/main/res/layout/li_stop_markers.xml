@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <View
+        android:id="@+id/v_sos_history_list_item_divider"
+        android:layout_width="match_parent"
+        android:layout_height=".3dp"
+        android:layout_below="@id/ll_li_stops_markers_container"
+        android:layout_marginStart="82dp"
+        android:layout_marginLeft="82dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
+        android:background="@color/textColorConversationListItemDetail" />
+
+    <LinearLayout
+        android:id="@+id/ll_li_stops_markers_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/contacts_list_item_background"
+        android:clickable="true"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="@drawable/ic_add_location_black_24dp" />
+
+
+        <TextView
+            android:id="@+id/tv_li_stops_markers_location"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:paddingStart="8dp"
+            android:paddingLeft="8dp"
+            android:textColor="@color/textColorConversationListItemTitle"
+            android:textSize="14sp"
+            tools:text="descriptions jkasda asjkd asdka sdlaks dalsd asld as ldlas dlas d asdl asl dlas da sd" />
+
+
+        <TextView
+            android:id="@+id/tv_li_stops_markers_time_stamp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text=" 00:00"
+            android:textColor="@color/textColorConversationListItemDetail"
+            android:textSize="12sp" />
+    </LinearLayout>
+</RelativeLayout>

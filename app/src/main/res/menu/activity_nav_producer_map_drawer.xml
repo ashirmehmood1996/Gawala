@@ -3,23 +3,43 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
 
-    <group android:checkableBehavior="single">
+    <item android:title="functions">
+        <menu>
+            <item
+                android:id="@+id/nav_producer_map_start_riding"
+
+                android:icon="@drawable/ic_flight_takeoff_black_24dp"
+                android:title="start riding" />
+            <item
+                android:id="@+id/nav_producer_map_abort_riding"
+                android:icon="@drawable/ic_do_not_disturb_alt_black_24dp"
+                android:title="abort journy" />
+            <item
+                android:id="@+id/nav_producer_map_add_new_stop"
+                android:icon="@drawable/ic_add_location_black_24dp"
+                android:title="add new stop" />
+            <item
+                android:id="@+id/nav_producer_map_all_stops"
+                android:icon="@drawable/ic_format_list_bulleted_black_24dp"
+                android:title="all stops" />
+        </menu>
+
+    </item>
+    <group>
         <item
-            android:id="@+id/nav_home"
-            android:icon="@drawable/ic_menu_camera"
-            android:title="@string/menu_home" />
+            android:id="@+id/nav_producer_map_logout"
+            android:icon="@drawable/ic_call_missed_outgoing_black_24dp"
+            android:title="logout" />
+
         <item
-            android:id="@+id/nav_gallery"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="@string/menu_gallery" />
+            android:id="@+id/nav_producer_map_share_id"
+            android:icon="@drawable/ic_menu_share"
+            android:title="share id" />
+
         <item
-            android:id="@+id/nav_slideshow"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="@string/menu_slideshow" />
-        <item
-            android:id="@+id/nav_tools"
-            android:icon="@drawable/ic_menu_manage"
-            android:title="@string/menu_tools" />
+            android:id="@+id/nav_producer_map_requests"
+            android:icon="@drawable/ic_group_black_24dp"
+            android:title="Requests" />
     </group>
 
     <item android:title="Communicate">

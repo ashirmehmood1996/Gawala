@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff"
+    tools:context=".fragments.StopsListFragement">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_marginTop="@dimen/top_margin_nav_prod_map"
+        android:id="@+id/rv_frag_stop_markers_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+
+</FrameLayout>

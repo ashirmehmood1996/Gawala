@@ -43,6 +43,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ProducerClientsRequestsActivity extends AppCompatActivity implements RequestsAdapterCallbacks {
 
@@ -67,15 +68,11 @@ public class ProducerClientsRequestsActivity extends AppCompatActivity implement
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         initfields();
-        loadRequests();
 
+        loadRequests();
         loadConnectedConsumers();
 
-        //// TODO: 7/27/2019 need runtime permissions for accessing fine locations
-        // TODO: 7/27/2019 ur on GPS if not active
-        //// TODO: 7/27/2019 for the purpose of Gps use a broadcast reciever for making changes as desired
-        //now i am able to ge the location now further take the next lessonss
-        createLocationRequest();
+
     }
 
 
@@ -112,8 +109,12 @@ public class ProducerClientsRequestsActivity extends AppCompatActivity implement
                         if (dataSnapshot.exists()) {//then there are a number of requests
                             for (DataSnapshot requestSnap : dataSnapshot.getChildren()) {
                                 String senderID = requestSnap.getKey();
-                                String number = requestSnap.getValue(String.class);//later add more fileds to requests
-                                requestModelArrayList.add(new RequestModel(senderID, number, null, null, null));
+
+
+                                String name = requestSnap.child("name").getValue(String.class);
+                                String number = requestSnap.child("number").getValue(String.class);
+                                String timeStamp = requestSnap.child("time_stamp").getValue(String.class);
+                                requestModelArrayList.add(new RequestModel(senderID, name, number, timeStamp, null, null));
                             }
                             requestsAdapter.notifyDataSetChanged();
                         } else {
@@ -139,8 +140,10 @@ public class ProducerClientsRequestsActivity extends AppCompatActivity implement
                         if (dataSnapshot.exists()) {
                             for (DataSnapshot consumerSnapshot : dataSnapshot.getChildren()) {
                                 String consumerKey = consumerSnapshot.getKey();
-                                String number = consumerSnapshot.getValue(String.class);
-                                consumersArrayList.add(new ConnectedConsumersModel(consumerKey, number, null, null));
+
+                                String number = consumerSnapshot.child("number").getValue(String.class);
+                                String name = consumerSnapshot.child("name").getValue(String.class);
+                                consumersArrayList.add(new ConnectedConsumersModel(consumerKey, name, number, null, null));
                             }
 
                         }
@@ -155,7 +158,6 @@ public class ProducerClientsRequestsActivity extends AppCompatActivity implement
     }
 
 
-
     @Override
     public void onRequestCancel(int position) {
         final RequestModel requestModel = requestModelArrayList.get(position);
@@ -168,10 +170,18 @@ public class ProducerClientsRequestsActivity extends AppCompatActivity implement
         final RequestModel requestModel = requestModelArrayList.get(position);
 
 
+        HashMap<String, Object> clientMap = new HashMap<>();
+
+        String name = requestModel.getName();
+        String number = requestModel.getNumber();
+        String time = requestModel.getTime_stamp();
+        clientMap.put("name", name);
+        clientMap.put("number", number);
+        //clientMap.put("time_stamp",time);
         FirebaseDatabase.getInstance().getReference()
-                .child("clients").child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .child("clients").child(myID)
                 .child(requestModel.getSender_id())
-                .setValue(requestModel.getName())
+                .setValue(clientMap)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -210,90 +220,5 @@ public class ProducerClientsRequestsActivity extends AppCompatActivity implement
             }
         });
     }
-
-    //location related
-    protected void createLocationRequest() {
-        final LocationRequest locationRequest = LocationRequest.create();
-        locationRequest.setInterval(1000);
-        locationRequest.setFastestInterval(500);
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(locationRequest);
-
-        SettingsClient client = LocationServices.getSettingsClient(this);
-
-        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
-
-        task.addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
-            @Override
-            public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                Toast.makeText(ProducerClientsRequestsActivity.this, "Success", Toast.LENGTH_SHORT).show();
-                requestLocationUpdates();
-
-            }
-        });
-        task.addOnFailureListener(this, new OnFailureListener() {
-            @Override
-            public void onFailure(@androidx.annotation.NonNull Exception e) {
-                if (e instanceof ResolvableApiException) {
-                    Toast.makeText(ProducerClientsRequestsActivity.this, "resolvable failure", Toast.LENGTH_SHORT).show();
-//               try {
-//                   // Show the dialog by calling startResolutionForResult(),
-//                   // and check the result in onActivityResult().
-////                   ResolvableApiException resolvable = (ResolvableApiException) e;
-////                   resolvable.startResolutionForResult(ProducerClientsRequestsActivity.this,
-////                           REQUEST_CHECK_SETTINGS);
-//               } catch (IntentSender.SendIntentException sendEx) {
-//                   // Ignore the error.
-//               }
-
-                } else {
-                    Toast.makeText(ProducerClientsRequestsActivity.this, "non resolvable failure", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-    }
-
-    private void requestLocationUpdates() {
-        LocationRequest request = new LocationRequest();
-        request.setInterval(10000);
-        request.setFastestInterval(5000);
-        request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(this);
-        //final String path = getString(R.string.firebase_path) + "/" + getString(R.string.transport_id);
-        int permission = ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION);
-        if (permission == PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "have permissions", Toast.LENGTH_SHORT).show();
-            // Request location updates and when an update is
-            // received, store the location in Firebase
-            client.requestLocationUpdates(request, new LocationCallback() {
-                @Override
-                public void onLocationResult(LocationResult locationResult) {
-
-                    Toast.makeText(ProducerClientsRequestsActivity.this, "", Toast.LENGTH_SHORT).show();
-                    FirebaseDatabase.getInstance().getReference().child("locationUpdaes")
-                            .push().setValue(locationResult).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                Toast.makeText(ProducerClientsRequestsActivity.this, "node updated", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(ProducerClientsRequestsActivity.this, "error updatinf firebase", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    });
-//                    DatabaseReference ref = FirebaseDatabase.getInstance().getReference(path);
-//                    Location location = locationResult.getLastLocation();
-//                    if (location != null) {
-//                        Log.d(TAG, "location update " + location);
-//                        ref.setValue(location);
-//                    }
-                }
-            }, null);
-        } else {
-            Toast.makeText(this, "no permissions", Toast.LENGTH_SHORT).show();
-        }
-    }
 }
+//todo laterdivide user info in pulic and private pulis is demnded by any user but private only by the current user

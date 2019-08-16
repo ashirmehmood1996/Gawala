@@ -15,7 +15,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.example.gawala.NavProducerMapActivity;
+import com.android.example.gawala.ProducerNavMapActivity;
 
 import com.android.example.gawala.R;
 import com.firebase.ui.auth.AuthUI;
@@ -171,11 +171,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     String userType = dataSnapshot.getValue(String.class);
                     if (userType != null && userType.equals("producer")) {
                         //            showProgressBar(false);
-                        startActivity(new Intent(LoginActivity.this, NavProducerMapActivity.class));
+                        startActivity(new Intent(LoginActivity.this, ProducerNavMapActivity.class));
                         finish();
                     } else if (userType != null && userType.equals("consumer")) {
                         //          showProgressBar(false);
-                        startActivity(new Intent(LoginActivity.this, NavProducerMapActivity.class));
+                        startActivity(new Intent(LoginActivity.this, ConsumerDashBoardActivity.class));
                         finish();
                     } else {
                         Toast.makeText(LoginActivity.this, "some error accured please restart the application", Toast.LENGTH_SHORT).show();

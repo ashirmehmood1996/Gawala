@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
     android:padding="16dp"
-    tools:context=".Activities.ConsumerActivity">
+    tools:context=".Activities.ConsumerRequestsActivity">
 
     <LinearLayout
         android:id="@+id/ll_con_seach_container"
@@ -58,11 +58,16 @@
 
             <Button
                 android:id="@+id/bt_con_send_request"
+                android:textColor="#ffffff"
                 android:layout_width="match_parent"
+                android:background="@drawable/bg_button_solid"
                 android:layout_height="wrap_content"
                 android:text="send request" />
         </LinearLayout>
     </LinearLayout>
+
+
+
 
     <LinearLayout
         android:id="@+id/ll_con_prod_container"

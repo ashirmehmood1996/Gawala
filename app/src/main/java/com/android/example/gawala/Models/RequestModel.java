@@ -6,14 +6,19 @@ public class RequestModel {
     private String time_stamp;
     private String location_lat;
     private String location_lon;
+    private String number;
 
-    public RequestModel(String sender_id, String name, String time_stamp, String location_lat, String location_lon) {
+    public RequestModel(String sender_id, String name, String number, String time_stamp, String location_lat, String location_lon) {
         this.sender_id = sender_id;
-
         this.name = name;
+        this.number = number;
         this.time_stamp = time_stamp;
         this.location_lat = location_lat;
         this.location_lon = location_lon;
+    }
+
+    public String getNumber() {
+        return number;
     }
 
     public String getName() {
