@@ -7,8 +7,37 @@
     tools:context=".Activities.MainActivity">
 
     <ProgressBar
+        android:id="@+id/pb_main"
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:layout_centerInParent="true" />
+
+    <LinearLayout
+        android:id="@+id/ll_main_alert_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tv_main_alert"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
+            android:gravity="center"
+            android:text=" ⚠ no internet connection !!! \n turn on internet connection and click refresh"
+            android:textSize="22sp" />
+
+        <Button
+            android:id="@+id/bt_main_refresh"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:background="@drawable/bg_button_solid"
+            android:text="refresh"
+            android:textColor="#ffffff" />
+    </LinearLayout>
 
 </RelativeLayout>

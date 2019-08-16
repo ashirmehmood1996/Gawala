@@ -4,9 +4,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.os.Bundle;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.android.example.gawala.ProducerNavMapActivity;
@@ -19,26 +24,41 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
+    private LinearLayout alertContanerLieanrLayout;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        alertContanerLieanrLayout = findViewById(R.id.ll_main_alert_container);
+        progressBar = findViewById(R.id.pb_main);
     }
 
     @Override
     protected void onStart() {
         if (isInternetAvailable()) {
-
-
             if (FirebaseAuth.getInstance().getCurrentUser() != null) {
                 sendUserToRelevantActiviy();
             } else {
-                startActivity(new Intent(this, LoginActivity.class));
                 finish();
+                startActivity(new Intent(this, LoginActivity.class));
+
             }
         } else {
             // TODO: 6/28/2019  show no internet view
+            progressBar.setVisibility(View.GONE);
+            alertContanerLieanrLayout.setVisibility(View.VISIBLE);
+            alertContanerLieanrLayout.findViewById(R.id.bt_main_refresh)
+                    .setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            finish();
+                            startActivity(getIntent());
+
+                        }
+                    });
             Toast.makeText(this, "please check your internet connection", Toast.LENGTH_SHORT).show();
         }
         super.onStart();

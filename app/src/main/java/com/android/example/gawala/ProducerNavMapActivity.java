@@ -7,6 +7,7 @@ import android.app.Service;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -56,6 +57,8 @@ import com.google.android.gms.tasks.Task;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
@@ -79,6 +82,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
 
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -88,6 +92,13 @@ import java.util.HashMap;
 
 public class ProducerNavMapActivity extends AppCompatActivity
         implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, StopsListFragement.Callbacks, TaskLoadedCallback {
+
+
+    private static final int RC_PERMISSION_ALL = 100;
+    private static final int RC_LOCAION_ON = 101;
+    private final String[] PERMISSIONS = {
+            android.Manifest.permission.READ_EXTERNAL_STORAGE,
+            android.Manifest.permission.ACCESS_FINE_LOCATION};
 
     private static final long FASTEST_INTERVAL = 10000;
     private static final long REQUEST_INTERVAL = 15000;
@@ -106,17 +117,128 @@ public class ProducerNavMapActivity extends AppCompatActivity
     private View journyInfoContainer;
     private TextView distanceTextView, speedTextView, timeTextView;
     private Polyline mCurrentPolyline;
+    private LocationManager locationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_producer_map);
-
         initFields();
+
+        if (!hasPermissions(this, PERMISSIONS)) {
+            requestAllPermissions();
+        } else if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            buildAlertMessageNoGps();
+        }
+
+    }
+
+    private void requestAllPermissions() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Allow Permissions and turn on location")
+                    .setCancelable(false)
+                    .setMessage("In order for this app to function properly, storage and location permissions must be granted")
+                    .setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                ActivityCompat.requestPermissions(ProducerNavMapActivity.this, PERMISSIONS,
+                                        RC_PERMISSION_ALL);
+                            }
+                        }
+                    })
+                    .create().show();
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                ActivityCompat.requestPermissions(this, PERMISSIONS,
+                        RC_PERMISSION_ALL);
+            }
+        }
+    }
+
+    private void buildAlertMessageNoGps() {
+        final android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        builder.setTitle("Enable Location !")
+                .setMessage("Location must be enabled in settings in order to use this app." +
+                        "Want to enable Location?")
+                .setCancelable(false)
+                .setPositiveButton("Yes, Go-to settings", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        startActivityForResult(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS), RC_LOCAION_ON);
+                    }
+                })
+                .setNegativeButton("Exit", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+                        Toast.makeText(ProducerNavMapActivity.this, "location is not enabled app will shut down shortly", Toast.LENGTH_SHORT).show();
+                        final Handler handler = new Handler();
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                //Do something after 100ms
+                                finish();
+                            }
+                        }, 2000);
+                    }
+                });
+        android.app.AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        //mLocationPermissionGranted = false;
+        // If request is cancelled, the result arrays are empty.
+        if (requestCode == RC_PERMISSION_ALL) {
+            if (permissions.length > 0 && /*permissions[0].equals(android.Manifest.permission.READ_EXTERNAL_STORAGE) &&*/ grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                recreate();
+            } else if (grantResults.length > 0 &&/* permissions[0].equals(Manifest.permission.ACCESS_FINE_LOCATION) && */grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                recreate();
+//                    mLocationPermissionGranted = true;
+            } else if (/*grantResults.length > 0 &&*/ grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                Toast.makeText(this, "Permissions denied the app will shut down shortly", Toast.LENGTH_LONG).show();
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        finish();
+                    }
+                }, 2000);
+            }
+        }
+
+        //      donot allow the onmap raedy proceed unless the permissions are granted and gps is on
+//
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == RC_LOCAION_ON) {
+            LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+            if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                Toast.makeText(this, "location is not enabled app will shut down shortly", Toast.LENGTH_SHORT).show();
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        //Do something after 100ms
+                        finish();
+                    }
+                }, 2000);
+            } else {
+                recreate();
+            }
+
+//                }
+        }
+
 
     }
 
     private void initFields() {
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         Toolbar toolbar = findViewById(R.id.tb_producer_nav);
         setSupportActionBar(toolbar);
         drawer = findViewById(R.id.drawer_layout);
@@ -128,7 +250,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-//            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             //getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
         }
 
@@ -691,6 +813,17 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
     }
 
+    private boolean hasPermissions(Context context, String... permissions) {
+        if (context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
 
     private class DistanceMatrixAsyncTask extends AsyncTask<String, Void, String> {
 
@@ -706,7 +839,6 @@ public class ProducerNavMapActivity extends AppCompatActivity
             String requestUrl = strings[0];
             return HttpRequestHelper.requestJsonData(requestUrl);
         }
-
     }
 
 }
