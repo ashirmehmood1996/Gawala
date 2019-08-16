@@ -4,16 +4,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#eAeAeA"
+
     android:animateLayoutChanges="true"
+    android:background="#eAeAeA"
     android:padding="16dp"
     tools:context=".Activities.LoginActivity">
 
+
     <LinearLayout
+        android:id="@+id/ll_login_sub_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:background="@drawable/bg_containers"
+        android:elevation="2dp"
         android:orientation="vertical"
 
 
@@ -22,28 +26,59 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+
             android:orientation="vertical"
-            android:paddingTop="10dp"
+            android:paddingTop="85dp"
             android:paddingBottom="20dp">
 
             <TextView
 
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginLeft="16dp"
                 android:text="phone number"
                 android:textColor="@color/textColorConversationListItemTitle"
                 android:textStyle="bold" />
 
-            <EditText
-                android:id="@+id/et_login_number"
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_edit_text_round"
-                android:hint="+921234567890"
-                android:imeOptions="actionDone"
-                android:inputType="phone"
-                android:padding="16dp" />
+                android:layout_marginTop="5dp"
+                android:orientation="horizontal">
+
+                <com.rilixtech.CountryCodePicker
+                    android:id="@+id/ccp_login"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="2dp"
+                    android:background="@drawable/bg_info_edittext"
+                    app:ccp_hideNameCode="true"
+                    android:gravity="center"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp"
+                    app:ccp_textSize="18sp" />
+
+                <EditText
+                    android:id="@+id/et_login_number"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="3dp"
+                    android:layout_marginLeft="3dp"
+                    android:background="@drawable/bg_info_edittext"
+                    android:drawableRight="@drawable/ic_call_black_24dp"
+                    android:drawablePadding="20dp"
+                    android:hint="1234567890"
+                    android:inputType="numberDecimal"
+                    android:padding="10dp"
+                    android:textSize="18sp" />
+
+            </LinearLayout>
+
+
         </LinearLayout>
+
         <TextView
             android:id="@+id/tv_login_wrong_input"
             android:layout_width="wrap_content"
@@ -74,6 +109,15 @@
             android:text="Register" />
 
     </LinearLayout>
+
+    <ImageView
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_alignTop="@id/ll_login_sub_container"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="-75dp"
+        android:elevation="2dp"
+        android:src="@mipmap/ic_launcher_round" />
 
 
 </RelativeLayout>

@@ -1,16 +1,21 @@
 package com.android.example.gawala.Activities;
 
+import android.content.Context;
 import android.content.Intent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -26,6 +31,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.rilixtech.CountryCodePicker;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -34,9 +40,14 @@ import java.util.List;
 public class SignupActivity extends AppCompatActivity {
 
     private static final int RC_REGISTER = 101;
+    private CountryCodePicker countryCodePicker;
     private EditText nameEditText, numberEditText;
     private Button registerButton;
     private Spinner typeSpinner;
+
+    private String mNumber = "";
+
+    private AlertDialog mAlertDialog;
 
 
     @Override
@@ -52,7 +63,9 @@ public class SignupActivity extends AppCompatActivity {
 
     private void initFields() {
         nameEditText = findViewById(R.id.et_register_name);
+        countryCodePicker = findViewById(R.id.ccp_register);
         numberEditText = findViewById(R.id.et_register_number);
+
         registerButton = findViewById(R.id.bt_register_register);
         typeSpinner = findViewById(R.id.sp_register_type);
         //setSpinner
@@ -71,15 +84,32 @@ public class SignupActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //perform necessary checks
                 String numebr = numberEditText.getText().toString();// TODO: 6/21/2019 check that of number is in valid format take help from tracker
+
                 String name = nameEditText.getText().toString();
                 if (numebr.isEmpty() || name.isEmpty()) {
                     Toast.makeText(SignupActivity.this, "please fill out the fields first", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                checkAvailabilityOfNumber(numebr);
+
+
+                if (isInternetAvailable()) {
+                    initializeDialog();
+                    mAlertDialog.show();
+                    mNumber = "+" + countryCodePicker.getSelectedCountryCode() + numebr;
+                    checkAvailabilityOfNumber(mNumber);
+                } else {
+                    Toast.makeText(SignupActivity.this, "please check your internet connection", Toast.LENGTH_SHORT).show();
+                }
 
             }
         });
+
+
+    }
+
+    private void initializeDialog() {
+        LinearLayout alertDialog = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_progress, null);
+        this.mAlertDialog = new AlertDialog.Builder(this).setView(alertDialog).setCancelable(false).create();
     }
 
     private void checkAvailabilityOfNumber(final String number) {
@@ -89,6 +119,8 @@ public class SignupActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     Toast.makeText(SignupActivity.this, "this numeber is already registered", Toast.LENGTH_SHORT).show();
+                    if (mAlertDialog.isShowing())
+                        mAlertDialog.dismiss();
 
                 } else {
                     createNewAccount(number);
@@ -132,10 +164,12 @@ public class SignupActivity extends AppCompatActivity {
         currentUser.updateProfile(userProfileChangeRequest).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()){
-                    Toast.makeText(SignupActivity.this, "profile updated successfully", Toast.LENGTH_SHORT).show();
-                }else {
-                    Toast.makeText(SignupActivity.this, "profile updated failed", Toast.LENGTH_SHORT).show();
+                if (mAlertDialog != null && mAlertDialog.isShowing())//null senario can only accur here because this code can run even when the acivity is dead
+                    mAlertDialog.dismiss();
+                if (task.isSuccessful()) {
+                    Toast.makeText(getApplicationContext(), "profile updated successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "profile updated failed", Toast.LENGTH_SHORT).show();
                 }
                 //// FIXME: 8/8/2019 do some thing if  needed may be uodate dataabse after this step is csuccessfull
             }
@@ -150,7 +184,7 @@ public class SignupActivity extends AppCompatActivity {
         } else {
             type = "consumer";
         }
-        userMap.put("number", numberEditText.getText().toString());
+        userMap.put("number", mNumber);
         userMap.put("name", nameEditText.getText().toString().trim());
         userMap.put("type", type);
 
@@ -183,6 +217,12 @@ public class SignupActivity extends AppCompatActivity {
             Toast.makeText(this, "some error accured please restart the application", Toast.LENGTH_SHORT).show();
 
         }
+    }
+
+    private boolean isInternetAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.isConnected();
     }
 
 

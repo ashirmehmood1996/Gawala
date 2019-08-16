@@ -18,10 +18,10 @@
         <TextView
             android:id="@+id/tv_signup_label"
             android:layout_width="wrap_content"
-            android:elevation="2dp"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:background="@drawable/bg_bt_round"
+            android:elevation="2dp"
             android:fontFamily="sans-serif-condensed"
             android:paddingLeft="46dp"
             android:paddingTop="26dp"
@@ -32,15 +32,15 @@
             android:textStyle="bold" />
 
         <LinearLayout
-            android:elevation="2dp"
-            android:layout_marginLeft="6dp"
-            android:layout_marginBottom="6dp"
-            android:layout_marginRight="6dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/tv_signup_label"
+            android:layout_marginLeft="6dp"
             android:layout_marginTop="20dp"
+            android:layout_marginRight="6dp"
+            android:layout_marginBottom="6dp"
             android:background="@drawable/bg_containers"
+            android:elevation="2dp"
             android:orientation="vertical"
             android:padding="16dp">
 
@@ -63,9 +63,9 @@
                     android:id="@+id/et_register_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_edit_text_round"
+                    android:background="@drawable/bg_info_edittext"
                     android:hint="First Last"
-                    android:imeOptions="actionDone"
+                    android:imeOptions="actionNext"
                     android:inputType="textCapWords"
                     android:padding="16dp" />
             </LinearLayout>
@@ -85,15 +85,41 @@
                     android:textColor="@color/textColorConversationListItemTitle"
                     android:textStyle="bold" />
 
-                <EditText
-                    android:id="@+id/et_register_number"
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_edit_text_round"
-                    android:hint="+921234567890"
-                    android:imeOptions="actionDone"
-                    android:inputType="phone"
-                    android:padding="16dp" />
+                    android:layout_marginTop="5dp"
+                    android:orientation="horizontal">
+
+                    <com.rilixtech.CountryCodePicker
+                        android:id="@+id/ccp_register"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_info_edittext"
+                        android:gravity="center"
+                        android:paddingLeft="2dp"
+                        android:paddingTop="10dp"
+                        android:paddingBottom="10dp"
+                        app:ccp_hideNameCode="true"
+                        app:ccp_textSize="18sp" />
+
+                    <EditText
+                        android:id="@+id/et_register_number"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="3dp"
+                        android:layout_marginLeft="3dp"
+                        android:background="@drawable/bg_info_edittext"
+                        android:drawableRight="@drawable/ic_call_black_24dp"
+                        android:drawablePadding="20dp"
+                        android:hint="1234567890"
+                        android:inputType="numberDecimal"
+                        android:padding="10dp"
+                        android:textSize="18sp" />
+
+                </LinearLayout>
+
             </LinearLayout>
 
             <LinearLayout
@@ -128,9 +154,6 @@
                 android:text="Register"
                 android:textColor="#ffffff" />
 
-
         </LinearLayout>
-
-
     </RelativeLayout>
 </ScrollView>

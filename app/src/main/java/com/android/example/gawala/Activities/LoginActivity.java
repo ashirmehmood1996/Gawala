@@ -4,14 +4,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.os.Bundle;
 import android.telephony.PhoneNumberUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,6 +29,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.rilixtech.CountryCodePicker;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,9 +37,15 @@ import java.util.List;
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
     private static final int RC_LOGIN = 1001;
 
+    private CountryCodePicker countryCodePicker;
     private EditText numberEditText;
     private TextView wrongInputAlertTextView;
     private Button loginButton, signupButton;
+
+
+    private String mPhoneNumber = "";
+    private AlertDialog mAlertDialog;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +60,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
 
     private void initFields() {
+        countryCodePicker = findViewById(R.id.ccp_login);
         numberEditText = findViewById(R.id.et_login_number);
         wrongInputAlertTextView = findViewById(R.id.tv_login_wrong_input);
         loginButton = findViewById(R.id.bt_login_login);
@@ -67,8 +79,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         switch (v.getId()) {
             case R.id.bt_login_login:
                 if (isInternetAvailable()) {
+                    initializeDialog();
+                    mAlertDialog.show();
                     proceedToLogin();
-
                 } else {
                     Toast.makeText(this, "please check your internet connection", Toast.LENGTH_SHORT).show();
                 }
@@ -82,16 +95,23 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    private void initializeDialog() {
+        LinearLayout alertDialog = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_progress, null);
+        this.mAlertDialog = new AlertDialog.Builder(this).setView(alertDialog).setCancelable(false).create();
+    }
+
     private void proceedToLogin() {
-        String number = numberEditText.getText().toString().trim();
-        if (number.isEmpty()) {
+        mPhoneNumber = "+" + countryCodePicker.getSelectedCountryCode() + numberEditText.getText().toString().trim();
+        if (numberEditText.getText().toString().trim().isEmpty()) {
             Toast.makeText(this, "plaese provide the number", Toast.LENGTH_SHORT).show();
+            mAlertDialog.dismiss();
             return;
         }
-        if (!PhoneNumberUtils.isGlobalPhoneNumber(number)) {
+        if (!PhoneNumberUtils.isGlobalPhoneNumber(mPhoneNumber)) {
             Toast.makeText(LoginActivity.this, "please eneter a valid  phone number in specified format", Toast.LENGTH_SHORT).show();
             wrongInputAlertTextView.setText("please eneter a valid  phone number in specified format");
             wrongInputAlertTextView.setVisibility(View.VISIBLE);
+            mAlertDialog.dismiss();
             return;
         }
         if (wrongInputAlertTextView.isShown()) {
@@ -102,7 +122,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         //showprogressbar()
         // TODO: 6/28/2019 show progress dialog
-        checkValidityAndAuthenticate(number);
+        checkValidityAndAuthenticate(mPhoneNumber);
 
 
     }
@@ -118,6 +138,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 } else {
                     wrongInputAlertTextView.setText("the number provided is not registered please tap register to create an account");
                     wrongInputAlertTextView.setVisibility(View.VISIBLE);
+                    mAlertDialog.dismiss();
 
                 }
                 loginButton.setEnabled(true);
@@ -126,7 +147,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                mAlertDialog.dismiss();
             }
         });
     }
@@ -144,6 +165,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (requestCode == RC_LOGIN) {
             if (resultCode == RESULT_OK) {
+
                 sendUserToRelevantActiviy();
             }
 
@@ -172,12 +194,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     if (userType != null && userType.equals("producer")) {
                         //            showProgressBar(false);
                         startActivity(new Intent(LoginActivity.this, ProducerNavMapActivity.class));
+                        mAlertDialog.dismiss();
                         finish();
                     } else if (userType != null && userType.equals("consumer")) {
                         //          showProgressBar(false);
                         startActivity(new Intent(LoginActivity.this, ConsumerDashBoardActivity.class));
+
+                        mAlertDialog.dismiss();
                         finish();
                     } else {
+                        mAlertDialog.dismiss();
                         Toast.makeText(LoginActivity.this, "some error accured please restart the application", Toast.LENGTH_SHORT).show();
 
                     }
@@ -186,6 +212,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
                     //    showProgressBar(false);
+                    mAlertDialog.dismiss();
                     Toast.makeText(LoginActivity.this, "some error accured please restart the application", Toast.LENGTH_SHORT).show();
                 }
             });
