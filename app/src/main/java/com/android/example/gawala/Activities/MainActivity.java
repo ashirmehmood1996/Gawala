@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
         alertContanerLieanrLayout = findViewById(R.id.ll_main_alert_container);
         progressBar = findViewById(R.id.pb_main);
+
     }
 
     @Override
@@ -44,10 +45,8 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 finish();
                 startActivity(new Intent(this, LoginActivity.class));
-
             }
         } else {
-            // TODO: 6/28/2019  show no internet view
             progressBar.setVisibility(View.GONE);
             alertContanerLieanrLayout.setVisibility(View.VISIBLE);
             alertContanerLieanrLayout.findViewById(R.id.bt_main_refresh)
@@ -108,4 +107,4 @@ public class MainActivity extends AppCompatActivity {
 }
 
 
-// TODO: 7/27/2019 in a fragment of activity we can show near by producers and their image rates distance, reviews, along with an option for connection request and adjust timmings ..
+// TODO: 7/27/2019 in a fragment or activity we can show near by producers and their image rates distance, reviews, along with an option for connection request and adjust timmings ..

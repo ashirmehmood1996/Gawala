@@ -1,6 +1,9 @@
 package com.android.example.gawala;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
+import android.animation.TypeEvaluator;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -12,6 +15,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
@@ -22,13 +26,16 @@ import android.os.Bundle;
 import com.android.example.gawala.Activities.LoginActivity;
 import com.android.example.gawala.Activities.MainActivity;
 import com.android.example.gawala.Activities.ProducerClientsRequestsActivity;
+import com.android.example.gawala.Interfaces.LatLngInterpolator;
 import com.android.example.gawala.Models.DistanceMatrixModel;
 import com.android.example.gawala.Models.StopMarkerModel;
+import com.android.example.gawala.Utils.Firebase.ProducerFirebaseHelper;
 import com.android.example.gawala.Utils.HttpRequestHelper;
 import com.android.example.gawala.Utils.UrlGenrator;
+import com.android.example.gawala.Utils.UtilsMessaging;
 import com.android.example.gawala.directionhelpers.FetchURL;
 import com.android.example.gawala.directionhelpers.TaskLoadedCallback;
-import com.android.example.gawala.fragments.StopsListFragement;
+import com.android.example.gawala.fragments.ProducerDashBoardFragment;
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -57,7 +64,6 @@ import com.google.android.gms.tasks.Task;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
@@ -66,9 +72,11 @@ import androidx.core.view.GravityCompat;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 
 import android.os.Handler;
+import android.util.Property;
 import android.view.MenuItem;
 
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -79,10 +87,12 @@ import com.google.firebase.database.ValueEventListener;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -91,11 +101,12 @@ import java.util.HashMap;
 
 
 public class ProducerNavMapActivity extends AppCompatActivity
-        implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, StopsListFragement.Callbacks, TaskLoadedCallback {
+        implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, ProducerDashBoardFragment.Callbacks, TaskLoadedCallback {
 
 
     private static final int RC_PERMISSION_ALL = 100;
     private static final int RC_LOCAION_ON = 101;
+    private static final String PRODUCER_DASHBOARD_FRAGMENT_TAG = "ProducerDashBoardFragment";
     private final String[] PERMISSIONS = {
             android.Manifest.permission.READ_EXTERNAL_STORAGE,
             android.Manifest.permission.ACCESS_FINE_LOCATION};
@@ -104,7 +115,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
     private static final long REQUEST_INTERVAL = 15000;
     private int selectedStopPos = 0;
 
-    private static final String STOPS_LIST_FRAGMENT_TAG = "StopslistFragment";
+
     private GoogleMap mMap;
     private DrawerLayout drawer;
     private LocationResult mCurrentLocationResult;
@@ -116,6 +127,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
     private View journyInfoContainer;
     private TextView distanceTextView, speedTextView, timeTextView;
+    private Button abortJournyButton;
     private Polyline mCurrentPolyline;
     private LocationManager locationManager;
 
@@ -123,15 +135,43 @@ public class ProducerNavMapActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_producer_map);
-        initFields();
 
+        initFields();
+        attachListeners();
         if (!hasPermissions(this, PERMISSIONS)) {
             requestAllPermissions();
         } else if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             buildAlertMessageNoGps();
         }
+        UtilsMessaging.initFCM();
+
+
+        //// FIXME: 8/25/2019 for now setting the rate initially according to market later it will be changed
+        initUserDataIfFirstTime();
 
     }
+
+    private void attachListeners() {
+        abortJournyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                abortJourny();
+            }
+        });
+    }
+
+    private void abortJourny() {
+        if (!isjournyActive) {
+            Snackbar.make(drawer, "no ride was active", Snackbar.LENGTH_LONG).show();
+            return;
+        }
+
+
+        Snackbar.make(drawer, "processing...", Snackbar.LENGTH_SHORT).show();
+        isjournyActive = false;
+        journyInfoContainer.setVisibility(View.GONE);
+    }
+
 
     private void requestAllPermissions() {
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
@@ -241,6 +281,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         Toolbar toolbar = findViewById(R.id.tb_producer_nav);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("Map");
         drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -266,6 +307,28 @@ public class ProducerNavMapActivity extends AppCompatActivity
         distanceTextView = findViewById(R.id.tv_prod_distance);
         timeTextView = findViewById(R.id.tv_prod_time);
         speedTextView = findViewById(R.id.tv_prod_speed);
+        abortJournyButton = findViewById(R.id.bt_prod_abort_journy);
+
+    }
+
+    private void initUserDataIfFirstTime() {
+        FirebaseDatabase.getInstance().getReference().child("data")
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .child("milk_price").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (!dataSnapshot.exists()) {
+                    ProducerFirebaseHelper.updateRate("100");
+
+                }
+                ProducerFirebaseHelper.updateStatus(getResources().getString(R.string.status_producer_inactive));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
 
     }
 
@@ -274,10 +337,17 @@ public class ProducerNavMapActivity extends AppCompatActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        } else if (mFragmentManager.findFragmentByTag(STOPS_LIST_FRAGMENT_TAG) != null) {
-            mFragmentManager.beginTransaction().remove(mFragmentManager.findFragmentByTag(STOPS_LIST_FRAGMENT_TAG)).commit();
+        } else if (mFragmentManager.findFragmentByTag(PRODUCER_DASHBOARD_FRAGMENT_TAG) != null) {
+            mFragmentManager.beginTransaction().remove(mFragmentManager.findFragmentByTag(PRODUCER_DASHBOARD_FRAGMENT_TAG)).commit();
         } else {
             super.onBackPressed();
+        }
+
+        if (mFragmentManager.getBackStackEntryCount() > 0) {
+            Fragment fra = mFragmentManager.findFragmentById(R.id.frame_prod_map_fragment_container);
+            if (fra instanceof ProducerDashBoardFragment) {
+                getSupportActionBar().setTitle("Dash Board");
+            }
         }
     }
 
@@ -287,12 +357,71 @@ public class ProducerNavMapActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (item.getItemId() == R.id.nav_producer_map_logout) {
-            if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+        switch (id) {
+            case R.id.nav_producer_map_logout:
+                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                    showLogoutDialogue();
+                } else {
+                    Toast.makeText(this, "already logged out", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case R.id.nav_producer_map_share_id:
+                ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Service.CLIPBOARD_SERVICE);
+                ClipData clipData = ClipData.newPlainText("user_id", FirebaseAuth.getInstance().getCurrentUser().getUid());
+                clipboardManager.setPrimaryClip(clipData);
+                Snackbar.make(drawer, "id copied to clipboard", Snackbar.LENGTH_LONG);
+                Toast.makeText(this, "id copied to clipboard", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.nav_producer_map_requests:
+                startActivity(new Intent(this, ProducerClientsRequestsActivity.class));
+                break;
+
+
+            case R.id.nav_producer_map_add_new_stop:
+                addCurrentLoadtionInFirebaseAsAStop();
+
+                break;
+            case R.id.nav_producer_map_dashboard:
+                if (mFragmentManager.findFragmentByTag(PRODUCER_DASHBOARD_FRAGMENT_TAG) == null) {
+                    ProducerDashBoardFragment producerDashBoardFragment = ProducerDashBoardFragment.geInstance(mStopMarkerModelArrayList, "");
+                    producerDashBoardFragment.setCallBacks(this);
+
+                    mFragmentManager.beginTransaction()
+                            .add(R.id.frame_prod_map_fragment_container,
+                                    producerDashBoardFragment
+                                    , PRODUCER_DASHBOARD_FRAGMENT_TAG)
+                            .commit();
+                }
+
+                break;
+        }
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    private void showLogoutDialogue() {
+        //logout code
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(ProducerNavMapActivity.this);
+        builder.setTitle("Logout")
+                .setMessage("press logout to continue..")
+                .setPositiveButton("logout", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        deleteMessagingTokenAndLogout();
+                    }
+                }).setNegativeButton("cancel", null);
+        builder.show();
+    }
+
+    private void deleteMessagingTokenAndLogout() {
+        FirebaseDatabase.getInstance().getReference().child("users")
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .child("messaging_token").setValue("null").addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
                 AuthUI.getInstance()
-                        .signOut(this)
+                        .signOut(ProducerNavMapActivity.this)
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 if (task.isSuccessful()) {
                                     Toast.makeText(ProducerNavMapActivity.this, "logout successfull", Toast.LENGTH_SHORT).show();
@@ -301,44 +430,13 @@ public class ProducerNavMapActivity extends AppCompatActivity
                                 }
                             }
                         });
-            } else {
-                Toast.makeText(this, "already logged out", Toast.LENGTH_SHORT).show();
             }
-        } else if (item.getItemId() == R.id.nav_producer_map_share_id) {
-            ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Service.CLIPBOARD_SERVICE);
-            ClipData clipData = ClipData.newPlainText("user_id", FirebaseAuth.getInstance().getCurrentUser().getUid());
-            clipboardManager.setPrimaryClip(clipData);
-            Toast.makeText(this, "id copied to clipboard", Toast.LENGTH_SHORT).show();
-        } else if (item.getItemId() == R.id.nav_producer_map_requests) {
-            startActivity(new Intent(this, ProducerClientsRequestsActivity.class));
-        } else if (item.getItemId() == R.id.nav_producer_map_start_riding) {
-            isjournyActive = true;
-            startJourney();
-            journyInfoContainer.setVisibility(View.VISIBLE);
-        } else if (item.getItemId() == R.id.nav_producer_map_abort_riding) {
-            isjournyActive = false;
-            journyInfoContainer.setVisibility(View.GONE);
-        } else if (item.getItemId() == R.id.nav_producer_map_add_new_stop) {
-            addCurrentLoadtionInFirebaseAsAStop();
-
-        } else if (item.getItemId() == R.id.nav_producer_map_all_stops) {
-            if (mFragmentManager.findFragmentByTag(STOPS_LIST_FRAGMENT_TAG) == null) {
-                StopsListFragement stopListFragment = StopsListFragement.newInstance(mStopMarkerModelArrayList, "");
-                stopListFragment.setCallBacks(this);
-                mFragmentManager.beginTransaction()
-                        .add(R.id.frame_prod_map_fragment_container,
-                                stopListFragment
-                                , STOPS_LIST_FRAGMENT_TAG)
-                        .commit();
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(ProducerNavMapActivity.this, "logout failed please check your internet connection", Toast.LENGTH_SHORT).show();
             }
-        }
-//         else if (id == R.id.nav_share) {
-//
-//        } else if (id == R.id.nav_send) {
-//
-//        }
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
+        });
     }
 
     /**
@@ -398,12 +496,6 @@ public class ProducerNavMapActivity extends AppCompatActivity
         mMap.getUiSettings().setZoomControlsEnabled(true);
         //   mMap.getUiSettings().setCompassEnabled(true);
         mMap.setPadding(0, 150, 0, 0); //todo this property may be pixed dependednt find a fix later
-
-
-        //// TODO: 7/27/2019 need runtime permissions for accessing fine locations
-        // TODO: 7/27/2019 ur on GPS if not active
-        //// TODO: 7/27/2019 for the purpose of Gps use a broadcast reciever for making changes as desired
-        //now i am able to ge the location now further take the next lessonss
 
 
         createLocationRequest();
@@ -480,7 +572,8 @@ public class ProducerNavMapActivity extends AppCompatActivity
         if (myCurrentLocationMarker == null) {
             myCurrentLocationMarker = mMap.addMarker(new MarkerOptions().title("my position").position(location).draggable(true));
         } else {
-            myCurrentLocationMarker.setPosition(location);
+//            myCurrentLocationMarker.setPosition(location);
+            animateMarkerToICS(myCurrentLocationMarker, location, new LatLngInterpolator.LinearFixed()/*, currentChild.getChildChanginInfoModel().isSelected()*/);
         }
 //        for (Marker marker : mMarkers.values()) {
 //            builder.include(marker.getPosition());
@@ -556,7 +649,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
                     mCurrentLocationResult = locationResult;
                     if (FirebaseAuth.getInstance().getCurrentUser() == null) return;
                     FirebaseDatabase.getInstance().getReference().child("locationUpdaes")
-                            .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                            .child(FirebaseAuth.getInstance().getCurrentUser().getUid())// FIXME: 9/8/2019 fix float to string cast exception
                             /*.push()*/.setValue(locationResult).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
@@ -673,7 +766,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
         });
     }
 
-    //copied from stack overflow lean later
+    //copied from stack overflow learn later
     //https://stackoverflow.com/a/45564994/6039129
     private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
         Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
@@ -688,11 +781,47 @@ public class ProducerNavMapActivity extends AppCompatActivity
     @Override
     public void onStopMarkerItemClick(int position) {
         selectedStopPos = position;
-        mFragmentManager.beginTransaction().remove(mFragmentManager.findFragmentByTag(STOPS_LIST_FRAGMENT_TAG)).commit();
+        // FIXME: 9/10/2019 later change the logic
+        mFragmentManager.beginTransaction().remove(mFragmentManager.findFragmentByTag(PRODUCER_DASHBOARD_FRAGMENT_TAG)).commit();
+        getSupportActionBar().setTitle("Map");
         Double lat = mStopMarkerModelArrayList.get(position).getLatitude();
         Double lng = mStopMarkerModelArrayList.get(position).getLongitude();
         mMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(lat, lng)));
 
+    }
+
+    @Override
+    public void onStartRiding(float totalMilk) {
+        mFragmentManager.beginTransaction().remove(mFragmentManager.findFragmentByTag(PRODUCER_DASHBOARD_FRAGMENT_TAG)).commit();
+        if (isjournyActive) {
+            Snackbar.make(drawer, "you are already riding", Snackbar.LENGTH_LONG).show();
+            return;
+        }
+
+
+
+        //dialog related
+        String message = "Total milk Volume : "+totalMilk+"\n are you all set? Press Go to proceed";
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Start Riding ?")
+                .setMessage(message)
+                .setPositiveButton("Go", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        startRiding();
+
+                    }
+                }).setNegativeButton("cancel", null).show();
+
+
+    }
+
+    private void startRiding() {
+        isjournyActive = true;
+        startJourney();
+        Snackbar.make(drawer, "processing...", Snackbar.LENGTH_SHORT).show();
+        journyInfoContainer.setVisibility(View.VISIBLE);
     }
 
 
@@ -702,20 +831,20 @@ public class ProducerNavMapActivity extends AppCompatActivity
     // and time  and do it in a constant intrvals
 
     private void startJourney() {
-        // TODO: 8/15/2019 this link will help you tomake a polyline as soon as the start journy is callled https://www.youtube.com/watch?v=wRDLjUK8nyU
-        //  I assume that drawin gthe poliline for he first time will be use distance matrix for further calculations
-        //  for now only deal with one stop.
+        //  this link will help you tomake a polyline as soon as the start journy is callled https://www.youtube.com/watch?v=wRDLjUK8nyU
         if (mCurrentLocationResult == null) {
             Toast.makeText(this, "cant get your location ", Toast.LENGTH_SHORT).show();
             return;
         }
         if (mStopMarkerModelArrayList.isEmpty()) {
             Toast.makeText(this, "there are no stops to reach to.. ", Toast.LENGTH_SHORT).show();
+            Snackbar.make(drawer, "there are no stops to reach to.. ", Snackbar.LENGTH_LONG);
+            isjournyActive = false;
+            journyInfoContainer.setVisibility(View.GONE);
             return;
         }
         final LatLng currentLocation = new LatLng(mCurrentLocationResult.getLocations().get(0).getLatitude(), mCurrentLocationResult.getLocations().get(0).getLongitude());
         final LatLng stop1Location = new LatLng(mStopMarkerModelArrayList.get(0).getLatitude(), mStopMarkerModelArrayList.get(0).getLongitude());
-// TODO: 8/15/2019 here i am
         new FetchURL(ProducerNavMapActivity.this).execute(getDirectionApiUrl(currentLocation, stop1Location), "driving");
 
         String url = UrlGenrator.generateDistanceMatrixUrl(currentLocation, stop1Location, getResources().getString(R.string.distance_matrix_api_key));
@@ -725,8 +854,11 @@ public class ProducerNavMapActivity extends AppCompatActivity
                 if (s == null) {
                     Toast.makeText(ProducerNavMapActivity.this, "response was null", Toast.LENGTH_LONG).show();
                 } else {
+
                     System.out.println("response :" + s);
-                    Toast.makeText(ProducerNavMapActivity.this, "response is recieved", Toast.LENGTH_LONG).show();
+                    Snackbar.make(drawer, "riding now", Snackbar.LENGTH_LONG).show();
+
+                    ProducerFirebaseHelper.updateStatus(getResources().getString(R.string.status_producer_onduty));
                     DistanceMatrixModel distanceMatrixModel = HttpRequestHelper.parseDistanceMatrixJson(s);
 
 
@@ -747,9 +879,12 @@ public class ProducerNavMapActivity extends AppCompatActivity
                                 startJourney();
                             } else {
                                 if (mCurrentPolyline != null) {
+
                                     mCurrentPolyline.remove();
                                     mCurrentPolyline = null;
                                 }
+
+                                ProducerFirebaseHelper.updateStatus(getResources().getString(R.string.status_producer_inactive));
                                 Toast.makeText(ProducerNavMapActivity.this, "journey aborted", Toast.LENGTH_SHORT).show();
                             }
                         }
@@ -809,7 +944,11 @@ public class ProducerNavMapActivity extends AppCompatActivity
     public void onTaskDone(Object... values) {
         if (mCurrentPolyline != null)
             mCurrentPolyline.remove();
-        mCurrentPolyline = mMap.addPolyline((PolylineOptions) values[0]);
+        mCurrentPolyline = mMap.addPolyline(((PolylineOptions) values[0]).geodesic(true)
+                .color(Color.CYAN)
+                .width(10))
+        /*.pattern(PattrrPATTERN_POLYGON_ALPHA))*/;
+
 
     }
 
@@ -822,6 +961,46 @@ public class ProducerNavMapActivity extends AppCompatActivity
             }
         }
         return true;
+    }
+
+    //code borrowed from google sample codes
+    //https://gist.github.com/broady/6314689
+    private void animateMarkerToICS(Marker marker, final LatLng finalPosition, final LatLngInterpolator latLngInterpolator/*, final boolean isSelected*/) {
+        TypeEvaluator<LatLng> typeEvaluator = new TypeEvaluator<LatLng>() {
+            @Override
+            public LatLng evaluate(float fraction, LatLng startValue, LatLng endValue) {
+                return latLngInterpolator.interpolate(fraction, startValue, endValue);
+            }
+        };
+        Property<Marker, LatLng> property = Property.of(Marker.class, LatLng.class, "position");
+        ObjectAnimator animator = ObjectAnimator.ofObject(marker, property, typeEvaluator, finalPosition);
+        animator.setDuration(300);
+        animator.start();
+        animator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animator) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animator) { //to animate camera with the motion of child
+                //todo if this functionality offends either provide turn off option or don't do it in the first place
+//                if (isSelected) { // if this child is in observation
+//                    mMap.animateCamera(CameraUpdateFactory.newLatLng(finalPosition));
+//                }
+                animator.removeAllListeners();
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animator) {
+                animator.removeAllListeners();
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animator) {
+
+            }
+        });
     }
 
 
@@ -842,21 +1021,9 @@ public class ProducerNavMapActivity extends AppCompatActivity
     }
 
 }
+//// TODO: 7/27/2019 for the purpose of Gps use a broadcast reciever for making changes as desired
 
 
-// TODO: 8/3/2019 now  show the list of stops that are added
-//  shift the functionalities in places and polish the app
-//  should not take long.
-//  the markers should be prioritised       ///later
+//  in my head it just came that this app can be used for daily groceries , including all stuff that is in daly use .
 
-
-//all things below are only appilcable when I will activate my billing account
-
-//Note :- you are in the middle of something . it seems like there is a way to have the distance and time required
-//which will mark the begining of end of this project . you be have o run some precise tests on the code that comes available online
-//may be you can try to find the distance and time finding tutorila on the (medium) or may be we only ned distance the time will be easys
-//juts read a numbe rof projects and try to start implementing the latest and best explained
-//how can I get the time after a little interval the amount of Time that will require to reach the destination
-//may be we can ask for the distance and time again and again after time to time and will increase the frecuecy as we reach closer to target
-
-//what to do with the billing  cant find hope // will do the billing account on monday
+//customer adnd stops must be merged now  and then we will proceed further for alll stops routing and an option to change the stop location

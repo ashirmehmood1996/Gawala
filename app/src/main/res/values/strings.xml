@@ -26,5 +26,11 @@
     <string name="distance_matrix_api_key">AIzaSyDoDEsuwoTeQO4SfjqCiJJ3vlHHKi3G_2o</string>
     <string name="directions_api">AIzaSyDoDEsuwoTeQO4SfjqCiJJ3vlHHKi3G_2o</string>
 
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="status_producer_inactive">inactive</string>
+    <string name="status_producer_ontheway">On The Way</string>
+    <string name="status_producer_onduty">On Duty</string>
+
 
 </resources>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:paddingTop="@dimen/top_margin_nav_prod_map"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff"
+    android:orientation="vertical"
+    tools:context=".fragments.ProducerDashBoardFragment">
+
+    <LinearLayout
+
+
+        android:layout_width="match_parent"
+        android:layout_margin="2dp"
+        android:layout_height="wrap_content"
+        android:background="#fff"
+        android:elevation="2dp"
+        android:orientation="horizontal">
+
+
+        <TextView
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+
+            android:padding="16dp"
+            android:text="Milk Price : " />
+
+        <TextView
+            android:id="@+id/tv_frag_prod_dash_board_price"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:padding="16dp"
+            android:text="price : PKR 120 per litre" />
+
+        <ImageButton
+            android:id="@+id/ib_frag_prod_dash_board_edit_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_bt_round"
+            android:padding="16dp"
+
+            android:src="@drawable/ic_mode_edit_black_24dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:background="#fff"
+        android:elevation="2dp"
+        android:layout_margin="2dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+
+        <TextView
+            android:textStyle="bold"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:padding="16dp"
+            android:text="Milk Demand Today : " />
+
+        <TextView
+            android:id="@+id/tv_frag_prod_dash_board_milk_demand"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:padding="16dp"
+            android:text="100 litres" />
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:background="#fff"
+        android:layout_weight="1"
+        android:elevation="2dp"
+        android:layout_margin="2dp"
+        android:layout_height="0dp"
+        android:orientation="vertical">
+        <TextView
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+
+            android:padding="16dp"
+            android:text="Stops" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_frag_prod_dash_board"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/bt_frag_prod_dash_board_start_ride"
+        android:layout_width="wrap_content"
+        android:layout_gravity="center"
+        android:text="Start Riding"
+        android:layout_margin="2dp"
+        android:gravity="center"
+        android:paddingRight="16dp"
+        android:paddingLeft="16dp"
+        android:textColor="#ffffff"
+        android:background="@drawable/bg_button_solid"
+        android:layout_height="wrap_content"/>
+
+</LinearLayout>
+
+

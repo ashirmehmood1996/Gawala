@@ -43,6 +43,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 
 public class ProducerClientsRequestsActivity extends AppCompatActivity implements RequestsAdapterCallbacks {
@@ -177,7 +178,9 @@ public class ProducerClientsRequestsActivity extends AppCompatActivity implement
         String time = requestModel.getTime_stamp();
         clientMap.put("name", name);
         clientMap.put("number", number);
-        //clientMap.put("time_stamp",time);
+        //clientMap.put("time_stamp",time); //this time stamp is the time of sending this request
+        String time_accept = Calendar.getInstance().getTimeInMillis() + "";
+        clientMap.put("time_stamp", time_accept);
         FirebaseDatabase.getInstance().getReference()
                 .child("clients").child(myID)
                 .child(requestModel.getSender_id())
@@ -192,7 +195,6 @@ public class ProducerClientsRequestsActivity extends AppCompatActivity implement
                         }
                     }
                 });
-
     }
 
     private void removeRequestNode(String sender_id, final boolean isAccepted, final int position) {
@@ -221,4 +223,6 @@ public class ProducerClientsRequestsActivity extends AppCompatActivity implement
         });
     }
 }
-//todo laterdivide user info in pulic and private pulis is demnded by any user but private only by the current user
+//todo later divide user info in pulic and private pulis is demnded by any user but private only by the current user
+
+//create a fragment that will be a dashboard for producer where todays demand of milk and other sttats will be shown
