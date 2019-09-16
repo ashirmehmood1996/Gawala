@@ -18,11 +18,12 @@ import java.net.URL;
  */
 
 public class FetchURL extends AsyncTask<String, Void, String> {
-    Context mContext;
-    String directionMode = "driving";
-
-    public FetchURL(Context mContext) {
+    private Context mContext;
+    private String directionMode = "driving";
+    private boolean isFullRoute=false;
+    public FetchURL(Context mContext,boolean isFullRoute) {
         this.mContext = mContext;
+        this.isFullRoute=isFullRoute;
     }
 
     @Override
@@ -43,7 +44,7 @@ public class FetchURL extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String s) {
         super.onPostExecute(s);
-        PointsParser parserTask = new PointsParser(mContext, directionMode);
+        PointsParser parserTask = new PointsParser(mContext, directionMode,isFullRoute);
         // Invokes the thread for parsing the JSON data
         parserTask.execute(s);
     }

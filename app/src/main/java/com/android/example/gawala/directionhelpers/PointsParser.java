@@ -23,10 +23,12 @@ import java.util.List;
 public class PointsParser extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
     TaskLoadedCallback taskCallback;
     String directionMode = "driving";
+    private boolean isfullRoute = false;
 
-    public PointsParser(Context mContext, String directionMode) {
+    public PointsParser(Context mContext, String directionMode, boolean isfullRoute) {
         this.taskCallback = (TaskLoadedCallback) mContext;
         this.directionMode = directionMode;
+        this.isfullRoute = isfullRoute;
     }
 
     // Parsing the data in non-ui thread
@@ -37,6 +39,7 @@ public class PointsParser extends AsyncTask<String, Integer, List<List<HashMap<S
         List<List<HashMap<String, String>>> routes = null;
 
         try {
+            System.out.println("directions api jsonResponse : " + jsonData[0]);
             jObject = new JSONObject(jsonData[0]);
             Log.d("mylog", jsonData[0].toString());
             DataParser parser = new DataParser();
@@ -76,11 +79,24 @@ public class PointsParser extends AsyncTask<String, Integer, List<List<HashMap<S
             // Adding all the points in the route to LineOptions
             lineOptions.addAll(points);
             if (directionMode.equalsIgnoreCase("walking")) {
-                lineOptions.width(10);
-                lineOptions.color(Color.MAGENTA);
+
+                if (isfullRoute) {
+                    lineOptions.width(20);
+                    lineOptions.color(Color.GREEN);
+                } else {
+                    lineOptions.width(15);
+                    lineOptions.color(Color.BLUE);
+                }
+
             } else {
-                lineOptions.width(20);
-                lineOptions.color(Color.BLUE);
+
+                if (isfullRoute) {
+                    lineOptions.width(20);
+                    lineOptions.color(Color.GREEN);
+                } else {
+                    lineOptions.width(15);
+                    lineOptions.color(Color.BLUE);
+                }
             }
             Log.d("mylog", "onPostExecute lineoptions decoded");
         }
@@ -88,7 +104,7 @@ public class PointsParser extends AsyncTask<String, Integer, List<List<HashMap<S
         // Drawing polyline in the Google Map for the i-th route
         if (lineOptions != null) {
             //mMap.addPolyline(lineOptions);
-            taskCallback.onTaskDone(lineOptions);
+            taskCallback.onTaskDone(lineOptions,isfullRoute);
 
         } else {
             Log.d("mylog", "without Polylines drawn");

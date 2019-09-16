@@ -42,10 +42,6 @@
 
         <activity android:name=".Activities.ConsumerRequestsActivity"
             android:parentActivityName=".Activities.ConsumerDashBoardActivity"/>
-        <activity
-            android:name=".Activities.ProducerClientsRequestsActivity"
-            android:label="@string/requests"
-            android:parentActivityName=".ProducerNavMapActivity" />
         <activity android:name=".Activities.SignupActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
         <activity android:name=".Activities.LoginActivity" />

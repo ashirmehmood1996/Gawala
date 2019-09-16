@@ -1,39 +1,28 @@
-package com.android.example.gawala.Activities;
-
-import android.Manifest;
+package com.android.example.gawala.fragments;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.Nullable;
 
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 
-import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.example.gawala.Adapters.ConnectedConsumersAdapter;
 import com.android.example.gawala.Adapters.RequestsAdapter;
 import com.android.example.gawala.Interfaces.RequestsAdapterCallbacks;
-import com.android.example.gawala.Models.ConnectedConsumersModel;
+import com.android.example.gawala.Models.ConsumerModel;
 import com.android.example.gawala.Models.RequestModel;
+import com.android.example.gawala.ProducerNavMapActivity;
 import com.android.example.gawala.R;
-import com.google.android.gms.common.api.ResolvableApiException;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResponse;
-import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -46,55 +35,58 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
-public class ProducerClientsRequestsActivity extends AppCompatActivity implements RequestsAdapterCallbacks {
+public class ProducerClientsRequestsFragment extends Fragment implements RequestsAdapterCallbacks, ConnectedConsumersAdapter.CallBacks {
 
+//    private static String ARG_CONSUMERS_KEY ="consumersKey";
     private TextView newRequestsTitleTextView;
     private RecyclerView requestsRecyclerView;
     private ArrayList<RequestModel> requestModelArrayList;
     private RequestsAdapter requestsAdapter;
 
     private RecyclerView connectedConsumersRecyclerView;
-    private ArrayList<ConnectedConsumersModel> consumersArrayList;
+    private ArrayList<ConsumerModel> mConsumersArrayList;
     private ConnectedConsumersAdapter consumersAdapter;
 
 
     private DatabaseReference rootRef;
     private String myID;
+    private CallBacks callBacks;
 
+    public static ProducerClientsRequestsFragment geInstance() {
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_producer);
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        initfields();
-
-        loadRequests();
-        loadConnectedConsumers();
-
-
+        ProducerClientsRequestsFragment fragment = new ProducerClientsRequestsFragment();
+        return fragment;
     }
 
 
-    private void initfields() {
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View rootView = inflater.inflate(R.layout.fragment_producer_requests, container, false);
+        initfields(rootView);
+        loadRequests();
+
+        return rootView;
+    }
+
+    private void initfields(View rootView) {
         //dataBase related
         rootRef = FirebaseDatabase.getInstance().getReference();
         myID = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         //requests related
-        newRequestsTitleTextView = findViewById(R.id.tv_pro_new_requests);
-        requestsRecyclerView = findViewById(R.id.rv_pro_request);
-        requestsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        newRequestsTitleTextView = rootView.findViewById(R.id.tv_pro_new_requests);
+        requestsRecyclerView = rootView.findViewById(R.id.rv_pro_request);
+        requestsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         requestModelArrayList = new ArrayList<>();
-        requestsAdapter = new RequestsAdapter(requestModelArrayList, this);
+        requestsAdapter = new RequestsAdapter(requestModelArrayList, getActivity(), this);
         requestsRecyclerView.setAdapter(requestsAdapter);
 
         //connected consumers related
-        connectedConsumersRecyclerView = findViewById(R.id.rv_pro_consumers);
-        connectedConsumersRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        consumersArrayList = new ArrayList<>();
-        consumersAdapter = new ConnectedConsumersAdapter(consumersArrayList, this);
+        connectedConsumersRecyclerView = rootView.findViewById(R.id.rv_pro_consumers);
+        connectedConsumersRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        mConsumersArrayList = ((ProducerNavMapActivity)getActivity()).getConsumersArrayList();
+        consumersAdapter = new ConnectedConsumersAdapter(mConsumersArrayList, getActivity(),this);
         connectedConsumersRecyclerView.setAdapter(consumersAdapter);
 
 
@@ -131,32 +123,6 @@ public class ProducerClientsRequestsActivity extends AppCompatActivity implement
 
     }
 
-    private void loadConnectedConsumers() {
-
-        consumersArrayList.clear();
-        rootRef.child("clients").child(myID)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
-                            for (DataSnapshot consumerSnapshot : dataSnapshot.getChildren()) {
-                                String consumerKey = consumerSnapshot.getKey();
-
-                                String number = consumerSnapshot.child("number").getValue(String.class);
-                                String name = consumerSnapshot.child("name").getValue(String.class);
-                                consumersArrayList.add(new ConnectedConsumersModel(consumerKey, name, number, null, null));
-                            }
-
-                        }
-                        consumersAdapter.notifyDataSetChanged();
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
-                });
-    }
 
 
     @Override
@@ -191,7 +157,7 @@ public class ProducerClientsRequestsActivity extends AppCompatActivity implement
                         if (task.isSuccessful()) {
                             removeRequestNode(requestModel.getSender_id(), true, position);
                         } else {
-                            Toast.makeText(ProducerClientsRequestsActivity.this, "something went wrong try later", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getActivity(), "something went wrong try later", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -206,23 +172,34 @@ public class ProducerClientsRequestsActivity extends AppCompatActivity implement
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
                     if (isAccepted) {
-                        Toast.makeText(ProducerClientsRequestsActivity.this, "Client added successfully", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), "Client added successfully", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(ProducerClientsRequestsActivity.this, "request removed successfully", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), "request removed successfully", Toast.LENGTH_SHORT).show();
 
                     }
                 } else {
-                    Toast.makeText(ProducerClientsRequestsActivity.this, "something went wrong try later", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), "something went wrong try later", Toast.LENGTH_SHORT).show();
                 }
                 requestModelArrayList.remove(position);
                 requestsAdapter.notifyItemRemoved(position);
                 requestsAdapter.notifyItemRemoved(position);
                 requestsAdapter.notifyItemRangeChanged(position, requestModelArrayList.size());
-                loadConnectedConsumers();
             }
         });
     }
-}
-//todo later divide user info in pulic and private pulis is demnded by any user but private only by the current user
 
-//create a fragment that will be a dashboard for producer where todays demand of milk and other sttats will be shown
+    @Override
+    public void onEditLocation(int position) {
+
+//        Toast.makeText(getActivity(), String.format("Edit location at %d postion clicked ", position), Toast.LENGTH_SHORT).show();
+        callBacks.onEditLocation(position);
+
+    }
+    public void setCallBacks(CallBacks callBacks){
+        this.callBacks=callBacks;
+    }
+    public interface CallBacks{
+        void onEditLocation(int position);
+    }
+}
+

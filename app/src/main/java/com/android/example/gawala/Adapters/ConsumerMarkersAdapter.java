@@ -2,6 +2,7 @@ package com.android.example.gawala.Adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -11,19 +12,19 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.example.gawala.Interfaces.StopMarkerClickCallBack;
-import com.android.example.gawala.Models.StopMarkerModel;
+import com.android.example.gawala.Models.ConsumerModel;
 import com.android.example.gawala.R;
 
 import java.util.ArrayList;
 
-public class StopsMarkersAdapter extends RecyclerView.Adapter<StopsMarkersAdapter.StopsMarkersHolder> {
-    private ArrayList<StopMarkerModel> mStopMarkerModelArrayList;
+public class ConsumerMarkersAdapter extends RecyclerView.Adapter<ConsumerMarkersAdapter.StopsMarkersHolder> {
+    private ArrayList<ConsumerModel> mConsumerModelArrayList;
     private Context context;
     private StopMarkerClickCallBack stopMarkerClickCallBack;
 
-    public StopsMarkersAdapter(ArrayList<StopMarkerModel> mStopMarkerModelArrayList, Context context,
-                               StopMarkerClickCallBack stopMarkerClickCallBack) {
-        this.mStopMarkerModelArrayList = mStopMarkerModelArrayList;
+    public ConsumerMarkersAdapter(ArrayList<ConsumerModel> mConsumerModelArrayList, Context context,
+                                  StopMarkerClickCallBack stopMarkerClickCallBack) {
+        this.mConsumerModelArrayList = mConsumerModelArrayList;
         this.context = context;
         this.stopMarkerClickCallBack=stopMarkerClickCallBack;
     }
@@ -32,13 +33,14 @@ public class StopsMarkersAdapter extends RecyclerView.Adapter<StopsMarkersAdapte
     @Override
     public StopsMarkersHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         return new StopsMarkersHolder(LayoutInflater.from(context).inflate(R.layout.li_stop_markers, parent, false));
+
     }
 
     @Override
     public void onBindViewHolder(@NonNull StopsMarkersHolder holder, final int position) {
-        StopMarkerModel currentStop = mStopMarkerModelArrayList.get(position);
-        holder.locationTextView.setText(currentStop.getLongitude() + " " + currentStop.getLongitude());
-        holder.timeStampTextView.setText(currentStop.getTimeStamp() + "");
+        ConsumerModel currentConsumer = mConsumerModelArrayList.get(position);
+        holder.locationTextView.setText(currentConsumer.getLongitude() + "\n " + currentConsumer.getLongitude());
+        holder.timeStampTextView.setText(currentConsumer.getTime_stamp());
         holder.containerLinearLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -50,7 +52,7 @@ public class StopsMarkersAdapter extends RecyclerView.Adapter<StopsMarkersAdapte
 
     @Override
     public int getItemCount() {
-        return mStopMarkerModelArrayList.size();
+        return mConsumerModelArrayList.size();
     }
 
     class StopsMarkersHolder extends RecyclerView.ViewHolder {

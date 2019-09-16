@@ -25,10 +25,10 @@ import android.os.Bundle;
 
 import com.android.example.gawala.Activities.LoginActivity;
 import com.android.example.gawala.Activities.MainActivity;
-import com.android.example.gawala.Activities.ProducerClientsRequestsActivity;
+import com.android.example.gawala.Models.ConsumerModel;
+import com.android.example.gawala.fragments.ProducerClientsRequestsFragment;
 import com.android.example.gawala.Interfaces.LatLngInterpolator;
 import com.android.example.gawala.Models.DistanceMatrixModel;
-import com.android.example.gawala.Models.StopMarkerModel;
 import com.android.example.gawala.Utils.Firebase.ProducerFirebaseHelper;
 import com.android.example.gawala.Utils.HttpRequestHelper;
 import com.android.example.gawala.Utils.UrlGenrator;
@@ -101,12 +101,13 @@ import java.util.HashMap;
 
 
 public class ProducerNavMapActivity extends AppCompatActivity
-        implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, ProducerDashBoardFragment.Callbacks, TaskLoadedCallback {
+        implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, ProducerDashBoardFragment.Callbacks, TaskLoadedCallback, ProducerClientsRequestsFragment.CallBacks {
 
 
     private static final int RC_PERMISSION_ALL = 100;
     private static final int RC_LOCAION_ON = 101;
     private static final String PRODUCER_DASHBOARD_FRAGMENT_TAG = "ProducerDashBoardFragment";
+    private String PRODUCER_CLIENT_REQUEST_FRAGMENT_TAG = "ProducerClientRequestFragment";
     private final String[] PERMISSIONS = {
             android.Manifest.permission.READ_EXTERNAL_STORAGE,
             android.Manifest.permission.ACCESS_FINE_LOCATION};
@@ -119,7 +120,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
     private GoogleMap mMap;
     private DrawerLayout drawer;
     private LocationResult mCurrentLocationResult;
-    private ArrayList<StopMarkerModel> mStopMarkerModelArrayList;
+    private ArrayList<ConsumerModel> mConsumerModelArrayList;
 
     private FragmentManager mFragmentManager;
     private Marker myCurrentLocationMarker;
@@ -127,9 +128,14 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
     private View journyInfoContainer;
     private TextView distanceTextView, speedTextView, timeTextView;
-    private Button abortJournyButton;
+//    private Button abortJournyButton;
+    private Button deliveredToCurrentStopButton;
     private Polyline mCurrentPolyline;
     private LocationManager locationManager;
+    private Polyline mFullRoutePolyline;
+    private boolean shouldDrawfullRoute = true;
+    private int mActiveStopPosition=0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,27 +155,6 @@ public class ProducerNavMapActivity extends AppCompatActivity
         //// FIXME: 8/25/2019 for now setting the rate initially according to market later it will be changed
         initUserDataIfFirstTime();
 
-    }
-
-    private void attachListeners() {
-        abortJournyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                abortJourny();
-            }
-        });
-    }
-
-    private void abortJourny() {
-        if (!isjournyActive) {
-            Snackbar.make(drawer, "no ride was active", Snackbar.LENGTH_LONG).show();
-            return;
-        }
-
-
-        Snackbar.make(drawer, "processing...", Snackbar.LENGTH_SHORT).show();
-        isjournyActive = false;
-        journyInfoContainer.setVisibility(View.GONE);
     }
 
 
@@ -300,16 +285,54 @@ public class ProducerNavMapActivity extends AppCompatActivity
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        mStopMarkerModelArrayList = new ArrayList<>();
+        mConsumerModelArrayList = new ArrayList<>();
         mFragmentManager = getSupportFragmentManager();
 
         journyInfoContainer = findViewById(R.id.ll_journy_info_container);
         distanceTextView = findViewById(R.id.tv_prod_distance);
         timeTextView = findViewById(R.id.tv_prod_time);
         speedTextView = findViewById(R.id.tv_prod_speed);
-        abortJournyButton = findViewById(R.id.bt_prod_abort_journy);
+//        abortJournyButton = findViewById(R.id.bt_prod_abort_journy);
+        deliveredToCurrentStopButton = findViewById(R.id.bt_prod_delivered_to_current_stop);
+
 
     }
+
+    private void attachListeners() {
+//        abortJournyButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                abortJourny();
+//            }
+//        });
+
+        deliveredToCurrentStopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mActiveStopPosition>=mConsumerModelArrayList.size()-1){ //this means that all stops are done
+                    abortJourny();
+                    Toast.makeText(ProducerNavMapActivity.this, "all stops done, Now finishing Ride....", Toast.LENGTH_SHORT).show();
+                }else {
+                    mActiveStopPosition++;
+                    Toast.makeText(ProducerNavMapActivity.this, "successfully marked as delivered, Now going gor next stop", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void abortJourny() {
+        if (!isjournyActive) {
+            Snackbar.make(drawer, "no ride was active", Snackbar.LENGTH_LONG).show();
+            return;
+        }
+
+
+        Snackbar.make(drawer, "processing...", Snackbar.LENGTH_SHORT).show();
+        isjournyActive = false;
+        mActiveStopPosition=0;
+        journyInfoContainer.setVisibility(View.GONE);
+    }
+
 
     private void initUserDataIfFirstTime() {
         FirebaseDatabase.getInstance().getReference().child("data")
@@ -373,17 +396,22 @@ public class ProducerNavMapActivity extends AppCompatActivity
                 Toast.makeText(this, "id copied to clipboard", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_producer_map_requests:
-                startActivity(new Intent(this, ProducerClientsRequestsActivity.class));
-                break;
 
 
-            case R.id.nav_producer_map_add_new_stop:
-                addCurrentLoadtionInFirebaseAsAStop();
+                if (mFragmentManager.findFragmentByTag(PRODUCER_CLIENT_REQUEST_FRAGMENT_TAG) == null) {
+                    ProducerClientsRequestsFragment producerClientsRequestsFragment = ProducerClientsRequestsFragment.geInstance();
+                    producerClientsRequestsFragment.setCallBacks(this);
 
+                    mFragmentManager.beginTransaction()
+                            .add(R.id.frame_prod_map_fragment_container,
+                                    producerClientsRequestsFragment
+                                    , PRODUCER_CLIENT_REQUEST_FRAGMENT_TAG)
+                            .commit();
+                }
                 break;
             case R.id.nav_producer_map_dashboard:
                 if (mFragmentManager.findFragmentByTag(PRODUCER_DASHBOARD_FRAGMENT_TAG) == null) {
-                    ProducerDashBoardFragment producerDashBoardFragment = ProducerDashBoardFragment.geInstance(mStopMarkerModelArrayList, "");
+                    ProducerDashBoardFragment producerDashBoardFragment = ProducerDashBoardFragment.geInstance(mConsumerModelArrayList, "");
                     producerDashBoardFragment.setCallBacks(this);
 
                     mFragmentManager.beginTransaction()
@@ -439,29 +467,6 @@ public class ProducerNavMapActivity extends AppCompatActivity
         });
     }
 
-    /**
-     * this method is responsible for adding the active location to firebase and will be treated as a stop
-     * this location will be used as a marker
-     */
-    private void addCurrentLoadtionInFirebaseAsAStop() {
-        if (mCurrentLocationResult != null) {
-            //// TODO: 7/30/2019  later this stp will be associated with client
-            FirebaseDatabase.getInstance().getReference()
-                    .child("stops").child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                    .push().setValue(mCurrentLocationResult).addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    if (task.isSuccessful()) {
-                        Toast.makeText(ProducerNavMapActivity.this, "this location is successfully marked", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(ProducerNavMapActivity.this, "error : " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                }
-            });
-        }
-
-    }
-
 
     /**
      * Manipulates the map once available.
@@ -502,7 +507,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
         listenTomyLocation();
 
-        loadStopMarkers();
+        loadAllConsumers();
         adDraglisternerToMAp();
 
 
@@ -616,7 +621,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
 //                   // Show the dialog by calling startResolutionForResult(),
 //                   // and check the result in onActivityResult().
 ////                   ResolvableApiException resolvable = (ResolvableApiException) e;
-////                   resolvable.startResolutionForResult(ProducerClientsRequestsActivity.this,
+////                   resolvable.startResolutionForResult(ProducerClientsRequestsFragment.this,
 ////                           REQUEST_CHECK_SETTINGS);
 //               } catch (IntentSender.SendIntentException sendEx) {
 //                   // Ignore the error.
@@ -667,30 +672,60 @@ public class ProducerNavMapActivity extends AppCompatActivity
         }
     }
 
-    private void loadStopMarkers() {
+    private void loadAllConsumers() {
         FirebaseDatabase.getInstance().getReference()
-                .child("stops").child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .child("clients").child(FirebaseAuth.getInstance().getCurrentUser().getUid())//prodcuer id
                 .addChildEventListener(new ChildEventListener() {
                     @Override
                     public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                        String id = dataSnapshot.getKey();
-                        double lat = dataSnapshot.child("locations").child("0")
-                                .child("latitude").getValue(Double.class);
-                        double lng = dataSnapshot.child("locations").child("0")
-                                .child("longitude").getValue(Double.class);
-                        long timeStamp = dataSnapshot.child("locations").child("0")
-                                .child("time").getValue(Long.class);
 
-                        StopMarkerModel stopMarkerModel = new StopMarkerModel(id, lat, lng, timeStamp);
-                        mStopMarkerModelArrayList.add(stopMarkerModel);
-                        createNewMarker(stopMarkerModel);
+                        String id = dataSnapshot.getKey();
+                        String name = dataSnapshot.child("name").getValue(String.class);
+                        String number = dataSnapshot.child("number").getValue(String.class);
+                        String timeStamp = dataSnapshot.child("number").getValue(String.class);// FIXME: 9/14/2019 we need time stamp
+                        String lat = null;
+                        String lng = null;
+                        if (dataSnapshot.hasChild("lat") && dataSnapshot.hasChild("lng")) {
+                            lat = dataSnapshot.child("lat").getValue(String.class);
+                            lng = dataSnapshot.child("lng").getValue(String.class);
+                        }
+                        ConsumerModel consumerModel = new ConsumerModel(id, name, number, timeStamp, lat, lng);
+
+                        mConsumerModelArrayList.add(consumerModel);
+                        if (lat != null) {
+                            createNewMarker(consumerModel);
+                        }
+
 
                     }
 
                     @Override
                     public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
 
+                        //it is assumed that this method will only be activated when the location for a consumer marker is updated
+                        String id = dataSnapshot.getKey();
 
+                        String lat = null;
+                        String lng = null;
+                        if (dataSnapshot.hasChild("lat") && dataSnapshot.hasChild("lng")) {
+                            lat = dataSnapshot.child("lat").getValue(String.class);
+                            lng = dataSnapshot.child("lng").getValue(String.class);
+                        }
+                        ConsumerModel currentConsumerModel = null;
+                        for (ConsumerModel currentModel : mConsumerModelArrayList) {
+                            if (currentModel.getId().equals(id)) {
+                                currentConsumerModel = currentModel;
+                                currentConsumerModel.setLat(lat);
+                                currentConsumerModel.setLng(lng);
+
+                                break;
+                            }
+                        }
+                        if (currentConsumerModel == null) return;
+
+                        if (lat != null && currentConsumerModel.getMarker() == null) {//if the marker is null then the location is added for the first time and a new marker is needed
+                            createNewMarker(currentConsumerModel);
+                        }
                     }
 
                     @Override
@@ -713,17 +748,18 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
 
     //this method is only valid if it is called for the last posiioned object of array list
-    private void createNewMarker(StopMarkerModel stopMarkerModel) {
-        String key = stopMarkerModel.getId();
+    private void createNewMarker(ConsumerModel consumerModel) {
+        String key = consumerModel.getId();
         MarkerOptions markerOptions = new MarkerOptions();
         //added array list size to indicate the number of marker
-        markerOptions.title("marker" + mStopMarkerModelArrayList.size() + ":" + key);
+        markerOptions.title("marker" + mConsumerModelArrayList.size() + ":" + key);
         markerOptions.icon(bitmapDescriptorFromVector(this, R.drawable.marker_home));
         markerOptions.draggable(true);
-        markerOptions.position(new LatLng(stopMarkerModel.getLatitude(),
-                stopMarkerModel.getLongitude()));
+        markerOptions.position(new LatLng(Double.parseDouble(consumerModel.getLatitude()),
+                Double.parseDouble(consumerModel.getLongitude())));
         Marker marker = mMap.addMarker(markerOptions);
-        mStopMarkerModelArrayList.get(mStopMarkerModelArrayList.size() - 1).setMarker(marker);
+        consumerModel.setMarker(marker);
+//        mConsumerModelArrayList.get(mConsumerModelArrayList.size() - 1).setMarker(marker);
     }
 
     private void adDraglisternerToMAp() {
@@ -740,18 +776,18 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
             @Override
             public void onMarkerDragEnd(Marker marker) {
-                for (StopMarkerModel stopMarkerModel : mStopMarkerModelArrayList) {
-                    if (stopMarkerModel.getMarker().equals(marker)) {
-                        stopMarkerModel.setLatitude(marker.getPosition().latitude);
-                        stopMarkerModel.setLongitude(marker.getPosition().longitude);
+                for (ConsumerModel consumerModel : mConsumerModelArrayList) {
+                    if (consumerModel.getMarker().equals(marker)) {
+                        consumerModel.setLat(marker.getPosition().latitude + "");
+                        consumerModel.setLng(marker.getPosition().longitude + "");
 
                         HashMap<String, Object> hashMap = new HashMap<>();
-                        hashMap.put("latitude", marker.getPosition().latitude);
-                        hashMap.put("longitude", marker.getPosition().longitude);
+                        hashMap.put("lat", marker.getPosition().latitude + "");
+                        hashMap.put("lng", marker.getPosition().longitude + "");
+
                         FirebaseDatabase.getInstance().getReference()
-                                .child("stops").child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                                .child(stopMarkerModel.getId())
-                                .child("locations").child("0")
+                                .child("clients").child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                .child(consumerModel.getId())
                                 .updateChildren(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
@@ -781,11 +817,16 @@ public class ProducerNavMapActivity extends AppCompatActivity
     @Override
     public void onStopMarkerItemClick(int position) {
         selectedStopPos = position;
+        if (mConsumerModelArrayList.get(selectedStopPos).getLatitude() == null) {
+            Toast.makeText(this, "location for this consumer is not set", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         // FIXME: 9/10/2019 later change the logic
         mFragmentManager.beginTransaction().remove(mFragmentManager.findFragmentByTag(PRODUCER_DASHBOARD_FRAGMENT_TAG)).commit();
         getSupportActionBar().setTitle("Map");
-        Double lat = mStopMarkerModelArrayList.get(position).getLatitude();
-        Double lng = mStopMarkerModelArrayList.get(position).getLongitude();
+        Double lat = Double.parseDouble(mConsumerModelArrayList.get(position).getLatitude());
+        Double lng = Double.parseDouble(mConsumerModelArrayList.get(position).getLongitude());
         mMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(lat, lng)));
 
     }
@@ -797,11 +838,8 @@ public class ProducerNavMapActivity extends AppCompatActivity
             Snackbar.make(drawer, "you are already riding", Snackbar.LENGTH_LONG).show();
             return;
         }
-
-
-
         //dialog related
-        String message = "Total milk Volume : "+totalMilk+"\n are you all set? Press Go to proceed";
+        String message = "Total milk Volume : " + totalMilk + "\n are you all set? Press Go to proceed";
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Start Riding ?")
                 .setMessage(message)
@@ -817,6 +855,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
     }
 
+
     private void startRiding() {
         isjournyActive = true;
         startJourney();
@@ -831,21 +870,36 @@ public class ProducerNavMapActivity extends AppCompatActivity
     // and time  and do it in a constant intrvals
 
     private void startJourney() {
+
         //  this link will help you tomake a polyline as soon as the start journy is callled https://www.youtube.com/watch?v=wRDLjUK8nyU
         if (mCurrentLocationResult == null) {
             Toast.makeText(this, "cant get your location ", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (mStopMarkerModelArrayList.isEmpty()) {
+        if (mConsumerModelArrayList.isEmpty()) {
             Toast.makeText(this, "there are no stops to reach to.. ", Toast.LENGTH_SHORT).show();
             Snackbar.make(drawer, "there are no stops to reach to.. ", Snackbar.LENGTH_LONG);
             isjournyActive = false;
             journyInfoContainer.setVisibility(View.GONE);
             return;
         }
+
         final LatLng currentLocation = new LatLng(mCurrentLocationResult.getLocations().get(0).getLatitude(), mCurrentLocationResult.getLocations().get(0).getLongitude());
-        final LatLng stop1Location = new LatLng(mStopMarkerModelArrayList.get(0).getLatitude(), mStopMarkerModelArrayList.get(0).getLongitude());
-        new FetchURL(ProducerNavMapActivity.this).execute(getDirectionApiUrl(currentLocation, stop1Location), "driving");
+        if (mConsumerModelArrayList.get(mActiveStopPosition).getLatitude() == null) {
+            Toast.makeText(this, "This stop location is not set", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+
+        if (shouldDrawfullRoute) {//to make this path drawing be called only once in a ride
+            //to generate a polyline over the complete route
+            drawFullRoutePolyline(currentLocation);
+        }
+
+
+        final LatLng stop1Location = new LatLng(Double.parseDouble(mConsumerModelArrayList.get(mActiveStopPosition).getLatitude()), Double.parseDouble(mConsumerModelArrayList.get(mActiveStopPosition).getLongitude()));
+        //to generate a polyline for the specific stop
+        new FetchURL(ProducerNavMapActivity.this, false).execute(getDirectionApiUrl(currentLocation, stop1Location, false), "driving");
 
         String url = UrlGenrator.generateDistanceMatrixUrl(currentLocation, stop1Location, getResources().getString(R.string.distance_matrix_api_key));
         DistanceMatrixAsyncTask distanceMatrixAsyncTask = new DistanceMatrixAsyncTask() {
@@ -858,7 +912,9 @@ public class ProducerNavMapActivity extends AppCompatActivity
                     System.out.println("response :" + s);
                     Snackbar.make(drawer, "riding now", Snackbar.LENGTH_LONG).show();
 
+                    // FIXME: 9/16/2019 crashes here as its still running while app is shi down
                     ProducerFirebaseHelper.updateStatus(getResources().getString(R.string.status_producer_onduty));
+                    System.out.println("json string :" + s);
                     DistanceMatrixModel distanceMatrixModel = HttpRequestHelper.parseDistanceMatrixJson(s);
 
 
@@ -867,7 +923,8 @@ public class ProducerNavMapActivity extends AppCompatActivity
                     speedTextView.setText(mCurrentLocationResult.getLocations().get(0).getSpeed() + " m/sec");
 
                     if (distanceMatrixModel.getDurationLong() <= 45) {
-                        showNotificationForConsumer(distanceMatrixModel.getDurationLong());
+                        //todo for noe grtting the first consumer in list later it wont work
+                        showNotificationForConsumer(mConsumerModelArrayList.get(mActiveStopPosition).getId(), distanceMatrixModel.getDurationLong());
                     }
 
 
@@ -882,6 +939,11 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
                                     mCurrentPolyline.remove();
                                     mCurrentPolyline = null;
+
+                                }
+                                if (mFullRoutePolyline != null) {
+                                    mFullRoutePolyline.remove();
+                                    shouldDrawfullRoute = true;//to rstore the full path drawing for future rides
                                 }
 
                                 ProducerFirebaseHelper.updateStatus(getResources().getString(R.string.status_producer_inactive));
@@ -897,27 +959,69 @@ public class ProducerNavMapActivity extends AppCompatActivity
         distanceMatrixAsyncTask.execute(url);
     }
 
+    private void drawFullRoutePolyline(LatLng currentLocation) {
+        LatLng stopLocation = new LatLng(Double.parseDouble(mConsumerModelArrayList.get(mConsumerModelArrayList.size() - 1).getLatitude()),
+                Double.parseDouble(mConsumerModelArrayList.get(mConsumerModelArrayList.size() - 1).getLongitude()));
+        new FetchURL(ProducerNavMapActivity.this, true).execute(getDirectionApiUrl(currentLocation, stopLocation, true), "driving");
+    }
+
     // TODO: 8/15/2019 create this one on your own and place in httphelper util class and add direction mode later if needed
-    private String getDirectionApiUrl(LatLng origin, LatLng dest/*, String directionMode*/) {
+    private String getDirectionApiUrl(LatLng origin, LatLng dest, boolean isFullRoute /*, String directionMode*/) {
         // Origin of route
         String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
         // Destination of route
         String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
         // Mode
         //String mode = "mode=" + directionMode;
+
+
         // Building the parameters to the web service
-        String parameters = str_origin + "&" + str_dest /*+ "&" + mode*/;
+        String parameters = null;
+        if (isFullRoute) {
+            StringBuilder wayPoints = new StringBuilder("waypoints=");
+            for (int i = 0; i < mConsumerModelArrayList.size(); i++) {
+
+                ConsumerModel curentConsumerModel = mConsumerModelArrayList.get(i);
+                Double currentLat = Double.parseDouble(curentConsumerModel.getLatitude());
+                Double currentLng = Double.parseDouble(curentConsumerModel.getLongitude());
+                wayPoints.append("via:").append(currentLat).append(",").append(currentLng);
+                if (i != mConsumerModelArrayList.size() - 1) {//if its not the last one then add pipe
+                    wayPoints.append("|");
+                }
+            }
+
+            parameters = str_origin + "&" + str_dest + "&" + wayPoints.toString();
+        } else {
+            parameters = str_origin + "&" + str_dest;
+        }
+
+
         // Output format
         String output = "json";
+
+
+//        &waypoints = via:-37.81223 % 2 C144 .96254 % 7 Cvia:
+//        -34.92788 % 2 C138 .60008
         // Building the url to the web service
-        String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters + "&key=" + getResources().getString(R.string.directions_api);
-        return url;
+        return "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters + "&key=" + getResources().getString(R.string.directions_api);
     }
 
-    private void showNotificationForConsumer(float timeRemaining) {
-        // TODO: 8/4/2019  for now generating it in my own app later a node will be updated to notify the consumer usogn cloud fucntions further processing will be done
+    private void showNotificationForConsumer(String id, float timeRemaining) {
+        // TODO: 8/4/2019  for now generating both  in current app and in customers app later only customer will be notified
 
-        //creating an intent and passing it through a pending intent which will be called when notification is clicked
+        String title = "Milk Alert";
+        String message = "your milk is about to arrive in " + timeRemaining + "seconds";
+
+        HashMap<String, Object> notificationMap = new HashMap<>();
+        notificationMap.put("title", title);
+        notificationMap.put("message", message);
+        FirebaseDatabase.getInstance().getReference().child("notifications")
+                .child(id)//reciever id
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())//sender id
+                .push()//notification id
+                .setValue(notificationMap);//for now no need for completion listener
+
+
         Intent activityIntent = new Intent(this, MainActivity.class);
         PendingIntent contentIntent = PendingIntent.getActivity(//we can also call getService or broadcast reciever etc
                 this, //context
@@ -928,9 +1032,9 @@ public class ProducerNavMapActivity extends AppCompatActivity
         NotificationCompat.Builder downloadNotificationBuilder;
         downloadNotificationBuilder = new NotificationCompat.Builder(this, App.CHANNEL_1_ID)
                 .setSmallIcon(R.drawable.ic_add_location_black_24dp)
-                .setContentTitle("Alert Alert")
-                .setContentText("your milk is about to arrive in " + timeRemaining + "seconds")
-                .setPriority(NotificationManager.IMPORTANCE_DEFAULT)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setPriority(NotificationManager.IMPORTANCE_DEFAULT)//fixme  if needed
                 .setCategory(NotificationCompat.CATEGORY_PROGRESS)
                 .setContentIntent(contentIntent)
                 .setOnlyAlertOnce(true);
@@ -942,12 +1046,25 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
     @Override
     public void onTaskDone(Object... values) {
-        if (mCurrentPolyline != null)
-            mCurrentPolyline.remove();
-        mCurrentPolyline = mMap.addPolyline(((PolylineOptions) values[0]).geodesic(true)
-                .color(Color.CYAN)
-                .width(10))
-        /*.pattern(PattrrPATTERN_POLYGON_ALPHA))*/;
+        if ((boolean) values[1]) { //this means its a full route
+            if (mFullRoutePolyline != null) {
+                mFullRoutePolyline.remove();
+            }
+            mFullRoutePolyline = mMap.addPolyline(((PolylineOptions) values[0]).geodesic(true));
+            shouldDrawfullRoute = false;
+//                    .color(Color.CYAN)
+//                    .width(10))
+
+        } else {
+            if (mCurrentPolyline != null)
+                mCurrentPolyline.remove();
+            mCurrentPolyline = mMap.addPolyline(((PolylineOptions) values[0]).geodesic(true)
+                    .color(Color.RED)
+                    .width(12));
+            /*.pattern(PattrrPATTERN_POLYGON_ALPHA))*/
+            ;
+
+        }
 
 
     }
@@ -983,7 +1100,6 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
             @Override
             public void onAnimationEnd(Animator animator) { //to animate camera with the motion of child
-                //todo if this functionality offends either provide turn off option or don't do it in the first place
 //                if (isSelected) { // if this child is in observation
 //                    mMap.animateCamera(CameraUpdateFactory.newLatLng(finalPosition));
 //                }
@@ -1003,6 +1119,67 @@ public class ProducerNavMapActivity extends AppCompatActivity
         });
     }
 
+    @Override
+    public void onEditLocation(int position) {
+
+        ConsumerModel consumerModel = mConsumerModelArrayList.get(position);
+
+
+        if (consumerModel.getLatitude() != null && consumerModel.getLongitude() != null) {//then we are updating an old position of the stop
+            // TODO: 9/14/2019 later  we may change the markers background to indicate that this marker is being changed and set the drag listner temporarily and only for the currunt marker and then remove the drag listener from map
+
+            Toast.makeText(this, "Grab the marker and shift to the desired location ", Toast.LENGTH_SHORT).show();
+
+        } else {
+            addCurrentLoadtionInFirebaseAsAStop(consumerModel);
+        }
+
+        mFragmentManager.beginTransaction().remove(mFragmentManager.findFragmentByTag(PRODUCER_CLIENT_REQUEST_FRAGMENT_TAG)).commit();
+        getSupportActionBar().setTitle("Map");
+
+
+//        Double lat = Double.parseDouble(consumerModel.getLatitude());
+//        Double lng = Double.parseDouble(consumerModel.getLongitude());
+//        mMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(lat, lng)));
+//        mFragmentManager.popBackStack();//remove the current fragemnt
+    }
+
+    /**
+     * this method is responsible for adding the active location to firebase and will be treated as a stop
+     * this location will be used as a marker
+     *
+     * @param consumerModel the model to which a stop is being added
+     */
+    private void addCurrentLoadtionInFirebaseAsAStop(ConsumerModel consumerModel) {
+        if (mCurrentLocationResult != null) {
+
+            HashMap<String, Object> locationMap = new HashMap<>();
+            locationMap.put("lat", String.valueOf(mCurrentLocationResult.getLocations().get(0).getLatitude()));
+            locationMap.put("lng", String.valueOf(mCurrentLocationResult.getLocations().get(0).getLongitude()));
+
+
+            FirebaseDatabase.getInstance().getReference()
+                    .child("clients").child(FirebaseAuth.getInstance().getCurrentUser().getUid())//producer_id
+                    .child(consumerModel.getId())//consumer id
+                    .updateChildren(locationMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        // TODO: 9/14/2019 later remove this success toast
+                        Toast.makeText(ProducerNavMapActivity.this, "new Location is set to the database for this client ", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(ProducerNavMapActivity.this, "error : " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+
+    }
+
+
+    public ArrayList<ConsumerModel> getConsumersArrayList() {
+        return this.mConsumerModelArrayList;
+    }
 
     private class DistanceMatrixAsyncTask extends AsyncTask<String, Void, String> {
 
@@ -1021,9 +1198,16 @@ public class ProducerNavMapActivity extends AppCompatActivity
     }
 
 }
-//// TODO: 7/27/2019 for the purpose of Gps use a broadcast reciever for making changes as desired
 
+//// TODO: 7/27/2019 for the purpose of Gps use a broadcast reciever for making changes as desired
 
 //  in my head it just came that this app can be used for daily groceries , including all stuff that is in daly use .
 
-//customer adnd stops must be merged now  and then we will proceed further for alll stops routing and an option to change the stop location
+//TODO: 9/16/2019  NOW FINAL MODULE
+// kerna kia hai :-create a session for each ride that does the following
+// 1) display user a list of stops to cover, alongside milk amount to deliver ,along side delivered /not delivered and delivering options
+// the stops should be showing priority in the list whihc will later be changed by user and also later an option can be placed to suggest user the best and route to cover all stops
+// 2)total milk remaining milk and delivered milk
+// 3) on each click of milk delivered button the data is feed to the firebase and progress is stored .
+
+

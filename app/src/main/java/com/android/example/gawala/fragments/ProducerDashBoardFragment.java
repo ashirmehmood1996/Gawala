@@ -20,9 +20,9 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.android.example.gawala.Adapters.StopsMarkersAdapter;
+import com.android.example.gawala.Adapters.ConsumerMarkersAdapter;
 import com.android.example.gawala.Interfaces.StopMarkerClickCallBack;
-import com.android.example.gawala.Models.StopMarkerModel;
+import com.android.example.gawala.Models.ConsumerModel;
 import com.android.example.gawala.R;
 import com.android.example.gawala.Utils.Firebase.ProducerFirebaseHelper;
 import com.google.firebase.auth.FirebaseAuth;
@@ -41,18 +41,15 @@ public class ProducerDashBoardFragment extends Fragment implements StopMarkerCli
     private ImageButton editMilkRateImageButton;
 
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_MARKERS_KEY = "markersKey";
-    private static final String ARG_PARAM2 = "param2";
+
 
 
     private Callbacks callbacks;
 
 
-    private ArrayList<StopMarkerModel> mStopsMarkerList;
-    private String mParam2;
-    private StopsMarkersAdapter mStopsMarkersAdapter;
+    private ArrayList<ConsumerModel> consumerModelArrayList;
+    private ConsumerMarkersAdapter mConsumerMarkersAdapter;
     private RecyclerView mRecyclerView;
 
     private Button startRideButton;
@@ -68,12 +65,11 @@ public class ProducerDashBoardFragment extends Fragment implements StopMarkerCli
      * @return
      */
 
-    public static ProducerDashBoardFragment geInstance(ArrayList<StopMarkerModel> stopsMarkerList, String param2) {
+    public static ProducerDashBoardFragment geInstance(ArrayList<ConsumerModel> stopsMarkerList, String param2) {
 
         ProducerDashBoardFragment fragment = new ProducerDashBoardFragment();
         Bundle args = new Bundle();
         args.putSerializable(ARG_MARKERS_KEY, stopsMarkerList);
-        args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
 
         return fragment;
@@ -84,8 +80,7 @@ public class ProducerDashBoardFragment extends Fragment implements StopMarkerCli
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mStopsMarkerList = (ArrayList<StopMarkerModel>) getArguments().getSerializable(ARG_MARKERS_KEY);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            consumerModelArrayList = (ArrayList<ConsumerModel>) getArguments().getSerializable(ARG_MARKERS_KEY);
         }
     }
 
@@ -110,8 +105,8 @@ public class ProducerDashBoardFragment extends Fragment implements StopMarkerCli
 
         mRecyclerView = rootView.findViewById(R.id.rv_frag_prod_dash_board);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        mStopsMarkersAdapter = new StopsMarkersAdapter(mStopsMarkerList, getActivity(), this);
-        mRecyclerView.setAdapter(mStopsMarkersAdapter);
+        mConsumerMarkersAdapter= new ConsumerMarkersAdapter(consumerModelArrayList, getActivity(), this);
+        mRecyclerView.setAdapter(mConsumerMarkersAdapter);
         startRideButton = rootView.findViewById(R.id.bt_frag_prod_dash_board_start_ride);
 
     }
@@ -204,6 +199,7 @@ public class ProducerDashBoardFragment extends Fragment implements StopMarkerCli
         this.callbacks = callbacks;
     }
 
+
     @Override
     public void onStopMarkerItemClick(int position) {
         callbacks.onStopMarkerItemClick(position); //call forwarded to ProucerNAv Main Activity activity
@@ -218,8 +214,4 @@ public class ProducerDashBoardFragment extends Fragment implements StopMarkerCli
  * 4) on click of each consumer we can see the details that how much milk is delivered this month
  */
 
-// TODO: 9/10/2019 now
-//  3)on consumer side solve some minor bugs.
-
 // TODO: 9/10/2019  c) milk amounct to deliver today will be calculated later wehn consumers is merged with he stop
-// TODO: 9/10/2019  e) show a dialog taht asks athe this much amount of nilk to deliver in that much time are you ready?

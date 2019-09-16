@@ -139,7 +139,7 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
     private void upDateUiForNoProducerConnection() {
         producerStatustextView.setText("You first need to connect to a nearby producer to get banefited with this app");
         gotoRequestsButton.setVisibility(View.VISIBLE);
-        editDemadImageButton.setEnabled(false); //// FIXME: 8/25/2019 see if they are enabled later or not
+        editDemadImageButton.setEnabled(false);
         notAtHomeButton.setEnabled(false);
         gotoRequestsButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -332,8 +332,6 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
                             ConsumerFirebaseHelper.atHome(true, producuerKey);
                             mIsAtHome=true;
                         }
-
-                        // TODO: 8/6/2019 update a field in database that will let the producer know that today this consumers house is not in visit list
                     }
                 }).setNegativeButton("cancel", null).show();
 
@@ -407,16 +405,10 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
     }
 }
 // TODO: 8/6/2019  put a braod cast receiver when GPs is turned on adn off and then trigger the location api
-//// TODO: 8/5/2019 when consumer is attached to a producer  a sashboard will be displayed allowing to change the todays  demand of milk which(a constrant will be a specific hour or day)
-// todo option to tell that I am not home.
-//  history of number or liters milk delivered to the consumer with the amount alongside .
+//  todo history of number or liters milk delivered to the consumer with the amount alongside .
 
 
 // .
 // TODO: 8/5/2019   for future
 //  .//show all available consumers to the approacher
 //  //later we will show the . nearest on top and then others whcih will be done when the prodcers will share its repositiory location the
-//  distance (not displacemnet ) will be calculated using the consumers own location no other location will be shared.
-//  .
-
-//complete the initialiation of data on both side where ever it is coming from and the update the dashboard

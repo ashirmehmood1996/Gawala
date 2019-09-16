@@ -7,17 +7,38 @@
     android:orientation="vertical"
     android:padding="4dp">
 
-    <Button
-        android:layout_gravity="center"
-        android:paddingRight="16dp"
-        android:text="abort Journy"
-        android:textColor="#FF0000"
-        android:background="@drawable/bg_button_solid"
-        android:paddingLeft="16dp"
-        android:layout_margin="10dp"
-        android:id="@+id/bt_prod_abort_journy"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+<!--        <Button-->
+<!--            android:layout_gravity="center"-->
+<!--            android:paddingRight="16dp"-->
+<!--            android:text="abort Journy"-->
+<!--            android:textColor="#FF0000"-->
+<!--            android:background="@drawable/bg_button_solid"-->
+<!--            android:paddingLeft="16dp"-->
+<!--            android:layout_margin="10dp"-->
+<!--            android:id="@+id/bt_prod_abort_journy"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"/>-->
+
+        <Button
+            android:layout_gravity="center"
+            android:paddingRight="16dp"
+            android:text="Delivered To Current Stop"
+            android:textAllCaps="false"
+            android:background="@drawable/bg_button_solid"
+            android:paddingLeft="16dp"
+            android:layout_margin="10dp"
+            android:textColor="#fff"
+            android:id="@+id/bt_prod_delivered_to_current_stop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
 
 
     <LinearLayout

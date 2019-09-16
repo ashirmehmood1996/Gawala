@@ -3,16 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
 
-    <item android:title="functions">
-        <menu>
-
-            <item
-                android:id="@+id/nav_producer_map_add_new_stop"
-                android:icon="@drawable/ic_add_location_black_24dp"
-                android:title="add new stop" />
-        </menu>
-
-    </item>
 
     <group>
         <item

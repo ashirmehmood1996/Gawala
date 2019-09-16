@@ -22,10 +22,10 @@ public class RequestsAdapter extends RecyclerView.Adapter<RequestsAdapter.Reques
 
     private RequestsAdapterCallbacks requestsAdapterCallbacks;
 
-    public RequestsAdapter(ArrayList<RequestModel> requestModelArrayList, Activity activity) {
+    public RequestsAdapter(ArrayList<RequestModel> requestModelArrayList, Activity activity,RequestsAdapterCallbacks requestsAdapterCallbacks) {
         this.requestModelArrayList = requestModelArrayList;
         this.context = activity;
-        this.requestsAdapterCallbacks = (RequestsAdapterCallbacks) activity;
+        this.requestsAdapterCallbacks = requestsAdapterCallbacks;
 
     }
 

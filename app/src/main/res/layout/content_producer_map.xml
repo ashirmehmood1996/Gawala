@@ -8,16 +8,16 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".ProducerNavMapActivity"
     tools:showIn="@layout/app_bar_producer">
-<!--map:cameraBearing="112.5"-->
+<!--map:cameraBearing="112.5"
+    map:cameraTilt="65"
+    map:cameraZoom="17"-->
 
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-
-        map:cameraTilt="65"
-        map:cameraZoom="17" />
+         />
 
     <include
         android:id="@+id/ll_journy_info_container"

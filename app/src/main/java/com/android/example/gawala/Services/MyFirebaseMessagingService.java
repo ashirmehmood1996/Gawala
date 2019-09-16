@@ -18,6 +18,7 @@ import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
@@ -43,6 +44,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 case "requestAccepted":
                     onRequestAccepted();
                     break;
+                case "generel":
+                    showNotification(data);
+                    break;
+
 
             }
         }
@@ -99,6 +104,32 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         mNotificationManager.notify(101, mBuilder.build());
+    }
+
+    private void showNotification(Map<String, String> map) {
+        // TODO: 8/4/2019  for now generating it in my own app later a node will be updated to notify the consumer usogn cloud fucntions further processing will be done
+
+        //creating an intent and passing it through a pending intent which will be called when notification is clicked
+        Intent activityIntent = new Intent(this, MainActivity.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(//we can also call getService or broadcast reciever etc
+                this, //context
+                0, //id for pending intent if we want to cancel it later
+                activityIntent, //intent to be executed by the notification
+                0);
+        //creating a notification
+        NotificationCompat.Builder downloadNotificationBuilder;
+        downloadNotificationBuilder = new NotificationCompat.Builder(this, App.CHANNEL_1_ID)
+                .setSmallIcon(R.drawable.ic_add_location_black_24dp)
+                .setContentTitle(map.get("title"))
+                .setContentText(map.get("message"))
+                .setPriority(NotificationManager.IMPORTANCE_DEFAULT)
+                .setCategory(NotificationCompat.CATEGORY_PROGRESS)
+                .setContentIntent(contentIntent)
+                .setOnlyAlertOnce(true);
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.notify(11, downloadNotificationBuilder.build());
+
     }
 
 }

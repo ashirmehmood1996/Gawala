@@ -1,5 +1,6 @@
 package com.android.example.gawala.Adapters;
 
+import android.app.Activity;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -8,20 +9,24 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
-import com.android.example.gawala.Models.ConnectedConsumersModel;
+import com.android.example.gawala.Models.ConsumerModel;
 import com.android.example.gawala.R;
 
 import java.util.ArrayList;
 
 public class ConnectedConsumersAdapter extends RecyclerView.Adapter<ConnectedConsumersAdapter.ConnectedConsumersHolder> {
-    private ArrayList<ConnectedConsumersModel> connectedConsumersModelArrayList;
+    private ArrayList<ConsumerModel> consumerModelArrayList;
     private Context context;
+    private CallBacks callBacks;
 
-    public ConnectedConsumersAdapter(ArrayList<ConnectedConsumersModel> connectedConsumersModelArrayList, Context context) {
-        this.connectedConsumersModelArrayList = connectedConsumersModelArrayList;
-        this.context = context;
+    public ConnectedConsumersAdapter(ArrayList<ConsumerModel> consumerModelArrayList, Activity activity, CallBacks callBacks) {
+        this.consumerModelArrayList = consumerModelArrayList;
+        this.context = activity;
+        this.callBacks= callBacks;
+
     }
 
     @NonNull
@@ -32,26 +37,48 @@ public class ConnectedConsumersAdapter extends RecyclerView.Adapter<ConnectedCon
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ConnectedConsumersHolder connectedConsumersHolder, int i) {
-        ConnectedConsumersModel connectedConsumersModel = connectedConsumersModelArrayList.get(i);
-        connectedConsumersHolder.nameTextView.setText(connectedConsumersModel.getName());
-        connectedConsumersHolder.locationTextView.setText(connectedConsumersModel.getNumber());
+    public void onBindViewHolder(@NonNull ConnectedConsumersHolder holder, final int i) {
+        ConsumerModel consumerModel = consumerModelArrayList.get(i);
+        holder.nameTextView.setText(consumerModel.getName());
+        if(consumerModel.getLatitude()!=null || consumerModel.getLongitude()!=null){
+            holder.locationTextView.setText("lat : "+ consumerModel.getLatitude()+"\n" +
+                    "lon : "+ consumerModel.getLongitude());
+        }else {
+            holder.locationTextView.setText("location was not set");
+        }
+
+        holder.editLocationButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                callBacks.onEditLocation(i);
+            }
+        });
 
 
     }
 
     @Override
     public int getItemCount() {
-        return connectedConsumersModelArrayList.size();
+        return consumerModelArrayList.size();
     }
 
     class ConnectedConsumersHolder extends RecyclerView.ViewHolder {
         TextView nameTextView, locationTextView;
+        Button editLocationButton;
 
         public ConnectedConsumersHolder(@NonNull View itemView) {
             super(itemView);
             nameTextView = itemView.findViewById(R.id.tv_li_conected_con_name);
             locationTextView = itemView.findViewById(R.id.tv_li_conected_con_location);
+            editLocationButton =itemView.findViewById(R.id.bt_li_conected_con_edit_location);
         }
+    }
+
+
+    /**
+     * an interfase between activity and adapter
+     */
+    public interface CallBacks{
+        void onEditLocation(int position);
     }
 }
