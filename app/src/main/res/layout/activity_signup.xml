@@ -12,7 +12,7 @@
         android:layout_height="match_parent"
         android:animateLayoutChanges="true"
         android:padding="10dp"
-        tools:context=".Activities.SignupActivity">
+        tools:context=".Generel.Activities.SignupActivity">
 
 
         <TextView

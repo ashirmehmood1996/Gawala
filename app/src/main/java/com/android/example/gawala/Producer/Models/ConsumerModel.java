@@ -1,0 +1,86 @@
+package com.android.example.gawala.Producer.Models;
+
+import com.google.android.gms.maps.model.Marker;
+
+import java.util.Calendar;
+
+public class ConsumerModel {
+    private String id;
+    private String name;
+    private String number;
+
+    private String time_stamp;
+    private String lat;
+    private String lng;
+    private Marker marker;
+
+    //changing data
+    private float amountOfMilk;
+    private boolean isDelivered;
+
+
+    public ConsumerModel(String id, String name, String numebr, String time_stamp, String lat, String lng) {
+        this.id = id;
+        this.name = name;
+        this.number = numebr;
+        this.time_stamp = time_stamp;
+        this.lat = lat;
+        this.lng = lng;
+        this.isDelivered=false;
+    }
+
+    public void setLat(String lat) {
+        this.lat = lat;
+    }
+
+    public void setLng(String lng) {
+        this.lng = lng;
+    }
+
+    public String getNumber() {
+        return number;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getLatitude() {
+        return lat;
+    }
+
+    public String getLongitude() {
+        return lng;
+    }
+
+    public String getTime_stamp() {
+        return time_stamp;
+    }
+    public Marker getMarker() {
+        return marker;
+    }
+
+    public void setMarker(Marker marker) {
+        this.marker = marker;
+    }
+
+    public float getAmountOfMilk() {
+        return amountOfMilk;
+    }
+
+    public void setAmountOfMilk(float amountOfMilk) {
+        this.amountOfMilk = amountOfMilk;
+    }
+
+    public boolean isDelivered() {
+        return isDelivered;
+    }
+
+    public void setDelivered(boolean delivered) {
+        isDelivered = delivered;
+    }
+}

@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context=".ProducerNavMapActivity"
+    tools:context=".Producer.Activities.ProducerNavMapActivity"
     tools:showIn="@layout/app_bar_producer">
 <!--map:cameraBearing="112.5"
     map:cameraTilt="65"
@@ -19,7 +19,7 @@
         android:layout_height="match_parent"
          />
 
-    <include
+    <!--<include
         android:id="@+id/ll_journy_info_container"
         layout="@layout/speed_time_distance_layout"
         android:layout_width="match_parent"
@@ -27,7 +27,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="32dp"
         android:layout_marginRight="32dp"
-        android:layout_marginTop="@dimen/top_margin_nav_prod_map" />
+        android:layout_marginTop="@dimen/top_margin_nav_prod_map" />-->
 
 
     <FrameLayout

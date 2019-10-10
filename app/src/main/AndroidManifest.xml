@@ -1,33 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.android.example.gawala">
-    <!--
-         The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
-         Google Maps Android API v2, but you must specify either coarse or fine
-         location permissions for the 'MyLocation' functionality.
-    -->
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
     <application
-        android:name=".App"
+        android:name=".Generel.App"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Activities.ConsumerDashBoardActivity">
-
-        </activity>
+        <activity android:name=".Consumer.Activities.AquiredGoodDetailActivity"></activity>
+        <activity android:name=".Consumer.Activities.AcquiredGoodsActivity" />
         <activity
-            android:name=".ProducerNavMapActivity"
-            android:label="@string/title_activity_nav_producer_map"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:name=".Consumer.Activities.ConProducerServiceDetailsActivty"
+            android:label="@string/service_details_title" />
+        <activity
+            android:name=".Consumer.Activities.ProducerDetailActivty"
+            android:label="@string/producer_details_activity_label" />
+        <!--
+todo   this detail activty is neing used in more than one palces and
+                parent activty does not cause any bad affect may be later or in other andorid versions it will do
+        -->
+        <activity
+            android:name=".Producer.Activities.ProducerServiceDetailsActivity"
+            android:label="@string/service_details_title" />
+        <activity
+            android:name=".Producer.Activities.ProducerAddServiceActivity"
+            android:label="@string/add_service_activity_name" />
+        <activity
+            android:name=".Producer.Activities.ProducerServicesActivty"
+            android:label="@string/my_services_activity_name" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -36,24 +46,32 @@
              sign the APK for publishing.
              You can define the keys for the debug and release targets in src/debug/ and src/release/.
         -->
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="@string/google_maps_key" />
-
-        <activity android:name=".Activities.ConsumerRequestsActivity"
-            android:parentActivityName=".Activities.ConsumerDashBoardActivity"/>
-        <activity android:name=".Activities.SignupActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
-        <activity android:name=".Activities.LoginActivity" />
-        <activity android:name=".Activities.MainActivity">
+        <activity android:name=".Consumer.Activities.ConsumerDashBoardActivity" />
+        <activity
+            android:name=".Producer.Activities.ProducerNavMapActivity"
+            android:label="@string/title_activity_nav_producer_map"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Consumer.Activities.ConsumerRequestsActivity"
+            android:parentActivityName=".Consumer.Activities.ConsumerDashBoardActivity" />
+        <activity
+            android:name=".Generel.Activities.SignupActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity android:name=".Generel.Activities.LoginActivity" />
+        <activity android:name=".Generel.Activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
+
         <service
-            android:name=".Services.MyFirebaseMessagingService"
+            android:name=".Generel.Services.MyFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

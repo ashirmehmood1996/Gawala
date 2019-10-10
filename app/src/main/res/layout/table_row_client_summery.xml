@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableRow xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#F6FCFF"
+    xmlns:tools="http://schemas.android.com/tools">
+    <TextView
+        android:id="@+id/tv_tr_date"
+        tools:text="23,jan 2019"
+        android:layout_margin="8dp"
+        android:gravity="center"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:id="@+id/tv_tr_volume"
+        tools:text="2.0 litre(s)"
+        android:layout_margin="8dp"
+        android:gravity="center"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:id="@+id/tv_tr_cost"
+        tools:text="220 PKR"
+        android:layout_margin="8dp"
+        android:gravity="center"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"/>
+
+</TableRow>

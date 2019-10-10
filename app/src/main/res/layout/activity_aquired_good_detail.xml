@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:padding="16dp"
+    tools:context=".Consumer.Activities.AquiredGoodDetailActivity">
+    <TextView
+        android:id="@+id/tv_con_acquired_goods_detail_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:textSize="18sp"
+        tools:text="name" />
+
+    <TextView
+        android:id="@+id/tv_con_acquired_goods_detail_desc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:textSize="18sp"
+        tools:text="descriptionasdasdas" />
+
+    <TextView
+        android:id="@+id/tv_con_acquired_goods_detail_price"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:textSize="18sp"
+        tools:text="price" />
+
+    <TextView
+        android:id="@+id/tv_con_acquired_goods_detail_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:textSize="18sp"
+        tools:text="type" />
+
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_containers"
+
+        android:elevation="2dp"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Demand"
+            android:layout_gravity="center"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tv_acquired_goods_demand"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:textSize="18sp"
+            android:textStyle="bold|italic"
+            tools:text="1 unit(s)" />
+
+        <ImageButton
+            android:id="@+id/ib_acquired_goods_edit_demand"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_bt_round"
+            android:contentDescription="edit litres of milk to order today and onwards"
+            android:elevation="4dp"
+            android:padding="10dp"
+            android:layout_margin="6dp"
+            android:src="@drawable/ic_mode_edit_black_24dp" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/bt_con_acquired_goods_remove"
+        android:layout_width="wrap_content"
+        android:paddingRight="16dp"
+        android:paddingLeft="16dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:background="@drawable/bg_button_solid_red"
+        android:text="Remove Item From Daily Demand"
+        android:textColor="#ffffff" />
+
+</LinearLayout>

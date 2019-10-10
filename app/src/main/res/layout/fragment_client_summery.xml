@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:background="#fff"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp"
+        tools:context=".Consumer.fragments.ClientSummeryFragment">
+
+        <TableLayout
+            android:id="@+id/tl_frag_client_summery"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/tv_frag_con_summery_title">
+
+            <TableRow android:background="#e9e9e9">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="16dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Dated"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="0dp"
+
+                    android:layout_height="wrap_content"
+                    android:layout_margin="16dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Volume"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="16dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Charges"
+                    android:textStyle="bold" />
+
+            </TableRow>
+        </TableLayout>
+
+        <TextView
+            android:id="@+id/tv_frag_con_summery_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:fontFamily="sans-serif-condensed-light"
+            android:gravity="center"
+            android:text="Summery: September 2019 "
+            android:textColor="#000000"
+            android:textSize="20sp" />
+
+    </RelativeLayout>
+</ScrollView>

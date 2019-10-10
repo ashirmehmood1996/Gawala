@@ -4,40 +4,35 @@
     tools:showIn="navigation_view">
 
 
-    <group>
-        <item
-            android:id="@+id/nav_producer_map_dashboard"
-            android:icon="@drawable/ic_dashboard_black_24dp"
-            android:title="Dashboard" />
-        <item
-            android:id="@+id/nav_producer_map_logout"
-            android:icon="@drawable/ic_call_missed_outgoing_black_24dp"
-            android:title="logout" />
+    <item
+        android:id="@+id/nav_producer_map_dashboard"
+        android:icon="@drawable/ic_dashboard_black_24dp"
+        android:title="Dashboard" />
 
-        <item
-            android:id="@+id/nav_producer_map_share_id"
-            android:icon="@drawable/ic_menu_share"
-            android:title="share id" />
+    <item
+        android:id="@+id/nav_producer_map_clients"
+        android:icon="@drawable/ic_group_black_24dp"
+        android:title="My Clients" />
 
-        <item
-            android:id="@+id/nav_producer_map_requests"
-            android:icon="@drawable/ic_group_black_24dp"
-            android:title="Requests" />
+    <item
+        android:id="@+id/nav_producer_map_share_id"
+        android:icon="@drawable/ic_menu_share"
+        android:title="share id" />
 
+    <item
+        android:id="@+id/nav_producer_my_services"
+        android:icon="@drawable/ic_view_list_black_24dp"
+        android:title="My Services" />
 
-    </group>
+    <item
+        android:id="@+id/nav_producer_map_rides_summery"
+        android:icon="@drawable/ic_history_black_24dp"
+        android:title="Rides Summery" />
 
-    <item android:title="Communicate">
-        <menu>
-            <item
-                android:id="@+id/nav_share"
-                android:icon="@drawable/ic_menu_share"
-                android:title="@string/menu_share" />
-            <item
-                android:id="@+id/nav_send"
-                android:icon="@drawable/ic_menu_send"
-                android:title="@string/menu_send" />
-        </menu>
-    </item>
+    <item
+        android:id="@+id/nav_producer_map_logout"
+        android:icon="@drawable/ic_call_missed_outgoing_black_24dp"
+        android:title="logout" />
+
 
 </menu>
