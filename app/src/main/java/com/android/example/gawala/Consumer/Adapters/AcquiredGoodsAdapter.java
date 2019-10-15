@@ -11,17 +11,17 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.android.example.gawala.Consumer.Models.AquiredGoodModel;
+import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 import com.android.example.gawala.R;
 
 import java.util.ArrayList;
 
 public class AcquiredGoodsAdapter extends RecyclerView.Adapter<AcquiredGoodsAdapter.AquiredgoodsHolder> {
-    private ArrayList<AquiredGoodModel> aquiredGoodsArrayList;
+    private ArrayList<AcquiredGoodModel> aquiredGoodsArrayList;
     private Context context;
     private Callback callback;
 
-    public AcquiredGoodsAdapter(ArrayList<AquiredGoodModel> aquiredGoodsArrayList, Activity activity) {
+    public AcquiredGoodsAdapter(ArrayList<AcquiredGoodModel> aquiredGoodsArrayList, Activity activity) {
         this.aquiredGoodsArrayList = aquiredGoodsArrayList;
         this.context = activity;
         this.callback= (Callback) activity;

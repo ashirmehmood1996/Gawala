@@ -61,7 +61,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         String time_stamp = data.get("time_stamp");//set time stamp to notification if possible
 
         //make use of other details if needed later
-        sendNotification("new Client Request ", "you have a new client request from" + sender_name);
+        sendNotification("new ClientSummery Request ", "you have a new client request from" + sender_name);
 
 
     }

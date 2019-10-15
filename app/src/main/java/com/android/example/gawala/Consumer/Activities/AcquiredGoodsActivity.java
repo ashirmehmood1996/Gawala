@@ -11,7 +11,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.android.example.gawala.Consumer.Adapters.AcquiredGoodsAdapter;
-import com.android.example.gawala.Consumer.Models.AquiredGoodModel;
+import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 import com.android.example.gawala.Generel.Models.GoodModel;
 import com.android.example.gawala.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -28,7 +28,7 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
     private DatabaseReference rootRef;
     private ArrayList<String> connectedProducersArrayList;
 
-    private ArrayList<AquiredGoodModel> acquiredGoodArrayList;
+    private ArrayList<AcquiredGoodModel> acquiredGoodArrayList;
     private RecyclerView acquiredGoodsRecyclerView;
     private AcquiredGoodsAdapter acquiredGoodsAdapter;
     private AlertDialog mAlertDialog;
@@ -144,7 +144,7 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         if (dataSnapshot.exists()){
                             GoodModel goodModel=dataSnapshot.getValue(GoodModel.class);
-                            acquiredGoodArrayList.add(new AquiredGoodModel(demand, producerID, goodModel));
+                            acquiredGoodArrayList.add(new AcquiredGoodModel(demand, producerID, goodModel));
                             acquiredGoodsAdapter.notifyDataSetChanged();
                         }else {
                             Toast.makeText(AcquiredGoodsActivity.this, "couldn't find this good", Toast.LENGTH_SHORT).show();

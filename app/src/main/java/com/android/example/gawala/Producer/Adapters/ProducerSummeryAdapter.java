@@ -35,13 +35,13 @@ public class ProducerSummeryAdapter extends RecyclerView.Adapter<ProducerSummery
     @Override
     public void onBindViewHolder(@NonNull SummeryHolder holder, int position) {
         ProducerSummeryModel producerSummeryModel = producerSummeryModelArrayList.get(position);
-        holder.volumeTV.setText(producerSummeryModel.getTotalMilkVolume() + " litre(s)");
-        holder.costTV.setText(producerSummeryModel.getTotalMilkamount() + " PKR");
-        holder.numberOfClientsTV.setText(producerSummeryModel.getClientArrayList().size() + "");
+//        holder.volumeTV.setText(producerSummeryModel.getTotalMilkVolume() + " litre(s)");
+        holder.costTV.setText(producerSummeryModel.getTotalAmount() + " PKR");
+        holder.numberOfClientsTV.setText(producerSummeryModel.getClientSummeryArrayList().size() + "");
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd, MMM yyyy");
         simpleDateFormat.format(producerSummeryModel.getTimeStamp());
-        holder.dateTV.setText(simpleDateFormat.format(producerSummeryModel.getTimeStamp()));
+        holder.dateTV.setText("Delivered on  "+simpleDateFormat.format(producerSummeryModel.getTimeStamp()));
 
         // TODO: 9/23/2019 need to send to another fragemt for session details
 
@@ -53,12 +53,12 @@ public class ProducerSummeryAdapter extends RecyclerView.Adapter<ProducerSummery
     }
 
     class SummeryHolder extends RecyclerView.ViewHolder {
-        TextView dateTV, volumeTV, costTV, numberOfClientsTV;
+        TextView dateTV, /*volumeTV,*/ costTV, numberOfClientsTV;
 
-        public SummeryHolder(@NonNull View itemView) {
+        SummeryHolder(@NonNull View itemView) {
             super(itemView);
             dateTV = itemView.findViewById(R.id.tv_li_pro_summery_date);
-            volumeTV = itemView.findViewById(R.id.tv_li_pro_summery_volume);
+//            volumeTV = itemView.findViewById(R.id.tv_li_pro_summery_volume);
             costTV = itemView.findViewById(R.id.tv_li_pro_summery_cost);
             numberOfClientsTV = itemView.findViewById(R.id.tv_li_pro_summery_clients);
         }

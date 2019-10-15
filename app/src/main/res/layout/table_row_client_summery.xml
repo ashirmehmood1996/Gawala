@@ -13,7 +13,7 @@
         android:layout_weight="1"
         android:layout_height="wrap_content"/>
     <TextView
-        android:id="@+id/tv_tr_volume"
+        android:id="@+id/tv_tr_items"
         tools:text="2.0 litre(s)"
         android:layout_margin="8dp"
         android:gravity="center"

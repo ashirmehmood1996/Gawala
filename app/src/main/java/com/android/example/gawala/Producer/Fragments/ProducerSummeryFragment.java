@@ -17,8 +17,9 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 import com.android.example.gawala.Producer.Adapters.ProducerSummeryAdapter;
-import com.android.example.gawala.Producer.Models.Client;
+import com.android.example.gawala.Generel.Models.ClientSummery;
 import com.android.example.gawala.Producer.Models.ProducerSummeryModel;
 import com.android.example.gawala.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -101,17 +102,22 @@ public class ProducerSummeryFragment extends Fragment {
                             for (DataSnapshot data : dataSnapshot.getChildren()) {
 
                                 String sessionId = data.getKey();
-                                int milkPrice = data.child("milk_price").getValue(Integer.class);
                                 long timeStamp = data.child("time_stamp").getValue(Long.class);
 
-                                ArrayList<Client> clientArrayList=new ArrayList<>();
+                                ArrayList<ClientSummery> clientSummeryArrayList =new ArrayList<>();
                                 for (DataSnapshot clientData : data.child("clients").getChildren()) {
-                                    float volume = clientData.child("milk_amount").getValue(Float.class);
+//                                    float volume = clientData.child("milk_amount").getValue(Float.class);
                                     String clientId = clientData.getKey();
                                     String name = clientData.child("name").getValue(String.class);
-                                    clientArrayList.add(new Client(clientId,name,volume));
+                                    ArrayList<AcquiredGoodModel> acquiredGoodModels=new ArrayList<>();
+                                    for (DataSnapshot aquiredGoodSnap:clientData.child("goods").getChildren()){
+                                        acquiredGoodModels.add(aquiredGoodSnap.getValue(AcquiredGoodModel.class));
+                                    }
+
+
+                                    clientSummeryArrayList.add(new ClientSummery(clientId,name,acquiredGoodModels));
                                 }
-                                producerSummeryModelArrayList.add(new ProducerSummeryModel(sessionId,milkPrice,timeStamp,clientArrayList));
+                                producerSummeryModelArrayList.add(new ProducerSummeryModel(sessionId,timeStamp, clientSummeryArrayList));
                             }
 
                             producerSummeryAdapter.notifyDataSetChanged();

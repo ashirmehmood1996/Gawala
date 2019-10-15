@@ -25,6 +25,11 @@ public class AciveRideStopsAdaper extends RecyclerView.Adapter<AciveRideStopsAda
     private ArrayList<ConsumerModel> consumerModelArrayList;
 //    private Callbacks callbacks;
 
+    /**
+     *
+     * @param context
+     * @param consumerModelArrayList the llist of consumers to which goods are needed to be sent
+     */
     public AciveRideStopsAdaper(Context context, ArrayList<ConsumerModel> consumerModelArrayList/*, Callbacks callbacks*/) {
         this.context = context;
         this.consumerModelArrayList = consumerModelArrayList;

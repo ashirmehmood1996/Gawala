@@ -35,7 +35,7 @@
                     android:layout_margin="16dp"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="Volume"
+                    android:text="Items"
                     android:textStyle="bold" />
 
                 <TextView

@@ -381,10 +381,3 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
     }
 }
 // TODO: 8/6/2019  put a braod cast receiver when GPs is turned on adn off and then trigger the location api
-//  todo history of number or liters milk delivered to the consumer with the amount alongside .
-
-
-// .
-// TODO: 8/5/2019   for future
-//  .//show all available consumers to the approacher
-//  //later we will show the . nearest on top and then others whcih will be done when the prodcers will share its repositiory location the

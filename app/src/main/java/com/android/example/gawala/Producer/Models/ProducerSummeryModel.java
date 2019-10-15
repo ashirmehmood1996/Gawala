@@ -1,54 +1,49 @@
 package com.android.example.gawala.Producer.Models;
 
+import com.android.example.gawala.Generel.Models.ClientSummery;
+
 import java.util.ArrayList;
 
 public class ProducerSummeryModel {
     private String sessionID;
-    private int milkPrice;
     private long timeStamp;
-    private ArrayList<Client> clientArrayList;
-    private float totalMilkVolume;
-    private float totalMilkamount;
+    private ArrayList<ClientSummery> clientSummeryArrayList;
+    //    private float totalMilkVolume;
+    private float totalAmount;
 
-    public ProducerSummeryModel(String sessionID, int milkPrice, long timeStamp, ArrayList<Client> clientArrayList) {
+    public ProducerSummeryModel(String sessionID, long timeStamp, ArrayList<ClientSummery> clientSummeryArrayList) {
         this.sessionID = sessionID;
-        this.milkPrice = milkPrice;
+
         this.timeStamp = timeStamp;
-        this.clientArrayList = clientArrayList;
-        this.totalMilkVolume = getTotalVolume(clientArrayList);
-        this.totalMilkamount = totalMilkVolume * milkPrice;
+        this.clientSummeryArrayList = clientSummeryArrayList;
+
+        this.totalAmount = calculateTalAmount();
     }
 
-    private float getTotalVolume(ArrayList<Client> clientArrayList) {
-        float totalVolume=0.0f;
-        for (Client client:clientArrayList){
-            totalVolume+=client.getMilkVolume();
+    private float calculateTalAmount() {
+        float totalAmount = 0;
+        for (ClientSummery clientSummery : clientSummeryArrayList){
+            totalAmount+= clientSummery.getTotalCost();
         }
-        return totalVolume;
+        return totalAmount;
     }
 
     public String getSessionID() {
         return sessionID;
     }
 
-    public int getMilkPrice() {
-        return milkPrice;
-    }
 
     public long getTimeStamp() {
         return timeStamp;
     }
 
-    public ArrayList<Client> getClientArrayList() {
-        return clientArrayList;
+    public ArrayList<ClientSummery> getClientSummeryArrayList() {
+        return clientSummeryArrayList;
     }
 
-    public float getTotalMilkVolume() {
-        return totalMilkVolume;
-    }
 
-    public float getTotalMilkamount() {
-        return totalMilkamount;
+    public float getTotalAmount() {
+        return totalAmount;
     }
 
 

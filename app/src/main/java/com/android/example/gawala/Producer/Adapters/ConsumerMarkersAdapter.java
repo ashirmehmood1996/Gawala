@@ -38,8 +38,9 @@ public class ConsumerMarkersAdapter extends RecyclerView.Adapter<ConsumerMarkers
     @Override
     public void onBindViewHolder(@NonNull StopsMarkersHolder holder, final int position) {
         ConsumerModel currentConsumer = mConsumerModelArrayList.get(position);
-        holder.locationTextView.setText(currentConsumer.getLongitude() + "\n " + currentConsumer.getLongitude());
-        holder.timeStampTextView.setText(currentConsumer.getTime_stamp());
+        holder.locationTextView.setText(currentConsumer.getLatitude() + "\n " + currentConsumer.getLongitude());
+        holder.nameTextView.setText(currentConsumer.getName());
+        holder.priorityTextView.setText(String.format("%d", position + 1));
         holder.containerLinearLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -55,17 +56,21 @@ public class ConsumerMarkersAdapter extends RecyclerView.Adapter<ConsumerMarkers
     }
 
     class StopsMarkersHolder extends RecyclerView.ViewHolder {
-        TextView locationTextView, timeStampTextView;
+        TextView locationTextView, nameTextView,priorityTextView;
         LinearLayout containerLinearLayout;
 
 
         StopsMarkersHolder(@NonNull View itemView) {
             super(itemView);
             locationTextView = itemView.findViewById(R.id.tv_li_stops_markers_location);
-            timeStampTextView = itemView.findViewById(R.id.tv_li_stops_markers_time_stamp);
+            nameTextView=itemView.findViewById(R.id.tv_li_stops_markers_name);
+            priorityTextView=itemView.findViewById(R.id.tv_li_stops_markers_priority);
             containerLinearLayout = itemView.findViewById(R.id.ll_li_stops_markers_container);
         }
     }
+
+
+
 
 }
 // TODO: 8/4/2019 LATER we will be deeling with the priorority of stops as its is a new thing to learn while side by side not necessary in the developemnt process

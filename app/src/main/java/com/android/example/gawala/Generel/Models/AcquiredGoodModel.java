@@ -1,15 +1,17 @@
-package com.android.example.gawala.Consumer.Models;
+package com.android.example.gawala.Generel.Models;
 
 import com.android.example.gawala.Generel.Models.GoodModel;
 
 import java.io.Serializable;
 
-public class AquiredGoodModel implements Serializable {
+public class AcquiredGoodModel implements Serializable {
     private String demand;
     private String producerId;
     private GoodModel goodModel;
 
-    public AquiredGoodModel(String demand, String producerId, GoodModel goodModel) {
+    public  AcquiredGoodModel(){ } //empty constructor is necessary to get direct data snapshot casting
+
+    public AcquiredGoodModel(String demand, String producerId, GoodModel goodModel) {
         this.demand = demand;
         this.producerId = producerId;
         this.goodModel = goodModel;

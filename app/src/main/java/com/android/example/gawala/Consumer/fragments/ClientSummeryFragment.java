@@ -17,6 +17,8 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
+import com.android.example.gawala.Generel.Models.ClientSummery;
 import com.android.example.gawala.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -25,12 +27,15 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 
 public class ClientSummeryFragment extends Fragment {
     private static final String ARG_PRODUCER_ID = "producerID";
     private String producerID;
+
+    private ArrayList<ClientSummery> clientSummeryArrayList;
 
 
     private TextView titleTextView;
@@ -66,6 +71,7 @@ public class ClientSummeryFragment extends Fragment {
             producerID = getArguments().getString(ARG_PRODUCER_ID);
         }
         myId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        clientSummeryArrayList=new ArrayList<>();
         initializeDialog();
     }
 
@@ -80,7 +86,6 @@ public class ClientSummeryFragment extends Fragment {
     }
 
     private void initFields(View rootView) {
-
         titleTextView = rootView.findViewById(R.id.tv_frag_con_summery_title);
         tableLayout = rootView.findViewById(R.id.tl_frag_client_summery);
     }
@@ -105,37 +110,45 @@ public class ClientSummeryFragment extends Fragment {
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         if (dataSnapshot.exists()) {
 
-                            float totalVolume = 0.0f;
+                            int totalItems = 0;
                             int totalCost = 0;
-                            for (DataSnapshot data : dataSnapshot.getChildren()) {
-                                DataSnapshot thisClientData = data.child("clients").child(myId);
-                                long timeStamp = data.child("time_stamp").getValue(Long.class);
-                                int milkPrice = data.child("milk_price").getValue(Integer.class);
+                            for (DataSnapshot sessionSnapShot : dataSnapshot.getChildren()) {
+
+                                long timeStamp = sessionSnapShot.child("time_stamp").getValue(Long.class);
+
+                                DataSnapshot thisClientData = sessionSnapShot.child("clients").child(myId);
+
+
+                                ArrayList<AcquiredGoodModel> acquiredGoodModels=new ArrayList<>();
+                                for (DataSnapshot aquiredGoodSnap:thisClientData.child("goods").getChildren()){
+                                    acquiredGoodModels.add(aquiredGoodSnap.getValue(AcquiredGoodModel.class));
+                                }
+                                ClientSummery clientSummery=new ClientSummery(myId,"not needed",acquiredGoodModels);
+                                clientSummeryArrayList.add(clientSummery);
+
 
                                 TableRow tableRow = (TableRow) getLayoutInflater().inflate(R.layout.table_row_client_summery, null);
 
                                 TextView dateView = tableRow.findViewById(R.id.tv_tr_date);
-                                String time = getFormattedData(timeStamp);
+                                String time = getFormattedDate(timeStamp);
                                 dateView.setText(time);
 
-                                TextView volumeView = tableRow.findViewById(R.id.tv_tr_volume);
-                                float volume = thisClientData.child("milk_amount").getValue(Float.class); // FIXME: 10/8/2019 solve the issue
-                                volumeView.setText(volume + " litre(s)");
-                                totalVolume += volume;
+                                TextView volumeView = tableRow.findViewById(R.id.tv_tr_items);
+                                volumeView.setText(String.format("%d item(s)", clientSummery.getAcquiredGoodModelArrayList().size()));
 
                                 TextView costView = tableRow.findViewById(R.id.tv_tr_cost);
-                                int cost = (int) (volume * milkPrice);
-                                costView.setText(cost + " PKR");
-                                totalCost += cost;
-
+                                costView.setText(clientSummery.getTotalCost() + " PKR");
                                 tableLayout.addView(tableRow);
+
+                                totalItems+=clientSummery.getAcquiredGoodModelArrayList().size();
+                                totalCost+=clientSummery.getTotalCost();
                             }
 
                             TableRow tableRow = (TableRow) getLayoutInflater().inflate(R.layout.table_row_client_summery, null);
                             TextView dateView = tableRow.findViewById(R.id.tv_tr_date);
                             dateView.setText(Html.fromHtml("<b>TOTAL</b>"));
-                            TextView volumeView = tableRow.findViewById(R.id.tv_tr_volume);
-                            volumeView.setText(Html.fromHtml("<b>" + totalVolume + " Litre(s)</b>"));
+                            TextView volumeView = tableRow.findViewById(R.id.tv_tr_items);
+                            volumeView.setText(Html.fromHtml("<b>" + totalItems + " item(s)</b>"));
                             TextView costView = tableRow.findViewById(R.id.tv_tr_cost);
                             costView.setText(Html.fromHtml("<b>" + totalCost + " PKR</b>"));
                             tableLayout.addView(tableRow);
@@ -169,7 +182,7 @@ public class ClientSummeryFragment extends Fragment {
         super.onDetach();
     }
 
-    private String getFormattedData(long timeInMilliseconds) {
+    private String getFormattedDate(long timeInMilliseconds) {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd, MMM yyyy ");
         return simpleDateFormat.format(timeInMilliseconds);
     }

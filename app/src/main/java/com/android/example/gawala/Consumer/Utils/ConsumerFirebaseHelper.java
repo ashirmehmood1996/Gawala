@@ -1,6 +1,6 @@
 package com.android.example.gawala.Consumer.Utils;
 
-import com.android.example.gawala.Consumer.Models.AquiredGoodModel;
+import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -15,10 +15,10 @@ public final class ConsumerFirebaseHelper {
     }
 
 
-    public static void updateDemand(String demand, AquiredGoodModel aquiredGoodModel) {
-        rootRef.child("demand").child(aquiredGoodModel.getProducerId())
+    public static void updateDemand(String demand, AcquiredGoodModel acquiredGoodModel) {
+        rootRef.child("demand").child(acquiredGoodModel.getProducerId())
                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid())//consumer id
-                .child(aquiredGoodModel.getGoodModel().getId())//good id
+                .child(acquiredGoodModel.getGoodModel().getId())//good id
                 .child("demand").setValue(demand);
     }
 

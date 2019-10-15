@@ -1,7 +1,9 @@
 package com.android.example.gawala.Producer.Models;
 
+import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 import com.google.android.gms.maps.model.Marker;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 
 public class ConsumerModel {
@@ -17,6 +19,10 @@ public class ConsumerModel {
     //changing data
     private float amountOfMilk;
     private boolean isDelivered;
+    private boolean hasDemand;
+
+
+    private ArrayList<AcquiredGoodModel> demandArray;
 
 
     public ConsumerModel(String id, String name, String numebr, String time_stamp, String lat, String lng) {
@@ -27,6 +33,25 @@ public class ConsumerModel {
         this.lat = lat;
         this.lng = lng;
         this.isDelivered=false;
+        this.hasDemand=false;
+
+    }
+
+    public ArrayList<AcquiredGoodModel> getDemandArray() {
+        return demandArray;
+    }
+
+    public void setDemandArray(ArrayList<AcquiredGoodModel> demandArray) {
+        this.demandArray = demandArray;
+    }
+
+
+    public boolean hasDemand() {
+        return hasDemand;
+    }
+
+    public void setHasDemand(boolean hasDemand) {
+        this.hasDemand = hasDemand;
     }
 
     public void setLat(String lat) {

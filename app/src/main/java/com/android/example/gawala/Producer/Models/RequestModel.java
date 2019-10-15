@@ -1,5 +1,7 @@
 package com.android.example.gawala.Producer.Models;
 
+import java.util.HashMap;
+
 public class RequestModel {
     private String sender_id;
     private String name;
@@ -19,6 +21,8 @@ public class RequestModel {
 
     public String getNumber() {
         return number;
+
+
     }
 
     public String getName() {

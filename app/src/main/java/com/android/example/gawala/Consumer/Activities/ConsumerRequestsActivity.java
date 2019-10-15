@@ -214,7 +214,3 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
     // TODO: 6/30/2019  later deal with cancel friend requests
 // TODO: 6/30/2019  avoid sending request to a producer thats already connected
 }
-
-
-// TODO: 10/9/2019 now
-//  show the detail of good and provide option like edit good demand units remove good from daily demand etc

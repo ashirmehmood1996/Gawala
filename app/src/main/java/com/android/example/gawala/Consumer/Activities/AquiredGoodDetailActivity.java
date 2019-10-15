@@ -14,12 +14,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.example.gawala.Consumer.Models.AquiredGoodModel;
+import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 import com.android.example.gawala.Consumer.Utils.ConsumerFirebaseHelper;
 import com.android.example.gawala.R;
 
 public class AquiredGoodDetailActivity extends AppCompatActivity {
-    private AquiredGoodModel aquiredGoodModel;
+    private AcquiredGoodModel acquiredGoodModel;
 
     private TextView nameTextView, descTextView, priceTextView, typeTextView,demandTextView;
     private Button removeItemFromDemandButton;
@@ -44,7 +44,7 @@ public class AquiredGoodDetailActivity extends AppCompatActivity {
 
     private void initFields() {
         Intent intent = getIntent();
-        aquiredGoodModel = (AquiredGoodModel) intent.getSerializableExtra("acquired_goods_model");
+        acquiredGoodModel = (AcquiredGoodModel) intent.getSerializableExtra("acquired_goods_model");
 
         nameTextView = findViewById(R.id.tv_con_acquired_goods_detail_name);
         descTextView = findViewById(R.id.tv_con_acquired_goods_detail_desc);
@@ -59,11 +59,11 @@ public class AquiredGoodDetailActivity extends AppCompatActivity {
     }
 
     private void setData() {
-        nameTextView.setText(Html.fromHtml("<b>NAME: </b>" +aquiredGoodModel.getGoodModel().getName() ));
-        typeTextView.setText(Html.fromHtml("<b>TYPE: </b>" + aquiredGoodModel.getGoodModel().getType()));
-        descTextView.setText(Html.fromHtml("<b>DESCRIPTION: </b>" +aquiredGoodModel.getGoodModel().getDescription() ));
-        priceTextView.setText(Html.fromHtml("<b>PRICE: </b>" + String.format("%s PKR", aquiredGoodModel.getGoodModel().getPrice())));
-        mDemand =Integer.parseInt(aquiredGoodModel.getDemand());
+        nameTextView.setText(Html.fromHtml("<b>NAME: </b>" + acquiredGoodModel.getGoodModel().getName() ));
+        typeTextView.setText(Html.fromHtml("<b>TYPE: </b>" + acquiredGoodModel.getGoodModel().getType()));
+        descTextView.setText(Html.fromHtml("<b>DESCRIPTION: </b>" + acquiredGoodModel.getGoodModel().getDescription() ));
+        priceTextView.setText(Html.fromHtml("<b>PRICE: </b>" + String.format("%s PKR", acquiredGoodModel.getGoodModel().getPrice())));
+        mDemand =Integer.parseInt(acquiredGoodModel.getDemand());
         demandTextView.setText(String.format("% dUnit(s)", mDemand));
     }
 
@@ -114,7 +114,7 @@ public class AquiredGoodDetailActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         demandTextView.setText(mDemand + " Unit(s) ");
-                        ConsumerFirebaseHelper.updateDemand(mDemand+"",aquiredGoodModel);
+                        ConsumerFirebaseHelper.updateDemand(mDemand+"", acquiredGoodModel);
 //                        ConsumerFirebaseHelper.updateMilkDemand(mDemand + "", producerId);
                         dialog.dismiss();
                         Toast.makeText(AquiredGoodDetailActivity.this, "Demand Updated", Toast.LENGTH_SHORT).show();//// TODO: 10/10/2019  this is a best case consideration later do some callback stuff

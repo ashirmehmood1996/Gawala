@@ -104,8 +104,6 @@ public class ProducerClientsRequestsFragment extends Fragment implements Request
                         if (dataSnapshot.exists()) {//then there are a number of requests
                             for (DataSnapshot requestSnap : dataSnapshot.getChildren()) {
                                 String senderID = requestSnap.getKey();
-
-
                                 String name = requestSnap.child("name").getValue(String.class);
                                 String number = requestSnap.child("number").getValue(String.class);
                                 String timeStamp = requestSnap.child("time_stamp").getValue(String.class);
@@ -174,7 +172,7 @@ public class ProducerClientsRequestsFragment extends Fragment implements Request
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
                     if (isAccepted) {
-                        Toast.makeText(getActivity(), "Client added successfully", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), "ClientSummery added successfully", Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(getActivity(), "request removed successfully", Toast.LENGTH_SHORT).show();
 
