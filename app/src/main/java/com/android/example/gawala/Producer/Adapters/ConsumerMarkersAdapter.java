@@ -38,7 +38,15 @@ public class ConsumerMarkersAdapter extends RecyclerView.Adapter<ConsumerMarkers
     @Override
     public void onBindViewHolder(@NonNull StopsMarkersHolder holder, final int position) {
         ConsumerModel currentConsumer = mConsumerModelArrayList.get(position);
-        holder.locationTextView.setText(currentConsumer.getLatitude() + "\n " + currentConsumer.getLongitude());
+        String location=null;
+
+        if (currentConsumer.getLocationName()==null || currentConsumer.getLocationName().isEmpty()){
+            location = currentConsumer.getLatitude() + " " + currentConsumer.getLongitude();
+        }else {
+            location = currentConsumer.getLocationName();
+        }
+
+        holder.locationTextView.setText(location);
         holder.nameTextView.setText(currentConsumer.getName());
         holder.priorityTextView.setText(String.format("%d", position + 1));
         holder.containerLinearLayout.setOnClickListener(new View.OnClickListener() {

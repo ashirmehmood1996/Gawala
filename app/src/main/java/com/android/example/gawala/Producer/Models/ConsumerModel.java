@@ -15,6 +15,7 @@ public class ConsumerModel {
     private String lat;
     private String lng;
     private Marker marker;
+    private String locationName;
 
     //changing data
     private float amountOfMilk;
@@ -107,5 +108,13 @@ public class ConsumerModel {
 
     public void setDelivered(boolean delivered) {
         isDelivered = delivered;
+    }
+
+    public String getLocationName() {
+        return locationName;
+    }
+
+    public void setLocationName(String locationName) {
+        this.locationName = locationName;
     }
 }

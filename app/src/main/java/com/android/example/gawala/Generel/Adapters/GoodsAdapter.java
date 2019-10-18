@@ -59,7 +59,7 @@ public class GoodsAdapter extends RecyclerView.Adapter<GoodsAdapter.GoodsHolder>
             goodsContainer.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    callBack.onGoodItemClick(getAdapterPosition());// TODO: 10/5/2019  check weather its a good idea or not
+                    callBack.onGoodItemClick(getAdapterPosition());
                 }
             });
         }

@@ -40,9 +40,20 @@ public class ConnectedConsumersAdapter extends RecyclerView.Adapter<ConnectedCon
     public void onBindViewHolder(@NonNull ConnectedConsumersHolder holder, final int i) {
         ConsumerModel consumerModel = consumerModelArrayList.get(i);
         holder.nameTextView.setText(consumerModel.getName());
+
+
+
+
         if(consumerModel.getLatitude()!=null || consumerModel.getLongitude()!=null){
-            holder.locationTextView.setText("lat : "+ consumerModel.getLatitude()+"\n" +
-                    "lon : "+ consumerModel.getLongitude());
+            String location=null;
+
+            if (consumerModel.getLocationName()==null || consumerModel.getLocationName().isEmpty()){
+                location = "lat : "+ consumerModel.getLatitude()+"\n" +
+                        "lon : "+ consumerModel.getLongitude();
+            }else {
+                location = consumerModel.getLocationName();
+            }
+            holder.locationTextView.setText(location);
         }else {
             holder.locationTextView.setText("location was not set");
         }

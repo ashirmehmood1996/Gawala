@@ -105,8 +105,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
 
     private void showNotification(Map<String, String> map) {
-        // TODO: 8/4/2019  for now generating it in my own app later a node will be updated to notify the consumer usogn cloud fucntions further processing will be done
-
         //creating an intent and passing it through a pending intent which will be called when notification is clicked
         Intent activityIntent = new Intent(this, MainActivity.class);
         PendingIntent contentIntent = PendingIntent.getActivity(//we can also call getService or broadcast reciever etc

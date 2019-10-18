@@ -141,12 +141,13 @@ public class ProducerClientsRequestsFragment extends Fragment implements Request
 
         String name = requestModel.getName();
         String number = requestModel.getNumber();
-        String time = requestModel.getTime_stamp();
+//        String time = requestModel.getTime_stamp(); //time when the request was sent
         clientMap.put("name", name);
         clientMap.put("number", number);
         //clientMap.put("time_stamp",time); //this time stamp is the time of sending this request
         String time_accept = Calendar.getInstance().getTimeInMillis() + "";
         clientMap.put("time_stamp", time_accept);
+        clientMap.put("client_id",requestModel.getSender_id());// for datbase query later
         FirebaseDatabase.getInstance().getReference()
                 .child("clients").child(myID)
                 .child(requestModel.getSender_id())
@@ -155,12 +156,23 @@ public class ProducerClientsRequestsFragment extends Fragment implements Request
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
+                            addConenctedProducerNodeToDatabase(requestModel.getSender_id());
                             removeRequestNode(requestModel.getSender_id(), true, position);
+
                         } else {
                             Toast.makeText(getActivity(), "something went wrong try later", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
+    }
+
+    private void addConenctedProducerNodeToDatabase(String sender_id) {
+        HashMap<String,Object> producerMap=new HashMap<>();
+        producerMap.put("number",FirebaseAuth.getInstance().getCurrentUser().getPhoneNumber());
+        producerMap.put("name",FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
+        rootRef.child("connected_producers")
+                .child(sender_id).child(myID)
+                .setValue(producerMap);
     }
 
     private void removeRequestNode(String sender_id, final boolean isAccepted, final int position) {
@@ -184,6 +196,9 @@ public class ProducerClientsRequestsFragment extends Fragment implements Request
                 requestsAdapter.notifyItemRemoved(position);
                 requestsAdapter.notifyItemRemoved(position);
                 requestsAdapter.notifyItemRangeChanged(position, requestModelArrayList.size());
+                if (requestModelArrayList.isEmpty()){
+                    newRequestsTitleTextView.setVisibility(View.GONE);
+                }
             }
         });
     }

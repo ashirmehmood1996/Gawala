@@ -109,4 +109,3 @@ public class MainActivity extends AppCompatActivity {
 
 
 // TODO: 7/27/2019 later in a fragment or activity we can show near by producers and their image rates distance, reviews, along with an option for connection request and adjust timmings ..
-//todo later divide user info in pulic and private pulis is demnded by any user but private only by the current user

@@ -47,7 +47,15 @@ public class AciveRideStopsAdaper extends RecyclerView.Adapter<AciveRideStopsAda
         ConsumerModel consumerModel = consumerModelArrayList.get(position);
         float milkAmount = consumerModel.getAmountOfMilk();
         String name = consumerModel.getName();
-        String location = consumerModel.getLatitude() + " " + consumerModel.getLongitude();
+        String location;
+
+        if (consumerModel.getLocationName()==null || consumerModel.getLocationName().isEmpty()){
+            location = consumerModel.getLatitude() + " " + consumerModel.getLongitude();
+        }else {
+            location = consumerModel.getLocationName();
+        }
+
+
 
         holder.priorityTextView.setText((position+1)+"");
 

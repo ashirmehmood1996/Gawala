@@ -5,15 +5,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.example.gawala.Consumer.Adapters.ConnectedProducersAdapter;
 import com.android.example.gawala.Consumer.Adapters.ProducersAdapter;
 import com.android.example.gawala.Consumer.Models.ProducerModel;
+import com.android.example.gawala.Producer.Activities.ProducerNavMapActivity;
+import com.android.example.gawala.Producer.Models.ConsumerModel;
 import com.android.example.gawala.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -25,23 +29,21 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 
 
 public class ConsumerRequestsActivity extends AppCompatActivity implements ProducersAdapter.CallBack, ConnectedProducersAdapter.Callback {
-    //producer item related
-//    private TextView producerNameTextView;
-//    private TextView producerNumberTextView;
+
     private LinearLayout connectedProducerMainLinearLayout;
-//    private LinearLayout connectedProducerLinearLayout;
 
-
-    private ArrayList<String> connectedProducersArrayList;
+    private ArrayList<ProducerModel> connectedProducerArrayList;
     private RecyclerView connectedProducersRecyclerView;
     private ConnectedProducersAdapter connectedProducersAdapter;
-    String producerId;
 
 
     private ArrayList<ProducerModel> producerModelArrayList;
@@ -63,9 +65,7 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
         initFields();
         attachListeners();
         loadConectedProducers();
-
         ///// FIXME: 10/8/2019 those producers which are not requested should not be showing the add service in demand option rather a hint that says "send request to add this product"
-        loadAllProducers();
     }
 
 
@@ -79,9 +79,9 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
         allProdcuersrecyclerView.setAdapter(producersAdapter);
 
 
-        connectedProducersArrayList = new ArrayList<>();
+        connectedProducerArrayList=new ArrayList<>();
         connectedProducersRecyclerView = findViewById(R.id.rv_con_req_conected_consumers);
-        connectedProducersAdapter = new ConnectedProducersAdapter(connectedProducersArrayList, this);
+        connectedProducersAdapter = new ConnectedProducersAdapter(connectedProducerArrayList, this);
         connectedProducersRecyclerView.setAdapter(connectedProducersAdapter);
 
         //database related
@@ -93,31 +93,28 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
     }
 
     private void loadConectedProducers() {
-        // TODO: 10/6/2019  change this qury in order toa avoid whole data fatching  or we can change the database schema
-        //lter deal with query
-        rootRef.child("clients")/*.orderByChild("number").equalTo(FirebaseAuth.getInstance().getCurrentUser().getPhoneNumber())*/
+
+        rootRef.child("connected_producers").child(myId)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         if (dataSnapshot.exists()) {
-
+                            connectedProducerMainLinearLayout.setVisibility(View.VISIBLE);
                             for (DataSnapshot producerSnap : dataSnapshot.getChildren()) {
 
-                                for (DataSnapshot clientSnap : producerSnap.getChildren()) {
-                                    if (clientSnap.getKey().equals(myId)) {
+                                String key=producerSnap.getKey();
+                                String name=producerSnap.child("name").getValue(String.class);
+                                String number=producerSnap.child("number").getValue(String.class);
+                                connectedProducerArrayList.add(new ProducerModel(key,name,number));
 
-                                        connectedProducersArrayList.add(producerSnap.getKey());
-
-                                        producerId = producerSnap.getKey();//producer key
-//                                        String name = producerSnap.child("name").getValue(String.class);
-//                                        String number = producerSnap.child("number").getValue(String.class);
-                                        connectedProducerMainLinearLayout.setVisibility(View.VISIBLE);
-                                    }
                                 }
                             }
+
                             connectedProducersAdapter.notifyDataSetChanged();
+                        loadAllProducers();
                         }
-                    }
+
+
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
@@ -139,7 +136,17 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
                                 String id = producerSnap.getKey();
                                 String name = producerSnap.child("name").getValue(String.class);
                                 String number = producerSnap.child("number").getValue(String.class);
-                                producerModelArrayList.add(new ProducerModel(id, name, number));
+                                ProducerModel producerModel=new ProducerModel(id, name, number);
+
+
+//                                for (ProducerModel producerModel1:connectedProducerArrayList){
+//                                    if (producerModel1.equals(producerModel)){
+//                                        producerModel.setStatus(ProducerModel.REQUEST_ACCEPTED);
+//                                    }
+//
+//                                }
+
+                                producerModelArrayList.add(producerModel);
                             }
                             producersAdapter.notifyDataSetChanged();
                         } else {
@@ -149,7 +156,7 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                        Toast.makeText(ConsumerRequestsActivity.this, "databse error: "+databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -198,19 +205,22 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
 
     @Override
     public void onconnectedProducerClick(int pos) {
-        // FIXME: 10/6/2019 this isa  temporary solution later we have to fetch it in the loadConectedProducers() method
-        for (ProducerModel producerModel : producerModelArrayList) {
-            if (producerModel.getId().equals(producerId)) {
+
+        ProducerModel producerModel=connectedProducerArrayList.get(pos);
                 Intent intent = new Intent(ConsumerRequestsActivity.this, ProducerDetailActivty.class);
                 intent.putExtra("producer_id", producerModel.getId());
                 intent.putExtra("name", producerModel.getName());
                 intent.putExtra("number", producerModel.getNumber());
                 startActivity(intent);
-                break;
-            }
-        }
     }
+
+
+
 
     // TODO: 6/30/2019  later deal with cancel friend requests
 // TODO: 6/30/2019  avoid sending request to a producer thats already connected
 }
+
+//do now will take few minutes
+// TODO: 10/16/2019  show teh data for send request cancel requesta and remove producer acordingly may be we shuld not add remove producer because of trusta adn business issues
+//  WE HAVE ALREADY OROVIDED OPTION TO MAKE ZERO DEMAND THIS IS ENOUGH FOR THE CONSUMER . ALTHOUGH THE PRODUCER WILL BE ABLE TO REMOVE THE CONSUMER so we will remove the send request option button for connected consumers

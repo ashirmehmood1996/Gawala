@@ -6,17 +6,21 @@ import android.animation.ObjectAnimator;
 import android.animation.TypeEvaluator;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
@@ -78,6 +82,7 @@ import androidx.core.view.GravityCompat;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 
 import android.os.Handler;
+import android.speech.tts.TextToSpeech;
 import android.util.Property;
 import android.view.MenuItem;
 
@@ -106,9 +111,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 
 
 public class ProducerNavMapActivity extends AppCompatActivity
@@ -126,8 +134,8 @@ public class ProducerNavMapActivity extends AppCompatActivity
             android.Manifest.permission.READ_EXTERNAL_STORAGE,
             android.Manifest.permission.ACCESS_FINE_LOCATION};
 
-    private static final long FASTEST_INTERVAL = 10000;
-    private static final long REQUEST_INTERVAL = 15000;
+    private static final long FASTEST_INTERVAL = 5000; //change back to 100000
+    private static final long REQUEST_INTERVAL = 5000;//change back to 15000
     private int selectedStopPos = 0;
 
     private GoogleMap mMap;
@@ -154,17 +162,19 @@ public class ProducerNavMapActivity extends AppCompatActivity
     //bottom sheet related
     private LinearLayout bottomSheetLinearLayout;
     private BottomSheetBehavior bottomSheetBehavior;
-    private RecyclerView mActiveRideSopsRecyclerView;
+    private RecyclerView mActiveRideStopsRecyclerView;
     //    private ArrayList<ActiveRideStopsModel> mActiveRideStopsModelArrayList;
     private AciveRideStopsAdaper mAciveRideStopsAdapter;
-    private float mTotalMilkDemand;
+
     private ImageButton toggleImageButton;
     private int mMilkPrice;
     private DatabaseReference rootRef;
     private String myID;
 
     private ArrayList<ConsumerModel> mActiveRideArrayList;
+    private AlertDialog mAlertDialog;
 
+    private TextToSpeech textToSpeech;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -184,8 +194,8 @@ public class ProducerNavMapActivity extends AppCompatActivity
         //// FIXME: 8/25/2019 for now setting the rate initially according to market later it will be changed
         initUserDataIfFirstTime();
 
-    }
 
+    }
 
     private void requestAllPermissions() {
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
@@ -242,7 +252,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         //mLocationPermissionGranted = false;
         // If request is cancelled, the result arrays are empty.
         if (requestCode == RC_PERMISSION_ALL) {
@@ -323,6 +333,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
         bottomSheetLinearLayout = findViewById(R.id.ll_bottom_sheet_active_riding_info_container);
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetLinearLayout);
         initBottomSheet();
+        initializeDialog();
 
 
     }
@@ -334,11 +345,11 @@ public class ProducerNavMapActivity extends AppCompatActivity
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
         //recyclerview related
-        mActiveRideSopsRecyclerView = findViewById(R.id.rv_bottom_sheet_active_riding);
-        mActiveRideArrayList =new ArrayList<>();
+        mActiveRideStopsRecyclerView = findViewById(R.id.rv_bottom_sheet_active_riding);
+        mActiveRideArrayList = new ArrayList<>();
 //        mActiveRideStopsModelArrayList=new ArrayList<>();
         mAciveRideStopsAdapter = new AciveRideStopsAdaper(this, mActiveRideArrayList);
-        mActiveRideSopsRecyclerView.setAdapter(mAciveRideStopsAdapter);
+        mActiveRideStopsRecyclerView.setAdapter(mAciveRideStopsAdapter);
 
 //        mAciveRideStopsAdapter
 
@@ -351,6 +362,11 @@ public class ProducerNavMapActivity extends AppCompatActivity
         deliveredToCurrentStopButton = findViewById(R.id.bt_prod_delivered_to_current_stop);
         setBottomSheetCallBacks();
 
+    }
+
+    private void initializeDialog() {
+        LinearLayout alertDialog = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_progress, null);
+        this.mAlertDialog = new AlertDialog.Builder(this).setView(alertDialog).setCancelable(false).create();
     }
 
     private void setBottomSheetCallBacks() {
@@ -406,12 +422,15 @@ public class ProducerNavMapActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 mConsumerModelArrayList.get(activeStopPosition).setDelivered(true);
+                // TODO: 10/15/2019  send notification to relevent
                 if (activeStopPosition >= mActiveRideArrayList.size() - 1) { //this means that all stops are done
                     abortJourny();
+                    speak("saving record..");
                     Toast.makeText(ProducerNavMapActivity.this, "all stops done, Now finishing Ride....", Toast.LENGTH_SHORT).show();
                 } else {
                     activeStopPosition++;
                     mAciveRideStopsAdapter.notifyDataSetChanged();
+                    speak("Now heading towards " + mActiveRideArrayList.get(activeStopPosition).getName());
                     Toast.makeText(ProducerNavMapActivity.this, "successfully marked as delivered, Now going gor next stop", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -461,15 +480,15 @@ public class ProducerNavMapActivity extends AppCompatActivity
             HashMap<String, Object> clientDatamap = new HashMap<>();
             clientDatamap.put("name", name);//client name
 
-            HashMap<String,Object> goodsMap=new HashMap<>();
-            for (AcquiredGoodModel acquiredGoodModel:consumerModel.getDemandArray()){
+            HashMap<String, Object> goodsMap = new HashMap<>();
+            for (AcquiredGoodModel acquiredGoodModel : consumerModel.getDemandArray()) {
 //                String demandUnits=acquiredGoodModel.getDemand();
-                GoodModel goodModel=acquiredGoodModel.getGoodModel();
-                goodsMap.put(goodModel.getId(),acquiredGoodModel);
+                GoodModel goodModel = acquiredGoodModel.getGoodModel();
+                goodsMap.put(goodModel.getId(), acquiredGoodModel);
             }
 
 //            clientDatamap.put("milk_amount", amounOfMilk);
-            clientDatamap.put("goods",goodsMap);
+            clientDatamap.put("goods", goodsMap);
             clientDatamap.put("status", status);
 
             clientsMap.put(id, clientDatamap);
@@ -537,21 +556,19 @@ public class ProducerNavMapActivity extends AppCompatActivity
         switch (item.getItemId()) {
             case R.id.nav_producer_map_logout:
                 if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-                    showLogoutDialogue();
+                    showLogoutAlertDialog();
                 } else {
                     Toast.makeText(this, "already logged out", Toast.LENGTH_SHORT).show();
                 }
                 break;
-            case R.id.nav_producer_map_share_id:
-                fetchFreshDataOfUsers();//// FIXME: 10/14/2019 remove this
-                ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Service.CLIPBOARD_SERVICE);
-                ClipData clipData = ClipData.newPlainText("user_id", FirebaseAuth.getInstance().getCurrentUser().getUid());
-                clipboardManager.setPrimaryClip(clipData);
-                Snackbar.make(drawer, "id copied to clipboard", Snackbar.LENGTH_LONG);
-                Toast.makeText(this, "id copied to clipboard", Toast.LENGTH_SHORT).show();
-                break;
+//            case R.id.nav_producer_map_share_id:
+//                ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Service.CLIPBOARD_SERVICE);
+//                ClipData clipData = ClipData.newPlainText("user_id", FirebaseAuth.getInstance().getCurrentUser().getUid());
+//                clipboardManager.setPrimaryClip(clipData);
+//                Snackbar.make(drawer, "id copied to clipboard", Snackbar.LENGTH_LONG);
+//                Toast.makeText(this, "id copied to clipboard", Toast.LENGTH_SHORT).show();
+//                break;
             case R.id.nav_producer_map_clients:
-
 
                 if (mFragmentManager.findFragmentByTag(PRODUCER_CLIENT_REQUEST_FRAGMENT_TAG) == null) {
                     ProducerClientsRequestsFragment producerClientsRequestsFragment = ProducerClientsRequestsFragment.geInstance();
@@ -566,14 +583,9 @@ public class ProducerNavMapActivity extends AppCompatActivity
                 break;
             case R.id.nav_producer_map_dashboard:
                 if (mFragmentManager.findFragmentByTag(PRODUCER_DASHBOARD_FRAGMENT_TAG) == null) {
-                    ProducerDashBoardFragment producerDashBoardFragment = ProducerDashBoardFragment.geInstance(mConsumerModelArrayList, "");
-                    producerDashBoardFragment.setCallBacks(this);
+                    this.mAlertDialog.show();
+                    fetchFreshDataOfUsers();
 
-                    mFragmentManager.beginTransaction()
-                            .replace(R.id.frame_prod_map_fragment_container,
-                                    producerDashBoardFragment
-                                    , PRODUCER_DASHBOARD_FRAGMENT_TAG)
-                            .commit();
                 }
                 break;
             case R.id.nav_producer_map_rides_summery:
@@ -596,7 +608,18 @@ public class ProducerNavMapActivity extends AppCompatActivity
         return true;
     }
 
-    private void showLogoutDialogue() {
+    private void startDashBoardFragment() {
+        ProducerDashBoardFragment producerDashBoardFragment = ProducerDashBoardFragment.geInstance(mConsumerModelArrayList, "");
+        producerDashBoardFragment.setCallBacks(this);
+
+        mFragmentManager.beginTransaction()
+                .replace(R.id.frame_prod_map_fragment_container,
+                        producerDashBoardFragment
+                        , PRODUCER_DASHBOARD_FRAGMENT_TAG)
+                .commit();
+    }
+
+    private void showLogoutAlertDialog() {
         //logout code
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(ProducerNavMapActivity.this);
         builder.setTitle("Logout")
@@ -753,9 +776,11 @@ public class ProducerNavMapActivity extends AppCompatActivity
     //location related
     protected void createLocationRequest() {
         //this request is to chec the necessary settings
+
         final LocationRequest locationRequest = LocationRequest.create();
         locationRequest.setInterval(REQUEST_INTERVAL);
         locationRequest.setFastestInterval(FASTEST_INTERVAL);
+        locationRequest.setSmallestDisplacement(10);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
@@ -801,6 +826,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
         LocationRequest request = new LocationRequest();
         request.setInterval(REQUEST_INTERVAL);
         request.setFastestInterval(FASTEST_INTERVAL);
+        request.setSmallestDisplacement(10);
         request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(this);
         //final String path = getString(R.string.firebase_path) + "/" + getString(R.string.transport_id);
@@ -856,7 +882,16 @@ public class ProducerNavMapActivity extends AppCompatActivity
                             lat = dataSnapshot.child("lat").getValue(String.class);
                             lng = dataSnapshot.child("lng").getValue(String.class);
                         }
-                        ConsumerModel consumerModel = new ConsumerModel(id, name, number, timeStamp, lat, lng);
+                        final ConsumerModel consumerModel = new ConsumerModel(id, name, number, timeStamp, lat, lng);
+                        if (lat != null) {
+                            new GeoCoderAsyncTask() {
+                                @Override
+                                protected void onPostExecute(String s) {
+                                    consumerModel.setLocationName(s);
+                                    //call notify dataset cahnged if required
+                                }
+                            }.execute(lat, lng);
+                        }
                         consumerModel.setAmountOfMilk(milkDemand);
 
                         mConsumerModelArrayList.add(consumerModel);
@@ -879,123 +914,23 @@ public class ProducerNavMapActivity extends AppCompatActivity
                             lng = dataSnapshot.child("lng").getValue(String.class);
                         }
                         ConsumerModel currentConsumerModel = null;
-                        for (ConsumerModel currentModel : mConsumerModelArrayList) {
+                        for (final ConsumerModel currentModel : mConsumerModelArrayList) {
                             if (currentModel.getId().equals(id)) {
                                 currentConsumerModel = currentModel;
                                 currentConsumerModel.setLat(lat);
                                 currentConsumerModel.setLng(lng);
 
-                                break;
-                            }
-                        }
-                        if (currentConsumerModel == null) return;
 
-                        if (lat != null && currentConsumerModel.getMarker() == null) {//if the marker is null then the location is added for the first time and a new marker is needed
-                            createNewMarker(currentConsumerModel);
-                        }
-                    }
-
-                    @Override
-                    public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
-                    }
-
-                    @Override
-                    public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
-                });
-
-    }
-
-    private void loadAllConsumersForTodaysJourney() {
-        //first we fetch all the data that does not change in time
-        FirebaseDatabase.getInstance().getReference()
-                .child("clients").child(FirebaseAuth.getInstance().getCurrentUser().getUid())//prodcuer id
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
-                            for (DataSnapshot clientSnap : dataSnapshot.getChildren()) {
-
-                                String id = dataSnapshot.getKey();
-                                String name = dataSnapshot.child("name").getValue(String.class);
-                                String number = dataSnapshot.child("number").getValue(String.class);
-                                String timeStamp = dataSnapshot.child("number").getValue(String.class);// FIXME: 9/14/2019 we need time stamp
-                                String lat = null;
-                                String lng = null;
-                                if (dataSnapshot.hasChild("lat") && dataSnapshot.hasChild("lng")) {
-                                    lat = dataSnapshot.child("lat").getValue(String.class);
-                                    lng = dataSnapshot.child("lng").getValue(String.class);
-                                }
-                                ConsumerModel consumerModel = new ConsumerModel(id, name, number, timeStamp, lat, lng);
-
-                                mConsumerModelArrayList.add(consumerModel);
                                 if (lat != null) {
-                                    createNewMarker(consumerModel);
+                                    new GeoCoderAsyncTask() {
+                                        @Override
+                                        protected void onPostExecute(String s) {
+                                            currentModel.setLocationName(s);
+                                            //call notify dataset cahnged if required
+                                        }
+                                    }.execute(lat, lng);
                                 }
-//                        mActiveRideStopsModelArrayList.get()
-
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
-                });
-
-
-        FirebaseDatabase.getInstance().getReference()
-                .child("clients").child(FirebaseAuth.getInstance().getCurrentUser().getUid())//prodcuer id
-                .addChildEventListener(new ChildEventListener() {
-                    @Override
-                    public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-                        String id = dataSnapshot.getKey();
-                        String name = dataSnapshot.child("name").getValue(String.class);
-                        String number = dataSnapshot.child("number").getValue(String.class);
-                        String timeStamp = dataSnapshot.child("number").getValue(String.class);// FIXME: 9/14/2019 we need time stamp
-                        String lat = null;
-                        String lng = null;
-                        if (dataSnapshot.hasChild("lat") && dataSnapshot.hasChild("lng")) {
-                            lat = dataSnapshot.child("lat").getValue(String.class);
-                            lng = dataSnapshot.child("lng").getValue(String.class);
-                        }
-                        ConsumerModel consumerModel = new ConsumerModel(id, name, number, timeStamp, lat, lng);
-
-                        mConsumerModelArrayList.add(consumerModel);
-                        if (lat != null) {
-                            createNewMarker(consumerModel);
-                        }
-
-
-                    }
-
-                    @Override
-                    public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-                        //it is assumed that this method will only be activated when the location for a consumer marker is updated
-                        String id = dataSnapshot.getKey();
-
-                        String lat = null;
-                        String lng = null;
-                        if (dataSnapshot.hasChild("lat") && dataSnapshot.hasChild("lng")) {
-                            lat = dataSnapshot.child("lat").getValue(String.class);
-                            lng = dataSnapshot.child("lng").getValue(String.class);
-                        }
-                        ConsumerModel currentConsumerModel = null;
-                        for (ConsumerModel currentModel : mConsumerModelArrayList) {
-                            if (currentModel.getId().equals(id)) {
-                                currentConsumerModel = currentModel;
-                                currentConsumerModel.setLat(lat);
-                                currentConsumerModel.setLng(lng);
+                                //update the location string later
 
                                 break;
                             }
@@ -1022,18 +957,25 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
                     }
                 });
-
 
     }
 
 
     //this method is only valid if it is called for the last posiioned object of array list
     private void createNewMarker(ConsumerModel consumerModel) {
-        String key = consumerModel.getId();
+        Bitmap flag = BitmapFactory.decodeResource(getResources(), R.drawable.iconfinder_map_marker_flag_left_azure_73041_64px);
+
+        flag = /*loadBitmapFromView(*/scaleDown(flag, 180.0f, true)/*)*/;
+
+        consumerModel.getId();
+
         MarkerOptions markerOptions = new MarkerOptions();
         //added array list size to indicate the number of marker
         markerOptions.title(consumerModel.getName());
-        markerOptions.icon(bitmapDescriptorFromVector(this, R.drawable.marker_home));
+//        markerOptions.icon(bitmapDescriptorFromVector(this, R.drawable.marker_home));
+        markerOptions.icon(BitmapDescriptorFactory.fromBitmap(flag));
+
+
         markerOptions.draggable(true);
         markerOptions.position(new LatLng(Double.parseDouble(consumerModel.getLatitude()),
                 Double.parseDouble(consumerModel.getLongitude())));
@@ -1041,6 +983,20 @@ public class ProducerNavMapActivity extends AppCompatActivity
         consumerModel.setMarker(marker);
 //        mConsumerModelArrayList.get(mConsumerModelArrayList.size() - 1).setMarker(marker);
     }
+
+
+    public Bitmap scaleDown(Bitmap realImage, float maxImageSize, boolean filter) {
+        float ratio;
+        ratio = Math.min(
+                (float) maxImageSize / 60,
+                maxImageSize / 60);
+        int width = Math.round(ratio * 60);
+        int height = Math.round(ratio * 60);
+
+        Bitmap newBitmap = Bitmap.createScaledBitmap(realImage, width, height, filter);
+        return newBitmap;
+    }
+
 
     private void adDraglisternerToMAp() {
         mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
@@ -1112,8 +1068,8 @@ public class ProducerNavMapActivity extends AppCompatActivity
     }
 
     @Override
-    public void onStartRiding() {
-        mTotalMilkDemand = calculateMilkDemand();
+    public void onStartRiding() { // TODO: 10/17/2019 show here all the dstuuf needed to be delivered
+        String mTotalMilkDemand = "xyz";
         mFragmentManager.beginTransaction().remove(mFragmentManager.findFragmentByTag(PRODUCER_DASHBOARD_FRAGMENT_TAG)).commit();
         if (isjournyActive) {
             Snackbar.make(drawer, "you are already riding", Snackbar.LENGTH_LONG).show();
@@ -1134,21 +1090,11 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
     }
 
-    private float calculateMilkDemand() {
-        float milkDemand = 0.0f;
-        for (ConsumerModel consumerModel : mConsumerModelArrayList) {
-            milkDemand += consumerModel.getAmountOfMilk();
-
-        }
-        return milkDemand;
-    }
-
 
     private void startRiding() {
         isjournyActive = true;
         startJourney();
         Snackbar.make(drawer, "processing...", Snackbar.LENGTH_SHORT).show();
-
         bottomSheetBehavior.setHideable(false);
         bottomSheetLinearLayout.setVisibility(View.GONE);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
@@ -1187,7 +1133,6 @@ public class ProducerNavMapActivity extends AppCompatActivity
         if (mActiveRideArrayList.get(activeStopPosition).getLatitude() == null) {
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
             Toast.makeText(this, "This stop location is not set", Toast.LENGTH_SHORT).show();
-            Toast.makeText(this, "This stop location is not set", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -1195,6 +1140,9 @@ public class ProducerNavMapActivity extends AppCompatActivity
         if (shouldDrawfullRoute) {//to make this path drawing be called only once in a ride
             //to generate a polyline over the complete route
             drawFullRoutePolyline(currentLocation);
+            speak("ride started...");
+
+            speak("moving towards " + mActiveRideArrayList.get(0).getName());
         }
 
 
@@ -1252,6 +1200,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
                                 ProducerFirebaseHelper.updateStatus(getResources().getString(R.string.status_producer_inactive));
                                 Toast.makeText(ProducerNavMapActivity.this, "journey aborted", Toast.LENGTH_SHORT).show();
+                                speak("ride finished");
                             }
                         }
                     }, REQUEST_INTERVAL);
@@ -1468,6 +1417,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
                     if (task.isSuccessful()) {
                         // TODO: 9/14/2019 later remove this success toast
                         Toast.makeText(ProducerNavMapActivity.this, "new Location is set to the database for this client ", Toast.LENGTH_SHORT).show();
+
                     } else {
                         Toast.makeText(ProducerNavMapActivity.this, "error : " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     }
@@ -1501,9 +1451,9 @@ public class ProducerNavMapActivity extends AppCompatActivity
                                 for (DataSnapshot goodSnap : dataSnapshot.getChildren()) {
                                     String good_id = goodSnap.getKey();
                                     String demandUnits = goodSnap.child("demand").getValue(String.class);
-                                    if (demandUnits.equals("0")){ // TODO: 10/14/2019 test this
+                                    if (demandUnits.equals("0")) { // TODO: 10/14/2019 test this
                                         continue;
-                                    }else {
+                                    } else {
                                         consumerModel.setHasDemand(true);
                                     }
                                     if ((mConsumerModelArrayList.size() == finalI + 1)
@@ -1514,19 +1464,21 @@ public class ProducerNavMapActivity extends AppCompatActivity
                                     j++;
                                 }
 //                                acquiredGoodsAdapter.notifyDataSetChanged();
-                            }else {
-                                if ((mConsumerModelArrayList.size() == finalI + 1)){
+                            } else {
+                                if ((mConsumerModelArrayList.size() == finalI + 1)) {
+                                    startDashBoardFragment();
+                                    mAlertDialog.dismiss();
                                     Toast.makeText(ProducerNavMapActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
                                 }
 
                             }
-//                            mAlertDialog.dismiss();
+
                         }
 
                         @Override
                         public void onCancelled(@NonNull DatabaseError databaseError) {
 //                            Toast.makeText(AcquiredGoodsActivity.this, String.format("fetching Services step for %s was cancelled due to error:%s", producerID, databaseError.getMessage()), Toast.LENGTH_SHORT).show();
-//                            mAlertDialog.dismiss();
+                            mAlertDialog.dismiss();
 
                         }
                     });
@@ -1554,6 +1506,8 @@ public class ProducerNavMapActivity extends AppCompatActivity
                         }
 
                         if (isFinalCall) {
+                            startDashBoardFragment();
+                            mAlertDialog.dismiss();
                             Toast.makeText(ProducerNavMapActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -1563,6 +1517,47 @@ public class ProducerNavMapActivity extends AppCompatActivity
                         Toast.makeText(ProducerNavMapActivity.this, "datbase error" + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    //text to speech related
+    @Override
+    protected void onStart() {
+        initTextToSpeach();
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
+        super.onStop();
+    }
+
+    private void initTextToSpeach() {
+        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int i) {
+                if (i == TextToSpeech.SUCCESS) {
+                    int result = textToSpeech.setLanguage(Locale.ENGLISH);
+
+                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        Toast.makeText(ProducerNavMapActivity.this, "text to speech not working", Toast.LENGTH_SHORT).show();
+//                        Log.d("mylog", "onInit: error in TEXT TO SPEECH");
+                    }
+
+                } else {
+                    Toast.makeText(ProducerNavMapActivity.this, "error in on init of text to speec", Toast.LENGTH_SHORT).show();
+//                    Log.d("mylog", "onInit: error in TEXT TO SPEECH 1");
+                }
+            }
+        });
+
+    }
+
+    private void speak(String text) {
+        textToSpeech.speak(text, TextToSpeech.QUEUE_ADD, null);
     }
 
 
@@ -1583,6 +1578,42 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
         }
     }
+
+    /**
+     * this class serves to get location
+     */
+    private class GeoCoderAsyncTask extends AsyncTask<String, Void, String> {
+
+        /**
+         * @param strings 0 index is latitude 1 index is longitude
+         * @return
+         */
+        @Override
+        protected String doInBackground(String... strings) {
+            String locationAddress = null;
+            try {
+                double latitude = Double.parseDouble(strings[0]);
+                double longitude = Double.parseDouble(strings[1]);
+
+                System.out.println("lat : " + latitude + "lon : " + longitude);
+                Geocoder geo = new Geocoder(ProducerNavMapActivity.this, Locale.getDefault());
+                List<Address> addresses = geo.getFromLocation(latitude, longitude, 1);
+                if (addresses.isEmpty()) {
+                    return null;
+                } else {
+                    if (addresses.size() > 0) {
+                        locationAddress = addresses.get(0).getAddressLine(0);
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return locationAddress;
+
+        }
+
+    }
+
 }
 
 

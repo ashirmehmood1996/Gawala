@@ -120,9 +120,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
         loginButton.setEnabled(false);
         signupButton.setEnabled(false);
-
-        //showprogressbar()
-        // TODO: 6/28/2019 show progress dialog
         checkValidityAndAuthenticate(mPhoneNumber);
 
 
@@ -166,7 +163,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (requestCode == RC_LOGIN) {
             if (resultCode == RESULT_OK) {
-
                 sendUserToRelevantActiviy();
             }
 

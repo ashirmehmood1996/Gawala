@@ -84,7 +84,7 @@ public class SignupActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //perform necessary checks
-                String numebr = numberEditText.getText().toString();// TODO: 6/21/2019 check that of number is in valid format take help from tracker
+                String numebr = numberEditText.getText().toString();
 
                 String name = nameEditText.getText().toString();
                 if (numebr.isEmpty() || name.isEmpty()) {
@@ -172,7 +172,6 @@ public class SignupActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(getApplicationContext(), "profile updated failed", Toast.LENGTH_SHORT).show();
                 }
-                //// FIXME: 8/8/2019 do some thing if  needed may be uodate dataabse after this step is csuccessfull
             }
         });
 

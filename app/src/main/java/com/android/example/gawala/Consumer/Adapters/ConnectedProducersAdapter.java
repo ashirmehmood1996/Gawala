@@ -11,16 +11,17 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.example.gawala.Consumer.Models.ProducerModel;
 import com.android.example.gawala.R;
 
 import java.util.ArrayList;
 
 public class ConnectedProducersAdapter extends RecyclerView.Adapter<ConnectedProducersAdapter.ProducerHolder> {
-    private ArrayList<String> producersArrayList;
+    private ArrayList<ProducerModel> producersArrayList;
     private Context context;
     private Callback callback;
 
-    public ConnectedProducersAdapter(ArrayList<String> producersArrayList, Activity activity) {
+    public ConnectedProducersAdapter(ArrayList<ProducerModel> producersArrayList, Activity activity) {
         this.producersArrayList = producersArrayList;
         this.context = activity;
         this.callback = (Callback) activity;
@@ -36,7 +37,10 @@ public class ConnectedProducersAdapter extends RecyclerView.Adapter<ConnectedPro
 
     @Override
     public void onBindViewHolder(@NonNull ProducerHolder holder, int position) {
-        holder.nameTextView.setText(producersArrayList.get(position));
+        ProducerModel producerModel = producersArrayList.get(position);
+        holder.nameTextView.setText(producerModel.getName());
+        holder.numberTextView.setText(producerModel.getNumber());
+
 
     }
 
@@ -47,13 +51,13 @@ public class ConnectedProducersAdapter extends RecyclerView.Adapter<ConnectedPro
 
     class ProducerHolder extends RecyclerView.ViewHolder {
         LinearLayout producerConatiner;
-        TextView nameTextView,numberTextView;
+        TextView nameTextView, numberTextView;
 
         ProducerHolder(@NonNull View itemView) {
             super(itemView);
-            producerConatiner=itemView.findViewById(R.id.ll_li_con_prod_container);
-            nameTextView=itemView.findViewById(R.id.tv_li_con_prod_name);
-            numberTextView=itemView.findViewById(R.id.tv_li_con_prod_number);
+            producerConatiner = itemView.findViewById(R.id.ll_li_con_prod_container);
+            nameTextView = itemView.findViewById(R.id.tv_li_con_prod_name);
+            numberTextView = itemView.findViewById(R.id.tv_li_con_prod_number);
 
             producerConatiner.setOnClickListener(new View.OnClickListener() {
                 @Override

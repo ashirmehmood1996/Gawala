@@ -27,6 +27,8 @@ public class ProducersAdapter extends RecyclerView.Adapter<ProducersAdapter.Prod
         this.producerModelArrayList = producerModels;
         this.context = activity;
         this.callBack = (CallBack) activity;
+
+
     }
 
     @NonNull
@@ -41,7 +43,17 @@ public class ProducersAdapter extends RecyclerView.Adapter<ProducersAdapter.Prod
         holder.nameTextView.setText(producerModel.getName());
         holder.numberTextView.setText(producerModel.getNumber());
 
-
+        switch (producerModel.getStatus()) {
+            case ProducerModel.NEUTRAL:
+                holder.sendRequestButton.setText("send request");
+                break;
+            case ProducerModel.REQUEST_ACCEPTED:
+                holder.sendRequestButton.setText("remove producer");
+                break;
+            case ProducerModel.REQUEST_SENT:
+                holder.sendRequestButton.setText("cancel request");
+                break;
+        }
     }
 
     @Override

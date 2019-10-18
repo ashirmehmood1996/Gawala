@@ -14,10 +14,6 @@
         android:icon="@drawable/ic_group_black_24dp"
         android:title="My Clients" />
 
-    <item
-        android:id="@+id/nav_producer_map_share_id"
-        android:icon="@drawable/ic_menu_share"
-        android:title="share id" />
 
     <item
         android:id="@+id/nav_producer_my_services"

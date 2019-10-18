@@ -117,7 +117,7 @@ public class AquiredGoodDetailActivity extends AppCompatActivity {
                         ConsumerFirebaseHelper.updateDemand(mDemand+"", acquiredGoodModel);
 //                        ConsumerFirebaseHelper.updateMilkDemand(mDemand + "", producerId);
                         dialog.dismiss();
-                        Toast.makeText(AquiredGoodDetailActivity.this, "Demand Updated", Toast.LENGTH_SHORT).show();//// TODO: 10/10/2019  this is a best case consideration later do some callback stuff
+                        Toast.makeText(AquiredGoodDetailActivity.this, "Demand Updated", Toast.LENGTH_SHORT).show();//// TODO: 10/10/2019  this is a best case consideration later do some callback stuff because we dont know weather the data is upadted or not
                     }
                 })
                 .show();
