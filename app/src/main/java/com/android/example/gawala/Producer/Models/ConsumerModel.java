@@ -21,6 +21,9 @@ public class ConsumerModel {
     private float amountOfMilk;
     private boolean isDelivered;
     private boolean hasDemand;
+    private boolean isOnVacation;
+
+    public int NOTIFICATION_STATE=0;//this represents that what amount of notifications are sent to a consumer
 
 
     private ArrayList<AcquiredGoodModel> demandArray;
@@ -35,6 +38,7 @@ public class ConsumerModel {
         this.lng = lng;
         this.isDelivered=false;
         this.hasDemand=false;
+        this.isOnVacation=false;
 
     }
 
@@ -116,5 +120,13 @@ public class ConsumerModel {
 
     public void setLocationName(String locationName) {
         this.locationName = locationName;
+    }
+
+    public boolean isOnVacation() {
+        return isOnVacation;
+    }
+
+    public void setOnVacation(boolean onVacation) {
+        isOnVacation = onVacation;
     }
 }

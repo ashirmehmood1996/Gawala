@@ -62,7 +62,7 @@ public class ProducerDashBoardFragment extends Fragment implements StopMarkerCli
             ArrayList<ConsumerModel> recievedconsumerModelArrayList = (ArrayList<ConsumerModel>) getArguments().getSerializable(ARG_MARKERS_KEY);
             consumerModelArrayList=new ArrayList<>();
             for (ConsumerModel consumerModel:recievedconsumerModelArrayList){
-                if (consumerModel.hasDemand()){
+                if (consumerModel.hasDemand() && !consumerModel.isOnVacation()){
                     consumerModelArrayList.add(consumerModel);
                 }
             }

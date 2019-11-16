@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Generel.Activities.PickLocationMapsActivity">
+
+    <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginRight="8dp"
+        android:background="#FFFFFF"
+        android:elevation="4dp"
+        android:orientation="vertical">
+
+        <fragment
+            android:id="@+id/f_pick_location_map_autocomplete"
+            android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false">
+
+        <ImageView
+            android:id="@+id/iv_pick_location_map_pick_marker"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignBottom="@id/iv_pick_location_map_centre_dot"
+            android:layout_centerHorizontal="true"
+            android:src="@drawable/iconfinder_map_marker_marker_outside_azure_73051"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/iv_pick_location_map_centre_dot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:src="@drawable/ic_fiber_manual_record_black_24dp" />
+
+
+    </RelativeLayout>
+
+
+    <Button
+        android:id="@+id/bt_pick_location_map_confirm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/bt_pick_location_map_cancel"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/bg_button_solid"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:text="confirm Location"
+        android:textColor="#fff" />
+
+    <Button
+        android:id="@+id/bt_pick_location_map_cancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="16dp"
+        android:background="@drawable/bg_button_solid_red"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:text="cancel Editing"
+        android:textColor="#fff" />
+
+</RelativeLayout>

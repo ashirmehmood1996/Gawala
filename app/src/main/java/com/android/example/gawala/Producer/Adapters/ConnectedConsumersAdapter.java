@@ -20,12 +20,12 @@ import java.util.ArrayList;
 public class ConnectedConsumersAdapter extends RecyclerView.Adapter<ConnectedConsumersAdapter.ConnectedConsumersHolder> {
     private ArrayList<ConsumerModel> consumerModelArrayList;
     private Context context;
-    private CallBacks callBacks;
+//    private CallBacks callBacks;
 
-    public ConnectedConsumersAdapter(ArrayList<ConsumerModel> consumerModelArrayList, Activity activity, CallBacks callBacks) {
+    public ConnectedConsumersAdapter(ArrayList<ConsumerModel> consumerModelArrayList, Activity activity/*, CallBacks callBacks*/) {
         this.consumerModelArrayList = consumerModelArrayList;
         this.context = activity;
-        this.callBacks= callBacks;
+//        this.callBacks= callBacks;
 
     }
 
@@ -57,13 +57,13 @@ public class ConnectedConsumersAdapter extends RecyclerView.Adapter<ConnectedCon
         }else {
             holder.locationTextView.setText("location was not set");
         }
-
+/*
         holder.editLocationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 callBacks.onEditLocation(i);
             }
-        });
+        });*/
 
 
     }
@@ -75,21 +75,21 @@ public class ConnectedConsumersAdapter extends RecyclerView.Adapter<ConnectedCon
 
     class ConnectedConsumersHolder extends RecyclerView.ViewHolder {
         TextView nameTextView, locationTextView;
-        Button editLocationButton;
+//        Button editLocationButton;
 
         public ConnectedConsumersHolder(@NonNull View itemView) {
             super(itemView);
             nameTextView = itemView.findViewById(R.id.tv_li_conected_con_name);
             locationTextView = itemView.findViewById(R.id.tv_li_conected_con_location);
-            editLocationButton =itemView.findViewById(R.id.bt_li_conected_con_edit_location);
+//            editLocationButton =itemView.findViewById(R.id.bt_li_conected_con_edit_location);
         }
     }
 
 
-    /**
+   /* *//**
      * an interfase between activity and adapter
-     */
+     *//*
     public interface CallBacks{
         void onEditLocation(int position);
-    }
+    }*/
 }

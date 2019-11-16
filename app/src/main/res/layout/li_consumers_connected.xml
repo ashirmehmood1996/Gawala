@@ -72,7 +72,7 @@
                 android:textSize="14sp"
                 tools:text="location" />
         </LinearLayout>
-        <Button
+      <!--  <Button
             android:id="@+id/bt_li_conected_con_edit_location"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -85,7 +85,7 @@
             android:textAllCaps="false"
             android:drawablePadding="5dp"
             android:drawableLeft="@drawable/ic_mode_edit_black_24dp"
-            android:text="Edit Location"/>
+            android:text="Edit Location"/>-->
     </LinearLayout>
 
     <!-- todo later add delete option-->

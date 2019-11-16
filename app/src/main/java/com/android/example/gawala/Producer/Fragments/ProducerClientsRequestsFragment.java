@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
-public class ProducerClientsRequestsFragment extends Fragment implements RequestsAdapterCallbacks, ConnectedConsumersAdapter.CallBacks {
+public class ProducerClientsRequestsFragment extends Fragment implements RequestsAdapterCallbacks/*, ConnectedConsumersAdapter.CallBacks*/ {
 
 //    private static String ARG_CONSUMERS_KEY ="consumersKey";
     private TextView newRequestsTitleTextView;
@@ -51,7 +51,7 @@ public class ProducerClientsRequestsFragment extends Fragment implements Request
 
     private DatabaseReference rootRef;
     private String myID;
-    private CallBacks callBacks;
+//    private CallBacks callBacks;
 
     public static ProducerClientsRequestsFragment geInstance() {
 
@@ -88,7 +88,7 @@ public class ProducerClientsRequestsFragment extends Fragment implements Request
         connectedConsumersRecyclerView = rootView.findViewById(R.id.rv_pro_consumers);
         connectedConsumersRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mConsumersArrayList = ((ProducerNavMapActivity)getActivity()).getConsumersArrayList();
-        consumersAdapter = new ConnectedConsumersAdapter(mConsumersArrayList, getActivity(),this);
+        consumersAdapter = new ConnectedConsumersAdapter(mConsumersArrayList, getActivity()/*,this*/);
         connectedConsumersRecyclerView.setAdapter(consumersAdapter);
 
 
@@ -202,19 +202,19 @@ public class ProducerClientsRequestsFragment extends Fragment implements Request
             }
         });
     }
-
+/*
     @Override
     public void onEditLocation(int position) {
 
 //        Toast.makeText(getActivity(), String.format("Edit location at %d postion clicked ", position), Toast.LENGTH_SHORT).show();
         callBacks.onEditLocation(position);
 
-    }
-    public void setCallBacks(CallBacks callBacks){
+    }*/
+   /* public void setCallBacks(CallBacks callBacks){
         this.callBacks=callBacks;
     }
     public interface CallBacks{
         void onEditLocation(int position);
-    }
+    }*/
 }
 

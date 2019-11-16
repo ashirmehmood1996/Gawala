@@ -36,6 +36,15 @@
         <item>producer</item>
         <item>consumer</item>
     </string-array>
+    <string name="title_activity_testmap">Map</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_consumer_map">Map</string>
+    <string name="title_activity_pick_location_maps">Map</string>
+
+    <!--its a generel key I guess-->
+    <string name="places_api_key">AIzaSyDoDEsuwoTeQO4SfjqCiJJ3vlHHKi3G_2o</string>
+    <string name="from_consumer_dash_board">consumerDashBoard</string>
+    <string name="from_which_activty">from</string>
 
 
 </resources>

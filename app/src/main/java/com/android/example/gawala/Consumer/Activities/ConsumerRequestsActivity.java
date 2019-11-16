@@ -79,7 +79,7 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
         allProdcuersrecyclerView.setAdapter(producersAdapter);
 
 
-        connectedProducerArrayList=new ArrayList<>();
+        connectedProducerArrayList = new ArrayList<>();
         connectedProducersRecyclerView = findViewById(R.id.rv_con_req_conected_consumers);
         connectedProducersAdapter = new ConnectedProducersAdapter(connectedProducerArrayList, this);
         connectedProducersRecyclerView.setAdapter(connectedProducersAdapter);
@@ -102,18 +102,17 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
                             connectedProducerMainLinearLayout.setVisibility(View.VISIBLE);
                             for (DataSnapshot producerSnap : dataSnapshot.getChildren()) {
 
-                                String key=producerSnap.getKey();
-                                String name=producerSnap.child("name").getValue(String.class);
-                                String number=producerSnap.child("number").getValue(String.class);
-                                connectedProducerArrayList.add(new ProducerModel(key,name,number));
+                                String key = producerSnap.getKey();
+                                String name = producerSnap.child("name").getValue(String.class);
+                                String number = producerSnap.child("number").getValue(String.class);
+                                connectedProducerArrayList.add(new ProducerModel(key, name, number));
 
-                                }
                             }
-
-                            connectedProducersAdapter.notifyDataSetChanged();
-                        loadAllProducers();
                         }
 
+                        connectedProducersAdapter.notifyDataSetChanged();
+                        loadAllProducers();
+                    }
 
 
                     @Override
@@ -124,7 +123,10 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
 
     }
 
-    private void loadAllProducers() {
+    private void loadAllProducers(String city, String country) {
+
+        either change the database schema or else query all the data and filter here whihc is ofcpurse a bad practice
+                compare cloud firestore and shift if necassary later may be
         //for now  loading all producers later that can be changed when the system expands
         FirebaseDatabase.getInstance().getReference()
                 .child("users").orderByChild("type").equalTo("producer")
@@ -136,7 +138,7 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
                                 String id = producerSnap.getKey();
                                 String name = producerSnap.child("name").getValue(String.class);
                                 String number = producerSnap.child("number").getValue(String.class);
-                                ProducerModel producerModel=new ProducerModel(id, name, number);
+                                ProducerModel producerModel = new ProducerModel(id, name, number);
 
 
 //                                for (ProducerModel producerModel1:connectedProducerArrayList){
@@ -156,7 +158,7 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
-                        Toast.makeText(ConsumerRequestsActivity.this, "databse error: "+databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ConsumerRequestsActivity.this, "databse error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -206,15 +208,15 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
     @Override
     public void onconnectedProducerClick(int pos) {
 
-        ProducerModel producerModel=connectedProducerArrayList.get(pos);
-                Intent intent = new Intent(ConsumerRequestsActivity.this, ProducerDetailActivty.class);
-                intent.putExtra("producer_id", producerModel.getId());
-                intent.putExtra("name", producerModel.getName());
-                intent.putExtra("number", producerModel.getNumber());
-                startActivity(intent);
+        ProducerModel producerModel = connectedProducerArrayList.get(pos);
+        Intent intent = new Intent(ConsumerRequestsActivity.this, ProducerDetailActivty.class);
+        intent.putExtra("producer_id", producerModel.getId());
+        intent.putExtra("name", producerModel.getName());
+        intent.putExtra("number", producerModel.getNumber());
+        startActivity(intent);
     }
 
-
+//// TODO: 10/19/2019 allow to place the location in order to make producer able to accept the request
 
 
     // TODO: 6/30/2019  later deal with cancel friend requests

@@ -1,24 +1,25 @@
 package com.android.example.gawala.Consumer.Activities;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.example.gawala.Generel.Activities.LoginActivity;
+import com.android.example.gawala.Generel.Activities.NotificationsActivity;
+import com.android.example.gawala.Generel.Activities.PersonalInfoActivity;
+import com.android.example.gawala.Generel.Activities.PickLocationMapsActivity;
 import com.android.example.gawala.R;
 import com.android.example.gawala.Consumer.Utils.ConsumerFirebaseHelper;
 import com.android.example.gawala.Generel.Utils.UtilsMessaging;
@@ -34,8 +35,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.HashMap;
+
 public class ConsumerDashBoardActivity extends AppCompatActivity implements View.OnClickListener {
-    private Button notAtHomeButton, showSummeryButton, myProvidesButton, myServicesButton;
+    private Button offdeliveryDaysButton, showSummeryButton, myProvidesButton,
+            myServicesButton, showMapButton, myProfilebutton, notificationsButton;
 
     //firbase related
     private DatabaseReference rootRef;
@@ -47,6 +51,7 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
     private boolean mIsAtHome;
     private String SUMMERY_FRAG_TAG = "SummerFragmentTag";
     private AlertDialog mAlertDialog;
+    private int RC_SET_DELIVERY_LOCATION = 122;
 
 
     @Override
@@ -59,18 +64,21 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
         initFilds();
         attachListeners();
 
-        checkIfUserIsCoonnectedToProducer();
-        mAlertDialog.show();
+//        checkIfUserIsCoonnectedToProducer();
         UtilsMessaging.initFCM();
+        checkIfDeliveryLocationIsProvided();
 
     }
 
-
     private void initFilds() {
-        notAtHomeButton = findViewById(R.id.bt_con_dash_not_at_home);
+        offdeliveryDaysButton = findViewById(R.id.bt_con_dash_off_delivery_days);
         showSummeryButton = findViewById(R.id.bt_con_dash_show_summery);
         myProvidesButton = findViewById(R.id.bt_con_dash_my_providers);
         myServicesButton = findViewById(R.id.bt_con_dash_my_services);
+        showMapButton = findViewById(R.id.bt_con_show_map);
+        myProfilebutton = findViewById(R.id.bt_con_dash_my_profile);
+        notificationsButton = findViewById(R.id.bt_con_dash_notifications);
+
 
         //date related
         rootRef = FirebaseDatabase.getInstance().getReference();
@@ -79,10 +87,13 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
     }
 
     private void attachListeners() {
-        notAtHomeButton.setOnClickListener(this);
+        offdeliveryDaysButton.setOnClickListener(this);
         showSummeryButton.setOnClickListener(this);
         myProvidesButton.setOnClickListener(this);
         myServicesButton.setOnClickListener(this);
+        showMapButton.setOnClickListener(this);
+        myProfilebutton.setOnClickListener(this);
+        notificationsButton.setOnClickListener(this);
     }
 
 
@@ -105,14 +116,11 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
                                     if (clientSnap.getKey().equals(myId)) {
                                         producerId = dataSnapshot.getChildren().iterator().next().getKey();//producer key
                                         found = true;
-                                        fetchReleventDataUsingKey(producerId);
+//                                        fetchReleventDataUsingKey(producerId);
                                         break;
                                     }
-
                                 }
-
                             }
-
                             if (!found) {
                                 mAlertDialog.dismiss();
                                 upDateUiForNoProducerConnection();
@@ -123,18 +131,17 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
                             upDateUiForNoProducerConnection();
 
                         }
-
                     }
+
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
-
                     }
                 });
     }
 
     private void upDateUiForNoProducerConnection() {
-        notAtHomeButton.setEnabled(false);
+        offdeliveryDaysButton.setEnabled(false);
     }
 
 //    private void sendUserToRequestActivity() {
@@ -182,7 +189,6 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
 ////    }
 
     private void fetchReleventDataUsingKey(final String producuerKey) {
-// TODO: 8/25/2019  remove all lkisteneres at the time of logout and even at the time of on pause or pon stop
 
         //used for setting and getting clients own data fields
         rootRef.child("clients")
@@ -198,8 +204,8 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
                                 ConsumerFirebaseHelper.atHome(mIsAtHome, producuerKey);
                             } else {
                                 mIsAtHome = dataSnapshot.child("live_data").child("at_home").getValue(Boolean.class);
-                                if (mIsAtHome) notAtHomeButton.setText("I am not at Home");
-                                else notAtHomeButton.setText("I am at Home");
+                                if (mIsAtHome) offdeliveryDaysButton.setText("I am not at Home");
+                                else offdeliveryDaysButton.setText("I am at Home");
 
                             }
 
@@ -227,6 +233,7 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
 //                    producerStatus = dataSnapshot.child("status").getValue(String.class);
 //                    mCurrentMilkPrice = dataSnapshot.child("milk_price").getValue(String.class);
 //                    if (producerStatus == null) {
+//                    if (producerStatus == null) {
 //                        Toast.makeText(ConsumerDashBoardActivity.this, "Producer status was null ", Toast.LENGTH_SHORT).show();
 //                        producerStatus = "unknown";
 //                        producerStatustextView.setText(producerStatus);
@@ -252,11 +259,99 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
 
     }
 
+    private void checkIfDeliveryLocationIsProvided() {
+        rootRef.child("users").child(myId).child("location").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (!dataSnapshot.exists()) { //location is not set
+                    showDialogToSendToPickupLocationActivty();
+                } else {//location was set
+                    //and can be fetched here if needed
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+    }
+
+    private void showDialogToSendToPickupLocationActivty() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setIcon(R.drawable.ic_warning_black_24dp);
+        builder.setTitle("Set Delivery Location");
+        builder.setMessage("the location for delivery of goods(milk) is not set. " +
+                "Click proceed to specify it on Map");
+        builder.setPositiveButton("proceed", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                sendToPickLocationActivity();
+
+            }
+        }).setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Toast.makeText(ConsumerDashBoardActivity.this, "you will not be able to send request " +
+                        "to Providers unless you set up the delivery Location", Toast.LENGTH_LONG).show();
+            }
+        });
+        builder.create().show();
+    }
+
+    private void sendToPickLocationActivity() {
+        Intent intent = new Intent(this, PickLocationMapsActivity.class);
+        intent.putExtra(getResources().getString(R.string.from_which_activty), getResources().getString(R.string.from_consumer_dash_board));
+        startActivityForResult(intent, RC_SET_DELIVERY_LOCATION);
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == RC_SET_DELIVERY_LOCATION) {
+            if (resultCode == RESULT_OK) {
+                double lat = data.getDoubleExtra("lat", 0);
+                double lng = data.getDoubleExtra("lng", 0);
+                if (lat == 0 && lng == 0) {
+                    Toast.makeText(this, "seems like something went wrong ", Toast.LENGTH_SHORT).show();
+
+                } else {
+                    sendDataToFirebase(lat, lng);
+                }
+            }
+
+        } else
+            super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void sendDataToFirebase(double lat, double lng) {
+        HashMap<String, Object> locationMap = new HashMap<>();
+        locationMap.put("lat", "" + lat);
+        locationMap.put("lng", "" + lng);
+
+        rootRef.child("users").child(myId).child("location").setValue(locationMap)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(ConsumerDashBoardActivity.this, "Delivery Location set Successfully", Toast.LENGTH_SHORT).show();
+
+                        } else {
+                            Toast.makeText(ConsumerDashBoardActivity.this, "unable to set Delivery Location", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+
+    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.bt_con_dash_not_at_home:
-                showNoMilkRecieveAlert(v);
+            case R.id.bt_con_dash_off_delivery_days:
+                startActivity(new Intent(this,DaysOffActivity.class));
+
+//                showNoMilkRecieveAlert(v);
                 break;
             case R.id.bt_con_dash_show_summery:
                 ClientSummeryFragment clientSummeryFragment = ClientSummeryFragment.newInstance(producerId);
@@ -270,6 +365,19 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
             case R.id.bt_con_dash_my_services:
                 startActivity(new Intent(this, AcquiredGoodsActivity.class));
                 break;
+            case R.id.bt_con_show_map:
+                Intent intent = new Intent(this, ConsumerMapActivity.class);
+                intent.putExtra("producer_id", producerId);
+                startActivity(intent);
+                break;
+            case R.id.bt_con_dash_my_profile:
+                Intent intent1 = new Intent(this, PersonalInfoActivity.class);
+                startActivity(intent1);
+                break;
+            case R.id.bt_con_dash_notifications:
+                startActivity(new Intent(this, NotificationsActivity.class));
+                break;
+
         }
     }
 

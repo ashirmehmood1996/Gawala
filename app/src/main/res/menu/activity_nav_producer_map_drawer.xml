@@ -3,7 +3,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
 
+<!--todo the following link has the code that can help you make counter batch next to reach manu item using custom adapter for the menu
+    https://stackoverflow.com/questions/32563200/how-to-set-unread-notification-count-in-navigationview-of-drawerlayout-->
 
+    <item
+        android:id="@+id/nav_producer_map_notifications"
+        android:icon="@drawable/ic_notifications_active_black_24dp"
+        android:title="Notifications" />
     <item
         android:id="@+id/nav_producer_map_dashboard"
         android:icon="@drawable/ic_dashboard_black_24dp"
@@ -24,6 +30,14 @@
         android:id="@+id/nav_producer_map_rides_summery"
         android:icon="@drawable/ic_history_black_24dp"
         android:title="Rides Summery" />
+
+    <item
+        android:id="@+id/nav_producer_map_personal_info"
+        android:icon="@drawable/ic_person_outline_black_24dp"
+        android:title="Personal Info" />
+
+
+
 
     <item
         android:id="@+id/nav_producer_map_logout"

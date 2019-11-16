@@ -8,12 +8,13 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_gravity="center"
             android:animateLayoutChanges="true"
             android:gravity="center"
-            android:layout_gravity="center"
             android:orientation="vertical"
             android:padding="16dp">
 
@@ -54,45 +55,99 @@
 
             </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <Button
-                android:id="@+id/bt_con_dash_show_summery"
-                android:layout_width="0dp"
-                android:layout_height="100dp"
-                android:layout_gravity="center"
-                android:layout_margin="6dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_button_solid"
-                android:drawableTop="@drawable/ic_group_black_24dp"
-                android:paddingLeft="16dp"
-                android:paddingTop="16dp"
-                android:paddingRight="16dp"
-                android:text="Show summery"
-                android:textColor="#ffffff" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/bt_con_dash_show_summery"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_gravity="center"
+                    android:layout_margin="6dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_solid"
+                    android:drawableTop="@drawable/ic_group_black_24dp"
+                    android:paddingLeft="16dp"
+                    android:paddingTop="16dp"
+                    android:paddingRight="16dp"
+                    android:text="Show summery"
+                    android:textColor="#ffffff" />
 
 
-            <!--    fixme enable this button later adn add fucntionality-->
+                <!--    fixme enable this button later adn add fucntionality-->
+                <Button
+                    android:id="@+id/bt_con_dash_off_delivery_days"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_gravity="center"
+                    android:layout_margin="16dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_solid"
+                    android:drawableTop="@drawable/ic_group_black_24dp"
+                    android:paddingLeft="16dp"
+                    android:paddingTop="16dp"
+                    android:paddingRight="16dp"
+                    android:text="Off delivery Days"
+                    android:textColor="#ffffff" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/bt_con_show_map"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_gravity="center"
+                    android:layout_margin="6dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_solid"
+                    android:drawableTop="@drawable/ic_group_black_24dp"
+                    android:paddingLeft="16dp"
+                    android:paddingTop="16dp"
+                    android:paddingRight="16dp"
+                    android:text="Show map"
+                    android:textColor="#ffffff" />
+
+
+                <!--    fixme enable this button later adn add fucntionality-->
+                <Button
+                    android:id="@+id/bt_con_dash_my_profile"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_gravity="center"
+                    android:layout_margin="16dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_solid"
+                    android:drawableTop="@drawable/ic_group_black_24dp"
+                    android:paddingLeft="16dp"
+                    android:paddingTop="16dp"
+                    android:paddingRight="16dp"
+                    android:text="My Profile"
+                    android:textColor="#ffffff" />
+
+            </LinearLayout>
+
+
             <Button
-                android:id="@+id/bt_con_dash_not_at_home"
-                android:layout_width="0dp"
-                android:drawableTop="@drawable/ic_group_black_24dp"
+                android:id="@+id/bt_con_dash_notifications"
+                android:layout_width="200dp"
                 android:layout_height="100dp"
-                android:paddingTop="16dp"
-                android:layout_weight="1"
                 android:layout_gravity="center"
                 android:layout_margin="16dp"
+                android:layout_weight="1"
                 android:background="@drawable/bg_button_solid"
-                android:enabled="false"
+                android:drawableTop="@drawable/ic_person_outline_black_24dp"
                 android:paddingLeft="16dp"
+                android:paddingTop="16dp"
                 android:paddingRight="16dp"
-                android:text="I am not at home"
+                android:text="Notifications"
                 android:textColor="#ffffff" />
-
-        </LinearLayout>
-
         </LinearLayout>
     </ScrollView>
 
