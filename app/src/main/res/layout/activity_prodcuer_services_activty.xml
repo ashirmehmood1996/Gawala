@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
     tools:context=".Producer.Activities.ProducerServicesActivty">
 
     <androidx.recyclerview.widget.RecyclerView
@@ -21,6 +20,7 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
-        android:src="@drawable/ic_add_black_24dp" />
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_add_white_24dp" />
 
 </RelativeLayout>

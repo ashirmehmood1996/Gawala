@@ -34,15 +34,10 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Polygon;
-import com.google.android.gms.maps.model.PolygonOptions;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
-import com.google.android.libraries.places.api.model.TypeFilter;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
@@ -66,7 +61,7 @@ public class PickLocationMapsActivity extends FragmentActivity implements OnMapR
     private List<Place.Field> placeFields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.ADDRESS, Place.Field.VIEWPORT);//places api takes a lisr of data field that we require from the query
     private AutocompleteSupportFragment placesFragment;
     private final String[] PERMISSIONS = {
-            android.Manifest.permission.READ_EXTERNAL_STORAGE,
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
             android.Manifest.permission.ACCESS_FINE_LOCATION};
 
     private GeoCoderAsyncTask mGeocoderAsyncTask;
@@ -310,7 +305,6 @@ public class PickLocationMapsActivity extends FragmentActivity implements OnMapR
             protected void onPostExecute(Address address) {
 
 
-
                 placesFragment.setText(address.getAddressLine(0));
             }
         };
@@ -406,12 +400,13 @@ public class PickLocationMapsActivity extends FragmentActivity implements OnMapR
                         @Override
                         public void onComplete(@NonNull Task<Location> task) {
                             Location location = task.getResult();
-                            if (location != null) {
+                            if (location != null && PickLocationMapsActivity.this != null) {
                                 mcurrentLocation = new LatLng(location.getLatitude(), location.getLongitude());
                                 new GeoCoderAsyncTask(PickLocationMapsActivity.this) {
                                     @Override
                                     protected void onPostExecute(Address address) {
-                                        placesFragment.setText(address.getAddressLine(0));
+                                        if (PickLocationMapsActivity.this != null)
+                                            placesFragment.setText(address.getAddressLine(0));
                                     }
                                 }.execute(mcurrentLocation);
                                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mcurrentLocation, 16.0f));

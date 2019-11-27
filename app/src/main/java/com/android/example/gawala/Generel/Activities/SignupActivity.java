@@ -11,12 +11,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.example.gawala.Consumer.Activities.ConsumerDashBoardActivity;
@@ -45,9 +48,7 @@ public class SignupActivity extends AppCompatActivity {
     private EditText nameEditText, numberEditText;
     private Button registerButton;
     private Spinner typeSpinner;
-
     private String mNumber = "";
-
     private AlertDialog mAlertDialog;
 
 
@@ -56,7 +57,6 @@ public class SignupActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-        //getSupportActionBar().setTitle("Sign up..");
         initFields();
         attachListeners();
     }
@@ -80,29 +80,38 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     private void attachListeners() {
-        registerButton.setOnClickListener(new View.OnClickListener() {
+        numberEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
-            public void onClick(View v) {
-                //perform necessary checks
-                String numebr = numberEditText.getText().toString();
-
-                String name = nameEditText.getText().toString();
-                if (numebr.isEmpty() || name.isEmpty()) {
-                    Toast.makeText(SignupActivity.this, "please fill out the fields first", Toast.LENGTH_SHORT).show();
-                    return;
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    typeSpinner.performClick();
+                    typeSpinner.requestFocus();
                 }
-
-
-                if (isInternetAvailable()) {
-                    initializeDialog();
-                    mAlertDialog.show();
-                    mNumber = "+" + countryCodePicker.getSelectedCountryCode() + numebr;
-                    checkAvailabilityOfNumber(mNumber);
-                } else {
-                    Toast.makeText(SignupActivity.this, "please check your internet connection", Toast.LENGTH_SHORT).show();
-                }
-
+                return false;
             }
+        });
+
+
+        registerButton.setOnClickListener(v -> {
+            //perform necessary checks
+            String numebr = numberEditText.getText().toString();
+
+            String name = nameEditText.getText().toString();
+            if (numebr.isEmpty() || name.isEmpty()) {
+                Toast.makeText(getApplicationContext(), "please fill out the fields first", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+
+            if (isInternetAvailable()) {
+                initializeDialog();
+                mAlertDialog.show();
+                mNumber = "+" + countryCodePicker.getSelectedCountryCode() + numebr;
+                checkAvailabilityOfNumber(mNumber);
+            } else {
+                Toast.makeText(getApplicationContext(), "please check your internet connection", Toast.LENGTH_SHORT).show();
+            }
+
         });
 
 
@@ -118,14 +127,16 @@ public class SignupActivity extends AppCompatActivity {
                 .orderByChild("number").equalTo(number).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    Toast.makeText(SignupActivity.this, "this numeber is already registered", Toast.LENGTH_SHORT).show();
-                    if (mAlertDialog.isShowing())
-                        mAlertDialog.dismiss();
+                if (SignupActivity.this != null) {
+                    if (dataSnapshot.exists()) {
+                        Toast.makeText(getApplicationContext(), "this numeber is already registered", Toast.LENGTH_SHORT).show();
+                        if (mAlertDialog.isShowing())
+                            mAlertDialog.dismiss();
 
-                } else {
-                    createNewAccount(number);
+                    } else {
+                        createNewAccount(number);
 
+                    }
                 }
             }
 
@@ -151,7 +162,7 @@ public class SignupActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 updateDatabaseAndSendToReleventActivity();
             } else {
-                Toast.makeText(this, "login unsuccessfull", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "login unsuccessfull", Toast.LENGTH_SHORT).show();
             }
 
         }
@@ -165,12 +176,14 @@ public class SignupActivity extends AppCompatActivity {
         currentUser.updateProfile(userProfileChangeRequest).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                if (mAlertDialog != null && mAlertDialog.isShowing())//null senario can only accur here because this code can run even when the acivity is dead
-                    mAlertDialog.dismiss();
-                if (task.isSuccessful()) {
-                    Toast.makeText(getApplicationContext(), "profile updated successfully", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getApplicationContext(), "profile updated failed", Toast.LENGTH_SHORT).show();
+                if (SignupActivity.this != null) {
+                    if (mAlertDialog != null && mAlertDialog.isShowing())//null senario can only accur here because this code can run even when the acivity is dead
+                        mAlertDialog.dismiss();
+                    if (task.isSuccessful()) {
+                        Toast.makeText(getApplicationContext(), "profile updated successfully", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "profile updated failed", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
         });

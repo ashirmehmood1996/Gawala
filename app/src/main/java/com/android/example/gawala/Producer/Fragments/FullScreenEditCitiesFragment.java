@@ -19,8 +19,6 @@ import com.android.example.gawala.Producer.Adapters.SelectedCitiesAdapter;
 import com.android.example.gawala.Producer.Adapters.SpinnerAdapter;
 import com.android.example.gawala.Producer.Models.CityModel;
 import com.android.example.gawala.R;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -54,13 +52,16 @@ public class FullScreenEditCitiesFragment extends DialogFragment implements View
     private String myId;
 
     private Callback callback;
+    private ValueEventListener mCitiesNodeListener;
+    private DatabaseReference citiesNodeRef;
 
 
     public static FullScreenEditCitiesFragment getInmstance() {
         return new FullScreenEditCitiesFragment();
     }
-    public void setCallback(Callback callback){
-        this.callback=callback;
+
+    public void setCallback(Callback callback) {
+        this.callback = callback;
 
     }
 
@@ -83,6 +84,8 @@ public class FullScreenEditCitiesFragment extends DialogFragment implements View
     }
 
     private void initFields(View rootView) {
+
+
         cancelImageButton = rootView.findViewById(R.id.ib_eidt_cities_dialig_cancel);
         doneButton = rootView.findViewById(R.id.bt_edit_cities_dialig_done);
 
@@ -104,6 +107,40 @@ public class FullScreenEditCitiesFragment extends DialogFragment implements View
 
         rootRef = FirebaseDatabase.getInstance().getReference();
         myId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        citiesNodeRef = rootRef.child("users")
+                .child(myId)
+                .child("cities");
+
+        mCitiesNodeListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                cityModelArrayList.clear();
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot countrySnap : dataSnapshot.getChildren()) {
+                        String countryName = countrySnap.getKey();
+                        for (DataSnapshot citySnap : countrySnap.getChildren()) {
+                            String cityName = citySnap.getValue(String.class);
+                            String id = citySnap.getKey();
+                            CityModel cityModel = new CityModel(id, countryName, cityName);
+                            cityModelArrayList.add(cityModel);
+                        }
+                    }
+
+                } else {
+                    Toast.makeText(getActivity(), "no cities were added", Toast.LENGTH_SHORT).show();
+                }
+                selectedCitiesAdapter.notifyDataSetChanged();
+
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(getActivity(), "ERROR: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+
+            }
+        };
     }
 
     private void attachListeners() {
@@ -158,38 +195,7 @@ public class FullScreenEditCitiesFragment extends DialogFragment implements View
     }
 
     private void loadSelectedCities() {
-        rootRef.child("users")
-                .child(myId)
-                .child("cities")
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        cityModelArrayList.clear();
-                        if (dataSnapshot.exists()) {
-                            for (DataSnapshot countrySnap : dataSnapshot.getChildren()) {
-                                String countryName = countrySnap.getKey();
-                                for (DataSnapshot citySnap : countrySnap.getChildren()) {
-                                    String cityName = citySnap.getValue(String.class);
-                                    String id = citySnap.getKey();
-                                    CityModel cityModel = new CityModel(id, countryName, cityName);
-                                    cityModelArrayList.add(cityModel);
-                                }
-                            }
-
-                        } else {
-                            Toast.makeText(getActivity(), "no cities were added", Toast.LENGTH_SHORT).show();
-                        }
-                        selectedCitiesAdapter.notifyDataSetChanged();
-
-
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                        Toast.makeText(getActivity(), "ERROR: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
-
-                    }
-                });
+        citiesNodeRef.addValueEventListener(mCitiesNodeListener);
     }
 
 
@@ -207,6 +213,12 @@ public class FullScreenEditCitiesFragment extends DialogFragment implements View
             return null;
         }
         return json;
+    }
+
+    @Override
+    public void onDestroy() {
+        citiesNodeRef.removeEventListener(mCitiesNodeListener);
+        super.onDestroy();
     }
 
     private void loadCountries() {
@@ -258,9 +270,9 @@ public class FullScreenEditCitiesFragment extends DialogFragment implements View
                 .setValue(citySpinner.getSelectedItem().toString())
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        Toast.makeText(getActivity(), "City Added Successfully", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "City Added Successfully", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(getActivity(), "ERROR: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "ERROR: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -271,17 +283,12 @@ public class FullScreenEditCitiesFragment extends DialogFragment implements View
         CityModel cityModel = cityModelArrayList.get(position);
         rootRef.child("users").child(myId).child("cities")
                 .child(cityModel.getCountry()).child(cityModel.getId()).removeValue()
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        Toast.makeText(getContext(), "city removed successfully", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                .addOnCompleteListener(task -> Toast.makeText(getContext(), "city removed successfully", Toast.LENGTH_SHORT).show());
 
         Toast.makeText(getContext(), String.format("I was clicked at poostion %d", position), Toast.LENGTH_SHORT).show();
     }
 
-    public interface  Callback{
+    public interface Callback {
         void onArrayListUpdated(ArrayList<CityModel> arrayList);
     }
 }

@@ -74,9 +74,9 @@ public class ProducerSummeryFragment extends Fragment {
     }
 
     private void initFields(View rootView) {
-        recyclerView=rootView.findViewById(R.id.rv_li_prod_summery);
-        producerSummeryModelArrayList=new ArrayList<>();
-        producerSummeryAdapter=new ProducerSummeryAdapter(getActivity(),producerSummeryModelArrayList);
+        recyclerView = rootView.findViewById(R.id.rv_li_prod_summery);
+        producerSummeryModelArrayList = new ArrayList<>();
+        producerSummeryAdapter = new ProducerSummeryAdapter(getActivity(), producerSummeryModelArrayList);
         recyclerView.setAdapter(producerSummeryAdapter);
 
     }
@@ -98,34 +98,37 @@ public class ProducerSummeryFragment extends Fragment {
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
-                            for (DataSnapshot data : dataSnapshot.getChildren()) {
 
-                                String sessionId = data.getKey();
-                                long timeStamp = data.child("time_stamp").getValue(Long.class);
+                        if (ProducerSummeryFragment.this != null) {
+                            if (dataSnapshot.exists()) {
+                                for (DataSnapshot data : dataSnapshot.getChildren()) {
 
-                                ArrayList<ClientSummery> clientSummeryArrayList =new ArrayList<>();
-                                for (DataSnapshot clientData : data.child("clients").getChildren()) {
+                                    String sessionId = data.getKey();
+                                    long timeStamp = data.child("time_stamp").getValue(Long.class);
+
+                                    ArrayList<ClientSummery> clientSummeryArrayList = new ArrayList<>();
+                                    for (DataSnapshot clientData : data.child("clients").getChildren()) {
 //                                    float volume = clientData.child("milk_amount").getValue(Float.class);
-                                    String clientId = clientData.getKey();
-                                    String name = clientData.child("name").getValue(String.class);
-                                    ArrayList<AcquiredGoodModel> acquiredGoodModels=new ArrayList<>();
-                                    for (DataSnapshot aquiredGoodSnap:clientData.child("goods").getChildren()){
-                                        acquiredGoodModels.add(aquiredGoodSnap.getValue(AcquiredGoodModel.class));
+                                        String clientId = clientData.getKey();
+                                        String name = clientData.child("name").getValue(String.class);
+                                        ArrayList<AcquiredGoodModel> acquiredGoodModels = new ArrayList<>();
+                                        for (DataSnapshot aquiredGoodSnap : clientData.child("goods").getChildren()) {
+                                            acquiredGoodModels.add(aquiredGoodSnap.getValue(AcquiredGoodModel.class));
+                                        }
+
+
+                                        clientSummeryArrayList.add(new ClientSummery(clientId, name, acquiredGoodModels));
                                     }
-
-
-                                    clientSummeryArrayList.add(new ClientSummery(clientId,name,acquiredGoodModels));
+                                    producerSummeryModelArrayList.add(new ProducerSummeryModel(sessionId, timeStamp, clientSummeryArrayList));
                                 }
-                                producerSummeryModelArrayList.add(new ProducerSummeryModel(sessionId,timeStamp, clientSummeryArrayList));
-                            }
 
-                            producerSummeryAdapter.notifyDataSetChanged();
-                            mAlertDialog.dismiss();
-                        } else {
-                            mAlertDialog.dismiss();
-                            Toast.makeText(getContext(), "there was no summary for this month", Toast.LENGTH_LONG).show();
-                            getActivity().getSupportFragmentManager().beginTransaction().remove(ProducerSummeryFragment.this).commit();
+                                producerSummeryAdapter.notifyDataSetChanged();
+                                mAlertDialog.dismiss();
+                            } else {
+                                mAlertDialog.dismiss();
+                                Toast.makeText(getContext(), "there was no summary for this month", Toast.LENGTH_LONG).show();
+                                getActivity().getSupportFragmentManager().beginTransaction().remove(ProducerSummeryFragment.this).commit();
+                            }
                         }
                     }
 

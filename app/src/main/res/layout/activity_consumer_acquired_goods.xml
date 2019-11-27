@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".Consumer.Activities.AcquiredGoodsActivity">
 
     <androidx.recyclerview.widget.RecyclerView
@@ -11,7 +12,34 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        />
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+    <RelativeLayout
+        android:id="@+id/rl_con_acquired_goods_empty_view_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/iv_notification_empty_image_view"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_centerInParent="true"
+            android:contentDescription="Empty View"
+            android:src="@drawable/whitebox_large" />
+
+        <TextView
+            android:id="@+id/tv_notification_empty_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/iv_notification_empty_image_view"
+            android:layout_centerHorizontal="true"
+            android:text="No Services"
+            android:textAppearance="?android:textAppearanceMedium" />
+
+    </RelativeLayout>
 
 </LinearLayout>

@@ -18,6 +18,7 @@ import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -31,11 +32,14 @@ import com.android.example.gawala.Generel.App;
 import com.android.example.gawala.Generel.AsyncTasks.GeoCoderAsyncTask;
 import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 import com.android.example.gawala.Generel.Models.GoodModel;
+import com.android.example.gawala.Generel.Utils.SharedPreferenceUtil;
 import com.android.example.gawala.Producer.Adapters.AciveRideStopsAdaper;
+import com.android.example.gawala.Producer.Fragments.ProducerSettingsDialogFragment;
 import com.android.example.gawala.Producer.Models.ConsumerModel;
 import com.android.example.gawala.Producer.Fragments.ProducerClientsRequestsFragment;
 import com.android.example.gawala.Producer.Interfaces.LatLngInterpolator;
 import com.android.example.gawala.Producer.Models.DistanceMatrixModel;
+import com.android.example.gawala.Producer.Utils.DistanceMatrixAsyncTask;
 import com.android.example.gawala.Producer.Utils.ProducerFirebaseHelper;
 import com.android.example.gawala.Producer.Utils.HttpRequestHelper;
 import com.android.example.gawala.Producer.Utils.UrlGenrator;
@@ -45,6 +49,7 @@ import com.android.example.gawala.Producer.directionhelpers.TaskLoadedCallback;
 import com.android.example.gawala.Producer.Fragments.ProducerDashBoardFragment;
 import com.android.example.gawala.Producer.Fragments.ProducerSummeryFragment;
 import com.android.example.gawala.R;
+import com.bumptech.glide.Glide;
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -66,7 +71,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -82,31 +86,33 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
+import android.util.Log;
 import android.util.Property;
 import android.view.MenuItem;
 
-import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.mikhaellopez.circularimageview.CircularImageView;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -115,22 +121,23 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
 
 
 public class ProducerNavMapActivity extends AppCompatActivity
         implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener,
         ProducerDashBoardFragment.Callbacks, TaskLoadedCallback/*,
-        ProducerClientsRequestsFragment.CallBacks */{
+        ProducerClientsRequestsFragment.CallBacks */ {
 
-
+    private Uri mPhotoImageUri = null;
     private static final int RC_SET_DELIVERY_LOCATION = 102;
-    private final int RC_PERMISSION_ALL = 100;
     private final int RC_LOCAION_ON = 101;
     private final String PRODUCER_DASHBOARD_FRAGMENT_TAG = "ProducerDashBoardFragment";
     private final String SUMMERY_FRAGMENT_TAG = "SummeryProducerTag";
     private String PRODUCER_CLIENT_REQUEST_FRAGMENT_TAG = "ProducerClientRequestFragment";
+    private final int RC_PERMISSION_ALL = 100;
     private final String[] PERMISSIONS = {
-            android.Manifest.permission.READ_EXTERNAL_STORAGE,
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
             android.Manifest.permission.ACCESS_FINE_LOCATION};
 
     private static final long FASTEST_INTERVAL = 5000; //change back to 100000
@@ -169,11 +176,18 @@ public class ProducerNavMapActivity extends AppCompatActivity
     private int mMilkPrice;
     private DatabaseReference rootRef;
     private String myID;
-
+    private static final String TAG = "ProducerMap";
     private ArrayList<ConsumerModel> mActiveRideArrayList;
     private AlertDialog mAlertDialog;
 
     private TextToSpeech textToSpeech;
+    private String DIALOG_Settings = "dialogSettings";
+    private DatabaseReference myLocationNodeRef;
+    private ValueEventListener mMyLocationNodelListener;
+
+
+    private CircularImageView profileCircularImageView;
+    private TextView nameTextView, numberTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -192,11 +206,12 @@ public class ProducerNavMapActivity extends AppCompatActivity
         UtilsMessaging.initFCM();
 
 
-        //// FIXME: 8/25/2019 for now setting the rate initially according to market later it will be changed
-        initUserDataIfFirstTime();
+//        //// FIXME: 8/25/2019 for now setting the rate initially according to market later it will be changed
+//        initUserDataIfFirstTime();
 
 
     }
+
 
     private void requestAllPermissions() {
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
@@ -281,6 +296,28 @@ public class ProducerNavMapActivity extends AppCompatActivity
     private void initFields() {
         rootRef = FirebaseDatabase.getInstance().getReference();
         myID = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        myLocationNodeRef = rootRef.child("locationUpdates")
+                .child(myID);
+        mMyLocationNodelListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    double lat = dataSnapshot.child("locations").child("0")
+                            .child("latitude").getValue(Double.class);
+                    double lng = dataSnapshot.child("locations").child("0")
+                            .child("longitude").getValue(Double.class);
+                    setMarker(lat, lng);
+                }
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
+
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         Toolbar toolbar = findViewById(R.id.tb_producer_nav);
         setSupportActionBar(toolbar);
@@ -309,6 +346,11 @@ public class ProducerNavMapActivity extends AppCompatActivity
 //        journyInfoContainer = findViewById(R.id.ll_journy_info_container);
         bottomSheetLinearLayout = findViewById(R.id.ll_bottom_sheet_active_riding_info_container);
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetLinearLayout);
+        profileCircularImageView = navigationView.getHeaderView(0).findViewById(R.id.civ_prod_nav_map);
+        nameTextView = navigationView.getHeaderView(0).findViewById(R.id.tv_prod_nav_name);
+        numberTextView = navigationView.getHeaderView(0).findViewById(R.id.tv_prod_nav_number);
+        nameTextView.setText(FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
+        numberTextView.setText(FirebaseAuth.getInstance().getCurrentUser().getPhoneNumber());
         initBottomSheet();
         initializeDialog();
 
@@ -484,48 +526,46 @@ public class ProducerNavMapActivity extends AppCompatActivity
         mainMap.put("clients", clientsMap);
         mainMap.put("time_stamp", Calendar.getInstance().getTimeInMillis());//the time at ehich this session was put to an end
         mainMap.put("milk_price", mMilkPrice); //adding price just because it can change from day to day
-        permanentDataRef.setValue(mainMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    Toast.makeText(ProducerNavMapActivity.this, "session successfully uploaded to cloud database", Toast.LENGTH_SHORT).show();
-                }
+        permanentDataRef.setValue(mainMap).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Toast.makeText(getApplicationContext(), "session successfully uploaded to cloud database", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void initUserDataIfFirstTime() {
-        FirebaseDatabase.getInstance().getReference().child("data")
-                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                .child("milk_price").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.exists()) {
-                    ProducerFirebaseHelper.updateRate("100");
-                    mMilkPrice = 120;
-                } else {
-                    mMilkPrice = Integer.parseInt(dataSnapshot.getValue(String.class));
-
-                }
-                ProducerFirebaseHelper.updateStatus(getResources().getString(R.string.status_producer_inactive));
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-
-    }
+//    private void initUserDataIfFirstTime() {
+//        FirebaseDatabase.getInstance().getReference().child("data")
+//                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+//                .child("milk_price").addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                if (!dataSnapshot.exists()) {
+//                    ProducerFirebaseHelper.updateRate("100");
+//                    mMilkPrice = 120;
+//                } else {
+//                    mMilkPrice = Integer.parseInt(dataSnapshot.getValue(String.class));
+//
+//                }
+//                ProducerFirebaseHelper.updateStatus(getResources().getString(R.string.status_producer_inactive));
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//            }
+//        });
+//
+//    }
 
     private void checkIfDeliveryLocationIsProvided() {
         rootRef.child("users").child(myID).child("location").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.exists()) { //location is not set
+                if (!dataSnapshot.exists() && ProducerNavMapActivity.this != null) { //location is not set
                     showDialogToSendToPickupLocationActivty();
                 } else {//location was set
-                    //and can be fetched here if needed
+                    SharedPreferenceUtil.storeValue(getApplicationContext(), "lat", dataSnapshot.child("lat").getValue(String.class));
+                    SharedPreferenceUtil.storeValue(getApplicationContext(), "lng", dataSnapshot.child("lng").getValue(String.class));
                 }
             }
 
@@ -585,12 +625,9 @@ public class ProducerNavMapActivity extends AppCompatActivity
             if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 Toast.makeText(this, "location is not enabled app will shut down shortly", Toast.LENGTH_SHORT).show();
                 final Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        //Do something after 100ms
-                        finish();
-                    }
+                handler.postDelayed(() -> {
+                    //Do something after 100ms
+                    finish();
                 }, 2000);
             } else {
                 recreate();
@@ -605,15 +642,14 @@ public class ProducerNavMapActivity extends AppCompatActivity
         locationMap.put("lng", "" + lng);
 
         rootRef.child("users").child(myID).child("location").setValue(locationMap)
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            Toast.makeText(ProducerNavMapActivity.this, "Shop/Business Location set Successfully", Toast.LENGTH_SHORT).show();
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        SharedPreferenceUtil.storeValue(getApplicationContext(), "lat", lat + "");
+                        SharedPreferenceUtil.storeValue(getApplicationContext(), "lng", lng + "");
+                        Toast.makeText(getApplicationContext(), "Shop/Business Location set Successfully", Toast.LENGTH_SHORT).show();
 
-                        } else {
-                            Toast.makeText(ProducerNavMapActivity.this, "unable to set Shop/Business Location", Toast.LENGTH_SHORT).show();
-                        }
+                    } else {
+                        Toast.makeText(getApplicationContext(), "unable to set Shop/Business Location", Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -692,6 +728,16 @@ public class ProducerNavMapActivity extends AppCompatActivity
             case R.id.nav_producer_map_personal_info:
                 startActivity(new Intent(this, PersonalInfoActivity.class));
                 break;
+            case R.id.nav_producer_map_settings:
+                FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+                ProducerSettingsDialogFragment producerSettingsDialogFragment = (ProducerSettingsDialogFragment) getSupportFragmentManager().findFragmentByTag(DIALOG_Settings);
+                if (producerSettingsDialogFragment != null) {
+                    fragmentTransaction.remove(producerSettingsDialogFragment);
+                }
+                ProducerSettingsDialogFragment dialogFragment = ProducerSettingsDialogFragment.getInstance();
+//        dialogFragment.setCallback(this);
+                dialogFragment.show(fragmentTransaction, DIALOG_Settings);
+                break;
         }
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -725,27 +771,18 @@ public class ProducerNavMapActivity extends AppCompatActivity
     private void deleteMessagingTokenAndLogout() {
         FirebaseDatabase.getInstance().getReference().child("users")
                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                .child("messaging_token").setValue("null").addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
+                .child("messaging_token").setValue("null").addOnCompleteListener(task ->
                 AuthUI.getInstance()
                         .signOut(ProducerNavMapActivity.this)
-                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if (task.isSuccessful()) {
-                                    Toast.makeText(ProducerNavMapActivity.this, "logout successfull", Toast.LENGTH_SHORT).show();
-                                    startActivity(new Intent(ProducerNavMapActivity.this, LoginActivity.class));
-                                    finish();
-                                }
+                        .addOnCompleteListener(task1 -> {
+                            if (task1.isSuccessful()) {
+                                SharedPreferenceUtil.storeValue(getApplicationContext(), "lat", null);
+                                SharedPreferenceUtil.storeValue(getApplicationContext(), "lng", null);
+                                Toast.makeText(ProducerNavMapActivity.this, "logout successful", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(ProducerNavMapActivity.this, LoginActivity.class));
+                                finish();
                             }
-                        });
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(ProducerNavMapActivity.this, "logout failed please check your internet connection", Toast.LENGTH_SHORT).show();
-            }
-        });
+                        })).addOnFailureListener(e -> Toast.makeText(ProducerNavMapActivity.this, "logout failed please check your internet connection", Toast.LENGTH_SHORT).show());
     }
 
     @Override
@@ -785,6 +822,11 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
     }
 
+    @Override
+    protected void onDestroy() {
+        myLocationNodeRef.removeEventListener(mMyLocationNodelListener);
+        super.onDestroy();
+    }
 
     private void animateUserLocation() {
 
@@ -798,16 +840,15 @@ public class ProducerNavMapActivity extends AppCompatActivity
 //                        Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
             } else {
                 // Permissions ok, we get last location
-                LocationServices.getFusedLocationProviderClient(this).getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Location> task) {
+                LocationServices.getFusedLocationProviderClient(this).getLastLocation().addOnCompleteListener(task -> {
+                    if (ProducerNavMapActivity.this != null) {
                         Location location = task.getResult();
                         if (location != null) {
                             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 16.0f));
 //                            Toast.makeText(MapsActivity.this, "FusedLocationProviderClient Last known Location and provider is " + location.getProvider() + "\n" + "Latitude : " + location.getLatitude() + "\nLongitude : " + location.getLongitude(), Toast.LENGTH_SHORT).show();
                         }
-
                     }
+
                 });
 
             }
@@ -817,26 +858,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
     private void listenTomyLocation() {
 
-        FirebaseDatabase.getInstance().getReference().child("locationUpdates")
-                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
-                            double lat = dataSnapshot.child("locations").child("0")
-                                    .child("latitude").getValue(Double.class);
-                            double lng = dataSnapshot.child("locations").child("0")
-                                    .child("longitude").getValue(Double.class);
-                            setMarker(lat, lng);
-                        }
-
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
-                });
+        myLocationNodeRef.addValueEventListener(mMyLocationNodelListener);
     }
 
     private void setMarker(double lat, double lng) {
@@ -931,112 +953,113 @@ public class ProducerNavMapActivity extends AppCompatActivity
                     if (FirebaseAuth.getInstance().getCurrentUser() == null) return;
                     FirebaseDatabase.getInstance().getReference().child("locationUpdates")
                             .child(FirebaseAuth.getInstance().getCurrentUser().getUid())// FIXME: 9/8/2019 fix float to string cast exception
-                            /*.push()*/.setValue(locationResult).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-//                                Toast.makeText(ProducerNavMapActivity.this, "node updated", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(ProducerNavMapActivity.this, "error updating firebase", Toast.LENGTH_SHORT).show();
-                            }
+                            /*.push()*/.setValue(locationResult).addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            //                                Toast.makeText(ProducerNavMapActivity.this, "node updated", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getApplicationContext(), "error updating firebase", Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
             }, null);// FIXME: 8/8/2019 detach the listener when the user logs out or activity is teminated
         } else {
-            Toast.makeText(this, "no permissions", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "no permissions", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void loadAllConsumers() {
-        FirebaseDatabase.getInstance().getReference()
-                .child("clients").child(FirebaseAuth.getInstance().getCurrentUser().getUid())//prodcuer id
-                .addChildEventListener(new ChildEventListener() {
+
+
+        rootRef.child("clients").child(myID)//prodcuer id
+                .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
-                    public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists() && ProducerNavMapActivity.this != null) {
 
-                        String id = dataSnapshot.getKey();
-                        String name = dataSnapshot.child("name").getValue(String.class);
-                        String number = dataSnapshot.child("number").getValue(String.class);
-                        String timeStamp = dataSnapshot.child("time_stamp").getValue(String.class);
-                        float milkDemand = 0.0f;
-                        if (dataSnapshot.child("live_data").child("milk_demand").exists()) {
-                            milkDemand = Float.parseFloat(dataSnapshot.child("live_data").child("milk_demand").getValue(String.class));
-                        }
 
-                        String lat = null;
-                        String lng = null;
-                        if (dataSnapshot.hasChild("lat") && dataSnapshot.hasChild("lng")) {
-                            lat = dataSnapshot.child("lat").getValue(String.class);
-                            lng = dataSnapshot.child("lng").getValue(String.class);
-                        }
-                        final ConsumerModel consumerModel = new ConsumerModel(id, name, number, timeStamp, lat, lng);
-                        if (lat != null) {
-                            new GeoCoderAsyncTask(ProducerNavMapActivity.this) {
+                            new AsyncTask<Void, Void, Boolean>() {
                                 @Override
-                                protected void onPostExecute(Address address) {
-                                    consumerModel.setLocationName(address.getAddressLine(0));
-                                    //call notify dataset cahnged if required
+                                protected Boolean doInBackground(Void... voids) {
+
+                                    CountDownLatch countDownLatch = new CountDownLatch((int) dataSnapshot.getChildrenCount());
+                                    for (DataSnapshot clientSnap : dataSnapshot.getChildren()) {
+
+                                        String timeStamp = clientSnap.child("time_stamp").getValue(String.class);
+
+                                        rootRef.child("users").child(clientSnap.getKey())
+                                                .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                    @Override
+                                                    public void onDataChange(@NonNull DataSnapshot userSnapshot) {
+
+                                                        String id = userSnapshot.getKey();
+                                                        String name = userSnapshot.child("name").getValue(String.class);
+                                                        String number = userSnapshot.child("number").getValue(String.class);
+                                                        String imageUri = "";
+                                                        if (userSnapshot.hasChild("profile_image_uri")) {
+                                                            imageUri = userSnapshot.child("profile_image_uri").getValue(String.class);
+                                                        }
+
+                                                        String lat = userSnapshot.child("location").child("lat").getValue(String.class);
+                                                        String lng = userSnapshot.child("location").child("lng").getValue(String.class);
+
+                                                        final ConsumerModel consumerModel = new ConsumerModel(id, name, number, timeStamp, lat, lng, imageUri);
+                                                        if (lat != null) {
+                                                            new GeoCoderAsyncTask(ProducerNavMapActivity.this) {
+                                                                @Override
+                                                                protected void onPostExecute(Address address) {
+                                                                    consumerModel.setLocationName(address.getAddressLine(0));
+                                                                    //call notify dataset cahnged if required
+                                                                }
+                                                            }.execute(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)));
+                                                        }
+//                        consumerModel.setAmountOfMilk(milkDemand);
+
+                                                        mConsumerModelArrayList.add(consumerModel);
+                                                        if (lat != null) {
+                                                            createNewMarker(consumerModel);
+                                                        }
+
+
+                                                        countDownLatch.countDown();
+                                                        System.out.println("count: " + countDownLatch.getCount());
+                                                    }
+
+                                                    @Override
+                                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                                    }
+                                                });
+
+
+                                    }
+                                    try {
+                                        countDownLatch.await();
+                                        return true;
+
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                        return false;
+                                    }
                                 }
-                            }.execute(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)));
-                        }
-                        consumerModel.setAmountOfMilk(milkDemand);
 
-                        mConsumerModelArrayList.add(consumerModel);
-                        if (lat != null) {
-                            createNewMarker(consumerModel);
-                        }
+                                @Override
+                                protected void onPostExecute(Boolean aBoolean) {
+                                    if (aBoolean) {
+                                        Toast.makeText(getApplicationContext(), "all data is fetched", Toast.LENGTH_SHORT).show();
 
-                    }
+                                    } else {
 
-                    @Override
-                    public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-                        //it is assumed that this method will only be activated when the location for a consumer marker is updated
-                        String id = dataSnapshot.getKey();
-
-                        String lat = null;
-                        String lng = null;
-                        if (dataSnapshot.hasChild("lat") && dataSnapshot.hasChild("lng")) {
-                            lat = dataSnapshot.child("lat").getValue(String.class);
-                            lng = dataSnapshot.child("lng").getValue(String.class);
-                        }
-                        ConsumerModel currentConsumerModel = null;
-                        for (final ConsumerModel currentModel : mConsumerModelArrayList) {
-                            if (currentModel.getId().equals(id)) {
-                                currentConsumerModel = currentModel;
-                                currentConsumerModel.setLat(lat);
-                                currentConsumerModel.setLng(lng);
-
-
-                                if (lat != null) {
-                                    new GeoCoderAsyncTask(ProducerNavMapActivity.this) {
-                                        @Override
-                                        protected void onPostExecute(Address address) {
-                                            currentModel.setLocationName(address.getAddressLine(0));
-                                            //call notify dataset cahnged if required
-                                        }
-                                    }.execute(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)));
+                                    }
+                                    super.onPostExecute(aBoolean);
                                 }
-                                //update the location string later
+                            }.execute();
 
-                                break;
-                            }
+
+                        } else {
+                            Toast.makeText(ProducerNavMapActivity.this, "no clients were added", Toast.LENGTH_SHORT).show();
+
                         }
-                        if (currentConsumerModel == null) return;
 
-                        if (lat != null && currentConsumerModel.getMarker() == null) {//if the marker is null then the location is added for the first time and a new marker is needed
-                            createNewMarker(currentConsumerModel);
-                        }
-                    }
-
-                    @Override
-                    public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
-                    }
-
-                    @Override
-                    public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
 
                     }
 
@@ -1045,6 +1068,72 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
                     }
                 });
+
+// TODO: 11/22/2019 update the data when child changes his her location or may be the client should not because this will require the provider to rethink that of he/she wants to deliver to that new location or not
+
+//        rootRef.child("clients").child(myID)//prodcuer id
+//                .addChildEventListener(new ChildEventListener() {
+//                    @Override
+//                    public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+//
+//                        //it is assumed that this method will only be activated when the location for a consumer marker is updated
+//                        String id = dataSnapshot.getKey();
+//
+//                        String lat = null;
+//                        String lng = null;
+//                        if (dataSnapshot.hasChild("lat") && dataSnapshot.hasChild("lng")) {
+//                            lat = dataSnapshot.child("lat").getValue(String.class);
+//                            lng = dataSnapshot.child("lng").getValue(String.class);
+//                        }
+//                        ConsumerModel currentConsumerModel = null;
+//                        for (final ConsumerModel currentModel : mConsumerModelArrayList) {
+//                            if (currentModel.getId().equals(id)) {
+//                                currentConsumerModel = currentModel;
+//                                currentConsumerModel.setLat(lat);
+//                                currentConsumerModel.setLng(lng);
+//
+//
+//                                if (lat != null) {
+//                                    new GeoCoderAsyncTask(ProducerNavMapActivity.this) {
+//                                        @Override
+//                                        protected void onPostExecute(Address address) {
+//                                            currentModel.setLocationName(address.getAddressLine(0));
+//                                            //call notify dataset cahnged if required
+//                                        }
+//                                    }.execute(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)));
+//                                }
+//                                //update the location string later
+//
+//                                break;
+//                            }
+//                        }
+//                        if (currentConsumerModel == null) return;
+//
+//                        if (lat != null && currentConsumerModel.getMarker() == null) {//if the marker is null then the location is added for the first time and a new marker is needed
+//                            createNewMarker(currentConsumerModel);
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//                    }
+//                });
 
     }
 
@@ -1112,12 +1201,9 @@ public class ProducerNavMapActivity extends AppCompatActivity
                         FirebaseDatabase.getInstance().getReference()
                                 .child("clients").child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                                 .child(consumerModel.getId())
-                                .updateChildren(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if (task.isSuccessful()) {
-                                    Toast.makeText(ProducerNavMapActivity.this, "marker is placed ", Toast.LENGTH_SHORT).show();
-                                }
+                                .updateChildren(hashMap).addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(getApplicationContext(), "marker is placed ", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
@@ -1487,7 +1573,9 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
     }
 
-    *//**
+    */
+
+    /**
      * this method is responsible for adding the active location to firebase and will be treated as a stop
      * this location will be used as a marker
      *
@@ -1527,39 +1615,243 @@ public class ProducerNavMapActivity extends AppCompatActivity
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.HOUR_OF_DAY, 0);
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                CountDownLatch countDownLatch = new CountDownLatch(mConsumerModelArrayList.size());//
 
-        int i = 0;
-        for (ConsumerModel consumerModel : mConsumerModelArrayList) {
+//        int i = 0;
+                for (ConsumerModel consumerModel : mConsumerModelArrayList) {
 
-            int finalI = i;
-            rootRef.child("days_off").child(consumerModel.getId())
-                    .child("days").child(calendar.getTimeInMillis() + "").addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    if (dataSnapshot.exists()) {
-                        Toast.makeText(ProducerNavMapActivity.this, "some one is on vacation ", Toast.LENGTH_LONG).show();
-                        consumerModel.setOnVacation(true);
-                    }
+//            int finalI = i;
+                    rootRef.child("days_off").child(consumerModel.getId())
+                            .child("days").child(calendar.getTimeInMillis() + "").addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.exists()) {
+                                Log.d(TAG, "doInBackground: Someone is on vacation");
+                                consumerModel.setOnVacation(true);
+                            }
 
-                    if (finalI == mConsumerModelArrayList.size() - 1) {//then it is final result
-                        fetchFreshDataOfUsers();
-                    }
+//                    if (finalI == mConsumerModelArrayList.size() - 1) {//then it is final result
+//                        fetchFreshDataOfUsers();
+//                    }
+                            countDownLatch.countDown();
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+//            i++;
                 }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
 
+                try {
+                    countDownLatch.await();
+                    Log.d(TAG, "doInBackground: wait is called");
+                    return true;
+                } catch (InterruptedException e) {
+                    Log.d(TAG, "doInBackground: exception is thrown");
+
+                    e.printStackTrace();
+                    return false;
                 }
-            });
-            i++;
-        }
+
+            }
+
+            @Override
+            protected void onPostExecute(Boolean success) {
+                if (success) {
+                    fetchFrshy();
+//                    fetchFreshDataOfUsers();
+                } else {
+                    //await was not done and exception was thrown
+                }
+
+            }
+        }.execute();
 
     }
+
+
+    private void fetchFrshy() {
+        mAlertDialog.show();
+        mActiveRideArrayList.clear();
+        fetchFreshyfor(0);
+
+    }
+
+    /**
+     * @param position postion of one of the child from connected consumers
+     */
+    private void fetchFreshyfor(int position) {
+        if (mConsumerModelArrayList.isEmpty()) { //if there are no consumers
+            Toast.makeText(this, "you donot have any consumers connected", Toast.LENGTH_SHORT).show();
+            mAlertDialog.dismiss();
+            return;
+        }
+
+        if (position >= mConsumerModelArrayList.size()) { // if this is the beyond last consumer
+            startDashBoardFragment();
+            mAlertDialog.dismiss();
+            return;
+        }
+//        if (mConsumerModelArrayList.size() == position + 1) { // if this is the last consumer
+//            startDashBoardFragment();
+//            return;
+//        }
+        ConsumerModel consumerModel = mConsumerModelArrayList.get(position);
+
+        if (consumerModel.isOnVacation()) {
+            fetchFreshyfor(position + 1);
+        } else {
+            //fetch demand data for this consumer
+
+
+            rootRef.child("demand")
+                    .child(myID)//producer id
+                    .child(consumerModel.getId())//consumer id
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                            if (dataSnapshot.exists() && ProducerNavMapActivity.this != null) {
+
+                                new AsyncTask<Void, Void, Boolean>() {
+                                    @Override
+                                    protected Boolean doInBackground(Void... voids) {
+
+
+                                        ArrayList<AcquiredGoodModel> demandArray = new ArrayList<>();
+                                        consumerModel.setDemandArray(demandArray);
+                                        mActiveRideArrayList.add(consumerModel); //this is making the 0 values for consumers that are not delivered any stuff
+
+                                        CountDownLatch countDownLatch = new CountDownLatch((int) dataSnapshot.getChildrenCount());
+
+                                        for (DataSnapshot goodSnap : dataSnapshot.getChildren()) {
+
+
+                                            String goodID = goodSnap.getKey();
+                                            String demandUnits = goodSnap.child("demand").getValue(String.class);
+                                            if (demandUnits.equals("0")) { // TODO: 10/14/2019 test this
+                                                countDownLatch.countDown();
+                                                continue;
+                                            } else {
+                                                consumerModel.setHasDemand(true);
+                                                FirebaseDatabase.getInstance().getReference()
+                                                        .child("goods").child(myID).child(goodID)
+                                                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                            @Override
+                                                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                                                if (dataSnapshot.exists() && ProducerNavMapActivity.this != null) {
+                                                                    if (dataSnapshot.exists()) {
+                                                                        GoodModel goodModel = dataSnapshot.getValue(GoodModel.class);
+                                                                        demandArray.add(new AcquiredGoodModel(demandUnits, myID, goodModel));
+//                                                                       demandArray.notifyDataSetChanged();
+                                                                    } else {
+//                                                                       Toast.makeText(AcquiredGoodsActivity.this, "couldn't find this good", Toast.LENGTH_SHORT).show();
+                                                                    }
+                                                                }
+                                                                countDownLatch.countDown();
+                                                            }
+
+                                                            @Override
+                                                            public void onCancelled(@NonNull DatabaseError databaseError) {
+                                                                countDownLatch.countDown();
+                                                                Toast.makeText(getApplicationContext(), "datbase error" + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                                                            }
+                                                        });
+                                            }
+                                        }
+
+                                        try {
+                                            countDownLatch.await();
+                                            Log.d(TAG, "doInBackground: wait is called");
+                                            return true;
+                                        } catch (InterruptedException e) {
+                                            Log.d(TAG, "doInBackground: exception is thrown");
+
+                                            e.printStackTrace();
+                                            return false;
+                                        }
+                                    }
+
+                                    @Override
+                                    protected void onPostExecute(Boolean aBoolean) {
+
+
+                                        fetchFreshyfor(position+1);
+                                    }
+                                }.execute();
+
+//                                ArrayList<AcquiredGoodModel> demandArray = new ArrayList<>();
+//                                consumerModel.setDemandArray(demandArray);
+//                                mActiveRideArrayList.add(consumerModel); //this is making the 0 values for consumers that are not delivered any stuff
+//                                int j = 1;
+//
+//                                for (DataSnapshot goodSnap : dataSnapshot.getChildren()) {
+//
+//                                    String good_id = goodSnap.getKey();
+//                                    String demandUnits = goodSnap.child("demand").getValue(String.class);
+//                                    if (demandUnits.equals("0")) { // TODO: 10/14/2019 test this
+//                                        continue;
+//                                    } else {
+//                                        consumerModel.setHasDemand(true);
+//                                    }
+//                                    if ((mConsumerModelArrayList.size() == finalI + 1)
+//                                            && j == dataSnapshot.getChildrenCount()) {// if its last outer adn inner array list call then the progress dialog shoud disappear
+//                                        isFinalCall[0] = true;
+//                                    }
+//                                    fetchGoodDetailFromFireabse(good_id, demandUnits, demandArray, isFinalCall[0]);
+//
+//                                    j++;
+//                                }
+//                                if (!consumerModel.hasDemand()) {
+//                                    mActiveRideArrayList.remove(consumerModel);
+//                                    if ((mConsumerModelArrayList.size() == finalI + 1)) {
+//                                        startDashBoardFragment();
+//                                        mAlertDialog.dismiss();
+//                                        Toast.makeText(ProducerNavMapActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
+//                                    }
+//                                }
+////                                acquiredGoodsAdapter.notifyDataSetChanged();
+//                            } else {
+//                                if ((mConsumerModelArrayList.size() == finalI + 1)) {
+//                                    startDashBoardFragment();
+//                                    mAlertDialog.dismiss();
+//                                    Toast.makeText(ProducerNavMapActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
+//                                }
+//
+//                            }
+//
+//                        }
+//
+//                        @Override
+//                        public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+                            } else {
+                                fetchFreshyfor(position + 1);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+
+        }
+    }
+
 
     private void fetchFreshDataOfUsers() {
 
         final boolean[] isFinalCall = {false};//to make sure that all call has been made while assuming the task is done sequeciallt whihc it is not
         mActiveRideArrayList.clear();
+
+
         for (int i = 0; i < mConsumerModelArrayList.size(); i++) {
             final ConsumerModel consumerModel = mConsumerModelArrayList.get(i);//this loop will get demand for each consumer
             if (consumerModel.isOnVacation()) {//if this consumer is on vacation then no need to fetch dat for this consumer
@@ -1576,11 +1868,12 @@ public class ProducerNavMapActivity extends AppCompatActivity
                     .addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            if (dataSnapshot.exists()) {
+                            if (dataSnapshot.exists() && ProducerNavMapActivity.this != null) {
                                 ArrayList<AcquiredGoodModel> demandArray = new ArrayList<>();
                                 consumerModel.setDemandArray(demandArray);
                                 mActiveRideArrayList.add(consumerModel); //this is making the 0 values for consumers that are not delivered any stuff
                                 int j = 1;
+
                                 for (DataSnapshot goodSnap : dataSnapshot.getChildren()) {
                                     String good_id = goodSnap.getKey();
                                     String demandUnits = goodSnap.child("demand").getValue(String.class);
@@ -1594,6 +1887,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
                                         isFinalCall[0] = true;
                                     }
                                     fetchGoodDetailFromFireabse(good_id, demandUnits, demandArray, isFinalCall[0]);
+
                                     j++;
                                 }
                                 if (!consumerModel.hasDemand()) {
@@ -1603,7 +1897,6 @@ public class ProducerNavMapActivity extends AppCompatActivity
                                         mAlertDialog.dismiss();
                                         Toast.makeText(ProducerNavMapActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
                                     }
-
                                 }
 //                                acquiredGoodsAdapter.notifyDataSetChanged();
                             } else {
@@ -1625,8 +1918,6 @@ public class ProducerNavMapActivity extends AppCompatActivity
                         }
                     });
         }
-
-
     }
 
 
@@ -1638,26 +1929,28 @@ public class ProducerNavMapActivity extends AppCompatActivity
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
-                            GoodModel goodModel = dataSnapshot.getValue(GoodModel.class);
-                            demandArray.add(new AcquiredGoodModel(demand, myID, goodModel));
+                        if (dataSnapshot.exists() && ProducerNavMapActivity.this != null) {
+                            if (dataSnapshot.exists()) {
+                                GoodModel goodModel = dataSnapshot.getValue(GoodModel.class);
+                                demandArray.add(new AcquiredGoodModel(demand, myID, goodModel));
 
 
 //                            demandArray.notifyDataSetChanged();
-                        } else {
+                            } else {
 //                            Toast.makeText(AcquiredGoodsActivity.this, "couldn't find this good", Toast.LENGTH_SHORT).show();
-                        }
+                            }
 
-                        if (isFinalCall) {
-                            startDashBoardFragment();
-                            mAlertDialog.dismiss();
-                            Toast.makeText(ProducerNavMapActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
+                            if (isFinalCall) {
+                                startDashBoardFragment();
+                                mAlertDialog.dismiss();
+                                Toast.makeText(getApplicationContext(), "All data is fetched", Toast.LENGTH_SHORT).show();
+                            }
                         }
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
-                        Toast.makeText(ProducerNavMapActivity.this, "datbase error" + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "datbase error" + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -1667,6 +1960,13 @@ public class ProducerNavMapActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         initTextToSpeach();
+        if (mPhotoImageUri == null) {
+            mPhotoImageUri = FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl();
+            if (mPhotoImageUri != null) {
+                Glide.with(getApplicationContext())
+                        .load(mPhotoImageUri).into(profileCircularImageView);
+            }
+        }
         super.onStart();
     }
 
@@ -1680,21 +1980,18 @@ public class ProducerNavMapActivity extends AppCompatActivity
     }
 
     private void initTextToSpeach() {
-        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int i) {
-                if (i == TextToSpeech.SUCCESS) {
-                    int result = textToSpeech.setLanguage(Locale.ENGLISH);
+        textToSpeech = new TextToSpeech(this, i -> {
+            if (i == TextToSpeech.SUCCESS) {
+                int result = textToSpeech.setLanguage(Locale.ENGLISH);
 
-                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        Toast.makeText(ProducerNavMapActivity.this, "text to speech not working", Toast.LENGTH_SHORT).show();
+                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    Toast.makeText(ProducerNavMapActivity.this, "text to speech not working", Toast.LENGTH_SHORT).show();
 //                        Log.d("mylog", "onInit: error in TEXT TO SPEECH");
-                    }
-
-                } else {
-                    Toast.makeText(ProducerNavMapActivity.this, "error in on init of text to speec", Toast.LENGTH_SHORT).show();
-//                    Log.d("mylog", "onInit: error in TEXT TO SPEECH 1");
                 }
+
+            } else {
+                Toast.makeText(ProducerNavMapActivity.this, "error in on init of text to speec", Toast.LENGTH_SHORT).show();
+//                    Log.d("mylog", "onInit: error in TEXT TO SPEECH 1");
             }
         });
 
@@ -1706,29 +2003,5 @@ public class ProducerNavMapActivity extends AppCompatActivity
     }
 
 
-    private class DistanceMatrixAsyncTask extends AsyncTask<String, Void, String> {
-
-        @Override
-        protected void onPreExecute() {
-            Toast.makeText(ProducerNavMapActivity.this, "requesting json data", Toast.LENGTH_SHORT).show();
-            super.onPreExecute();
-
-        }
-
-        @Override
-        protected String doInBackground(String... strings) {
-
-            String requestUrl = strings[0];
-            return HttpRequestHelper.requestJsonData(requestUrl);
-
-        }
-    }
-
-
 }
-
-
-//create a separate array list for the delivery bottom sheet and create summery accordingly
-
 //// TODO: 7/27/2019 for the purpose of Gps use a broadcast reciever for making changes as desired
-// TODO: 10/14/2019 now  ceate schema for the summery whihc shoulld not be a headache i guess

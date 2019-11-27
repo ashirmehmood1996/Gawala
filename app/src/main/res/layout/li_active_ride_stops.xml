@@ -58,7 +58,7 @@
                 android:paddingLeft="8dp"
                 android:paddingEnd="8dp"
                 android:paddingRight="8dp"
-                android:textColor="@color/textColorConversationListItemDetail"
+                android:textColor="@color/text_light"
                 android:textSize="15sp"
                 tools:text="Location in english" />
 
@@ -85,5 +85,5 @@
         android:layout_marginLeft="72dp"
         android:layout_marginEnd="16dp"
         android:layout_marginRight="16dp"
-        android:background="@color/textColorConversationListItemDetail" />
+        android:background="@color/text_light" />
 </RelativeLayout>

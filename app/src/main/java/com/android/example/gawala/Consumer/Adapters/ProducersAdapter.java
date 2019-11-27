@@ -14,6 +14,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.example.gawala.Consumer.Models.ProducerModel;
 import com.android.example.gawala.R;
+import com.bumptech.glide.Glide;
+import com.mikhaellopez.circularimageview.CircularImageView;
 
 
 import java.util.ArrayList;
@@ -42,18 +44,22 @@ public class ProducersAdapter extends RecyclerView.Adapter<ProducersAdapter.Prod
         ProducerModel producerModel =producerModelArrayList.get(position);
         holder.nameTextView.setText(producerModel.getName());
         holder.numberTextView.setText(producerModel.getNumber());
-
-        switch (producerModel.getStatus()) {
-            case ProducerModel.NEUTRAL:
-                holder.sendRequestButton.setText("send request");
-                break;
-            case ProducerModel.REQUEST_ACCEPTED:
-                holder.sendRequestButton.setText("remove producer");
-                break;
-            case ProducerModel.REQUEST_SENT:
-                holder.sendRequestButton.setText("cancel request");
-                break;
+        if (!producerModel.getImageUri().isEmpty()) {
+            Glide.with(context).load(producerModel.getImageUri()).into(holder.circularImageView);
         }
+
+
+//        switch (producerModel.getStatus()) {
+//            case ProducerModel.STATUS_NEUTRAL:
+//                holder.sendRequestButton.setText("send request");
+//                break;
+//            case ProducerModel.REQUEST_ACCEPTED:
+//                holder.sendRequestButton.setText("remove producer");
+//                break;
+//            case ProducerModel.REQUEST_SENT:
+//                holder.sendRequestButton.setText("cancel request");
+//                break;
+//        }
     }
 
     @Override
@@ -63,34 +69,28 @@ public class ProducersAdapter extends RecyclerView.Adapter<ProducersAdapter.Prod
 
     class ProducerHolder extends RecyclerView.ViewHolder {
         TextView nameTextView, numberTextView;
-        Button  sendRequestButton;
+//        Button  sendRequestButton;
         LinearLayout mainContainerLinearLayout;
+        private CircularImageView circularImageView;
 
         public ProducerHolder(@NonNull View itemView) {
             super(itemView);
             nameTextView=itemView.findViewById(R.id.tv_li_prod_name);
             numberTextView =itemView.findViewById(R.id.tv_li_prod_number);
-            sendRequestButton=itemView.findViewById(R.id.bt_li_prod_send_request);
+//            sendRequestButton=itemView.findViewById(R.id.bt_li_prod_send_request);
             mainContainerLinearLayout=itemView.findViewById(R.id.ll_li_prod_container);
+            circularImageView=itemView.findViewById(R.id.civ_li_prod_picture);
 
-            sendRequestButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    callBack.onSendRequest(getAdapterPosition());
-                }
-            });
-            mainContainerLinearLayout.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    callBack.onProducerItemClcik(getAdapterPosition());
-                }
-            });
+//            sendRequestButton.setOnClickListener(v -> callBack.onSendRequest(getAdapterPosition()));
+            mainContainerLinearLayout.setOnClickListener(v -> callBack.onProducerItemClcik(getAdapterPosition()));
         }
     }
 
     public interface CallBack {
-        void onSendRequest(int pos);
+//        void onSendRequest(int pos);
         void onProducerItemClcik(int pos);
     }
 
 }
+
+

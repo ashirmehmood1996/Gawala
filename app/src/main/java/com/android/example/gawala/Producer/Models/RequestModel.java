@@ -1,22 +1,26 @@
 package com.android.example.gawala.Producer.Models;
 
-import java.util.HashMap;
+import java.io.Serializable;
 
-public class RequestModel {
+public class RequestModel implements Serializable {
     private String sender_id;
     private String name;
     private String time_stamp;
-    private String location_lat;
-    private String location_lon;
+    private String lat;
+    private String lng;
     private String number;
+    private String address;
+    private String imageUrl;
 
-    public RequestModel(String sender_id, String name, String number, String time_stamp, String location_lat, String location_lon) {
+
+    public RequestModel(String sender_id, String name, String number, String time_stamp, String lat, String lng, String imageUrl) {
         this.sender_id = sender_id;
         this.name = name;
         this.number = number;
         this.time_stamp = time_stamp;
-        this.location_lat = location_lat;
-        this.location_lon = location_lon;
+        this.lat = lat;
+        this.lng = lng;
+        this.imageUrl = imageUrl;
     }
 
     public String getNumber() {
@@ -38,11 +42,27 @@ public class RequestModel {
         return time_stamp;
     }
 
-    public String getLocation_lat() {
-        return location_lat;
+    public String getLat() {
+        return lat;
     }
 
-    public String getLocation_lon() {
-        return location_lon;
+    public String getLng() {
+        return lng;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

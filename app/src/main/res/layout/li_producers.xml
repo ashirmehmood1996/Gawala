@@ -7,13 +7,13 @@
 
     <View
         android:layout_width="match_parent"
-        android:layout_height=".3dp"
-        android:layout_below="@id/ll_li_conected_con_container"
-        android:layout_marginStart="82dp"
-        android:layout_marginLeft="82dp"
+        android:layout_height="0.3dp"
+        android:layout_below="@id/ll_li_prod_container"
+        android:layout_marginStart="72dp"
+        android:layout_marginLeft="72dp"
         android:layout_marginEnd="16dp"
         android:layout_marginRight="16dp"
-        android:background="@color/textColorConversationListItemDetail" />
+        android:background="@color/text_light" />
 
     <LinearLayout
         android:id="@+id/ll_li_prod_container"
@@ -23,17 +23,13 @@
         android:clickable="true"
         android:padding="16dp">
 
-        <TextView
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_gravity="center"
-            android:background="@drawable/round_circle"
-            android:fontFamily="sans-serif-condensed-light"
-            android:gravity="center"
-            android:maxLength="1"
-            android:text="P"
-            android:textColor="@android:color/white"
-            android:textSize="25sp" />
+        <com.mikhaellopez.circularimageview.CircularImageView
+            android:id="@+id/civ_li_prod_picture"
+            android:layout_width="56dp"
+            app:civ_border="false"
+            android:layout_height="56dp"
+            android:elevation="2dp"
+            android:src="@drawable/ic_person_black_24dp" />
 
 
         <LinearLayout
@@ -65,20 +61,20 @@
                 android:ellipsize="end"
                 android:maxLines="2"
                 android:padding="2dp"
-                android:textColor="@color/textColorConversationListItemDetail"
+                android:textColor="@color/text_light"
                 android:textSize="14sp"
                 tools:text="+921234567890" />
         </LinearLayout>
 
-        <Button
-            android:id="@+id/bt_li_prod_send_request"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_button_solid"
-            android:text="Send Request"
-            android:textColor="#ffffff" />
+<!--        <Button-->
+<!--            android:id="@+id/bt_li_prod_send_request"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_margin="5dp"-->
+<!--            android:layout_weight="1"-->
+<!--            android:background="@drawable/bg_button_solid"-->
+<!--            android:text="Send Request"-->
+<!--            android:textColor="#ffffff" />-->
 
     </LinearLayout>
 

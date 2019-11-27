@@ -5,6 +5,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 import com.android.example.gawala.R;
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 
@@ -24,7 +26,7 @@ public class AcquiredGoodsAdapter extends RecyclerView.Adapter<AcquiredGoodsAdap
     public AcquiredGoodsAdapter(ArrayList<AcquiredGoodModel> aquiredGoodsArrayList, Activity activity) {
         this.aquiredGoodsArrayList = aquiredGoodsArrayList;
         this.context = activity;
-        this.callback= (Callback) activity;
+        this.callback = (Callback) activity;
     }
 
     @NonNull
@@ -35,9 +37,16 @@ public class AcquiredGoodsAdapter extends RecyclerView.Adapter<AcquiredGoodsAdap
 
     @Override
     public void onBindViewHolder(@NonNull AquiredgoodsHolder holder, int position) {
-        holder.nameTextvew.setText(aquiredGoodsArrayList.get(position).getGoodModel().getName());
-        holder.typeTextView.setText(aquiredGoodsArrayList.get(position).getGoodModel().getType());
-        holder.priceTextView.setText(String.format("%s PKR", aquiredGoodsArrayList.get(position).getGoodModel().getPrice()));
+        AcquiredGoodModel acquiredGoodModel = aquiredGoodsArrayList.get(position);
+        holder.nameTextvew.setText(acquiredGoodModel.getGoodModel().getName());
+        holder.typeTextView.setText(acquiredGoodModel.getGoodModel().getType());
+        holder.priceTextView.setText(String.format("%s PKR", acquiredGoodModel.getGoodModel().getPrice()));
+        if (acquiredGoodModel.getGoodModel().getImage_uri() != null
+                && !acquiredGoodModel.getGoodModel().getImage_uri().isEmpty()) {
+            Glide.with(context).load(acquiredGoodModel.getGoodModel().getImage_uri()).into(holder.imageView);
+        } else {
+            holder.imageView.setImageResource(R.drawable.ic_broken_image_black_24dp);
+        }
 //        holder.producerNameTextView.setText("prdocer"); later
 
     }
@@ -50,6 +59,7 @@ public class AcquiredGoodsAdapter extends RecyclerView.Adapter<AcquiredGoodsAdap
     class AquiredgoodsHolder extends RecyclerView.ViewHolder {
         LinearLayout containerLayout;
         TextView nameTextvew, priceTextView, typeTextView, producerNameTextView;
+        ImageView imageView;
 
         public AquiredgoodsHolder(@NonNull View itemView) {
             super(itemView);
@@ -58,6 +68,7 @@ public class AcquiredGoodsAdapter extends RecyclerView.Adapter<AcquiredGoodsAdap
             priceTextView = itemView.findViewById(R.id.tv_li_acquired_goods_price);
             typeTextView = itemView.findViewById(R.id.tv_li_acquired_goods_type);
             producerNameTextView = itemView.findViewById(R.id.tv_li_acquired_goods_producer_name);
+            imageView = itemView.findViewById(R.id.iv_li_acquired_goods_picture);
 
             containerLayout.setOnClickListener(new View.OnClickListener() {
                 @Override

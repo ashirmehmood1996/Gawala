@@ -21,8 +21,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Consumer.Activities.DaysOffActivity"
-            android:parentActivityName=".Consumer.Activities.ConsumerDashBoardActivity">
+
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity android:name=".Consumer.Activities.DaysOffActivity">
         </activity>
         <activity android:name=".Generel.Activities.NotificationsActivity" />
         <activity android:name=".Generel.Activities.PersonalInfoActivity" />
@@ -43,8 +47,7 @@
             android:label="@string/title_activity_pick_location_maps" />
         <activity
             android:name=".Consumer.Activities.ConsumerMapActivity"
-            android:label="@string/title_activity_consumer_map"
-            android:parentActivityName=".Consumer.Activities.ConsumerDashBoardActivity" />
+            />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -92,11 +95,12 @@ todo   this detail activty is neing used in more than one palces and
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".Consumer.Activities.ConsumerRequestsActivity"
-            android:parentActivityName=".Consumer.Activities.ConsumerDashBoardActivity" />
+            android:screenOrientation="portrait" />
         <activity
             android:name=".Generel.Activities.SignupActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-        <activity android:name=".Generel.Activities.LoginActivity" />
+        <activity android:name=".Generel.Activities.LoginActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity android:name=".Generel.Activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

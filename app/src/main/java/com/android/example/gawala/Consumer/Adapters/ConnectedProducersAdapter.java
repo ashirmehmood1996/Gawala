@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.example.gawala.Consumer.Models.ProducerModel;
 import com.android.example.gawala.R;
+import com.bumptech.glide.Glide;
+import com.mikhaellopez.circularimageview.CircularImageView;
 
 import java.util.ArrayList;
 
@@ -42,6 +44,11 @@ public class ConnectedProducersAdapter extends RecyclerView.Adapter<ConnectedPro
         holder.numberTextView.setText(producerModel.getNumber());
 
 
+        if (!producerModel.getImageUri().isEmpty()) {
+            Glide.with(context).load(producerModel.getImageUri()).into(holder.circularImageView);
+        }
+
+
     }
 
     @Override
@@ -52,19 +59,16 @@ public class ConnectedProducersAdapter extends RecyclerView.Adapter<ConnectedPro
     class ProducerHolder extends RecyclerView.ViewHolder {
         LinearLayout producerConatiner;
         TextView nameTextView, numberTextView;
+        CircularImageView circularImageView;
 
         ProducerHolder(@NonNull View itemView) {
             super(itemView);
             producerConatiner = itemView.findViewById(R.id.ll_li_con_prod_container);
             nameTextView = itemView.findViewById(R.id.tv_li_con_prod_name);
             numberTextView = itemView.findViewById(R.id.tv_li_con_prod_number);
+            circularImageView = itemView.findViewById(R.id.civ_li_con_prod_picture);
 
-            producerConatiner.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    callback.onconnectedProducerClick(getAdapterPosition());
-                }
-            });
+            producerConatiner.setOnClickListener(v -> callback.onconnectedProducerClick(getAdapterPosition()));
 
         }
     }

@@ -9,11 +9,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
 
 import com.android.example.gawala.Producer.Models.ConsumerModel;
 import com.android.example.gawala.R;
+import com.bumptech.glide.Glide;
+import com.mikhaellopez.circularimageview.CircularImageView;
 
 import java.util.ArrayList;
 
@@ -41,20 +42,22 @@ public class ConnectedConsumersAdapter extends RecyclerView.Adapter<ConnectedCon
         ConsumerModel consumerModel = consumerModelArrayList.get(i);
         holder.nameTextView.setText(consumerModel.getName());
 
+        if (!consumerModel.getImageUrl().isEmpty()) {
+            Glide.with(context).load(consumerModel.getImageUrl()).into(holder.circularImageView);
+        }else {
+            holder.circularImageView.setBackgroundResource(R.drawable.ic_person_black_24dp);
+        }
+        if (consumerModel.getLatitude() != null || consumerModel.getLongitude() != null) {
+            String location = null;
 
-
-
-        if(consumerModel.getLatitude()!=null || consumerModel.getLongitude()!=null){
-            String location=null;
-
-            if (consumerModel.getLocationName()==null || consumerModel.getLocationName().isEmpty()){
-                location = "lat : "+ consumerModel.getLatitude()+"\n" +
-                        "lon : "+ consumerModel.getLongitude();
-            }else {
+            if (consumerModel.getLocationName() == null || consumerModel.getLocationName().isEmpty()) {
+                location = "lat : " + consumerModel.getLatitude() + "\n" +
+                        "lon : " + consumerModel.getLongitude();
+            } else {
                 location = consumerModel.getLocationName();
             }
             holder.locationTextView.setText(location);
-        }else {
+        } else {
             holder.locationTextView.setText("location was not set");
         }
 /*
@@ -75,10 +78,12 @@ public class ConnectedConsumersAdapter extends RecyclerView.Adapter<ConnectedCon
 
     class ConnectedConsumersHolder extends RecyclerView.ViewHolder {
         TextView nameTextView, locationTextView;
+        CircularImageView circularImageView;
 //        Button editLocationButton;
 
         public ConnectedConsumersHolder(@NonNull View itemView) {
             super(itemView);
+            circularImageView = itemView.findViewById(R.id.civ_li_conected_con_picture);
             nameTextView = itemView.findViewById(R.id.tv_li_conected_con_name);
             locationTextView = itemView.findViewById(R.id.tv_li_conected_con_location);
 //            editLocationButton =itemView.findViewById(R.id.bt_li_conected_con_edit_location);
@@ -86,7 +91,7 @@ public class ConnectedConsumersAdapter extends RecyclerView.Adapter<ConnectedCon
     }
 
 
-   /* *//**
+    /* *//**
      * an interfase between activity and adapter
      *//*
     public interface CallBacks{

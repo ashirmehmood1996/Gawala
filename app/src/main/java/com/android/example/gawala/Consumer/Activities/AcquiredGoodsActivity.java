@@ -7,7 +7,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.android.example.gawala.Consumer.Adapters.AcquiredGoodsAdapter;
@@ -20,6 +22,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
 import java.util.ArrayList;
 
 public class AcquiredGoodsActivity extends AppCompatActivity implements AcquiredGoodsAdapter.Callback {
@@ -32,6 +35,8 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
     private RecyclerView acquiredGoodsRecyclerView;
     private AcquiredGoodsAdapter acquiredGoodsAdapter;
     private AlertDialog mAlertDialog;
+
+    private RelativeLayout emptyViewRelativeLayout;
 
 
     @Override
@@ -53,6 +58,7 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
         acquiredGoodsRecyclerView = findViewById(R.id.rv_con_acquired_goods);
         acquiredGoodsAdapter = new AcquiredGoodsAdapter(acquiredGoodArrayList, this);
         acquiredGoodsRecyclerView.setAdapter(acquiredGoodsAdapter);
+        emptyViewRelativeLayout = findViewById(R.id.rl_con_acquired_goods_empty_view_container);
 
         initializeDialog();
 
@@ -64,10 +70,12 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
         loadProducersListAndRespectiveServices();//doing it here for data updation
         super.onStart();
     }
+
     private void initializeDialog() {
         LinearLayout alertDialog = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_progress, null);
         this.mAlertDialog = new AlertDialog.Builder(this).setView(alertDialog).setCancelable(false).create();
     }
+
     private void loadProducersListAndRespectiveServices() {
         connectedProducersArrayList.clear();
         acquiredGoodArrayList.clear();
@@ -79,23 +87,28 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
+                        if (dataSnapshot.exists() && AcquiredGoodsActivity.this != null) {
                             for (DataSnapshot producerSnap : dataSnapshot.getChildren()) {
                                 for (DataSnapshot clientSnap : producerSnap.getChildren()) {
                                     if (clientSnap.getKey().equals(myId)) {
 
                                         connectedProducersArrayList.add(producerSnap.getKey());
+
 //                                        String name = producerSnap.child("name").getValue(String.class);
 //                                        String number = producerSnap.child("number").getValue(String.class);
                                     }
                                 }
                             }
-                            if (connectedProducersArrayList.size()==0){
+                            if (connectedProducersArrayList.size() == 0) {
+                                emptyViewRelativeLayout.setVisibility(View.VISIBLE);
+
                                 mAlertDialog.dismiss();
+                            } else {
+                                fetchMyAquiredServices();
                             }
 
-                            fetchMyAquiredServices();
                         } else {
+                            emptyViewRelativeLayout.setVisibility(View.VISIBLE);
                             Toast.makeText(AcquiredGoodsActivity.this, "no producers found", Toast.LENGTH_SHORT).show();
                             mAlertDialog.dismiss();
                         }
@@ -116,12 +129,19 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
                     .addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            if (dataSnapshot.exists()) {
+                            if (dataSnapshot.exists() && AcquiredGoodsActivity.this != null) {
                                 for (DataSnapshot goodSnap : dataSnapshot.getChildren()) {
-                                    fetchGoodDetailFromFireabse(goodSnap.getKey(),goodSnap.child("demand").getValue(String.class),producerID);
+                                    fetchGoodDetailFromFireabse(goodSnap.getKey(), goodSnap.child("demand").getValue(String.class), producerID);
 
                                 }
                                 acquiredGoodsAdapter.notifyDataSetChanged();
+                            }
+                            if (acquiredGoodArrayList.isEmpty()) {
+                                emptyViewRelativeLayout.setVisibility(View.VISIBLE);
+
+                            } else {
+                                emptyViewRelativeLayout.setVisibility(View.GONE);
+
                             }
                             mAlertDialog.dismiss();
                         }
@@ -142,12 +162,12 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()){
-                            GoodModel goodModel=dataSnapshot.getValue(GoodModel.class);
+                        if (dataSnapshot.exists() && AcquiredGoodsActivity.this != null) {
+                            GoodModel goodModel = dataSnapshot.getValue(GoodModel.class);
                             acquiredGoodArrayList.add(new AcquiredGoodModel(demand, producerID, goodModel));
                             acquiredGoodsAdapter.notifyDataSetChanged();
-                        }else {
-                            Toast.makeText(AcquiredGoodsActivity.this, "couldn't find this good", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getApplication(), "couldn't find this good", Toast.LENGTH_SHORT).show();
                         }
                     }
 
@@ -160,9 +180,10 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
 
     @Override
     public void onAcquiredGoodClicked(int pos) {
-        Intent intent=new Intent(this,AquiredGoodDetailActivity.class);
-        intent.putExtra("acquired_goods_model",acquiredGoodArrayList.get(pos));
-
+        Intent intent = new Intent(this, AquiredGoodDetailActivity.class);
+        intent.putExtra("acquired_goods_model", acquiredGoodArrayList.get(pos));
         startActivity(intent);
     }
+
+
 }

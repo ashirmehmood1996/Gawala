@@ -4,28 +4,27 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
-    android:background="#efefef">
+    android:background="#fff"
+    tools:context=".Generel.Activities.SignupActivity">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:animateLayoutChanges="true"
-        android:padding="10dp"
-        tools:context=".Generel.Activities.SignupActivity">
-
+        android:padding="10dp">
 
         <TextView
             android:id="@+id/tv_signup_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
-            android:fontFamily="sans-serif-condensed"
+            android:fontFamily="sans-serif-smallcaps"
             android:paddingLeft="46dp"
             android:paddingTop="26dp"
             android:paddingRight="46dp"
             android:paddingBottom="26dp"
             android:text="Sign Up"
+            android:textColor="@color/colorPrimary"
             android:textSize="25sp"
             android:textStyle="bold" />
 
@@ -37,7 +36,6 @@
             android:layout_marginTop="20dp"
             android:layout_marginRight="6dp"
             android:layout_marginBottom="6dp"
-            android:background="@drawable/bg_containers"
             android:elevation="4dp"
             android:orientation="vertical"
             android:padding="16dp">
@@ -54,14 +52,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Full Name"
-                    android:textColor="@color/textColorConversationListItemTitle"
+                    android:textColor="@color/text_dark"
                     android:textStyle="bold" />
 
                 <EditText
                     android:id="@+id/et_register_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_info_edittext"
+                    android:background="@drawable/bg_info_edit_text"
                     android:hint="First Last"
                     android:imeOptions="actionNext"
                     android:inputType="textCapWords"
@@ -80,7 +78,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="phone number"
-                    android:textColor="@color/textColorConversationListItemTitle"
+                    android:textColor="@color/text_dark"
                     android:textStyle="bold" />
 
 
@@ -94,7 +92,7 @@
                         android:id="@+id/ccp_register"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/bg_info_edittext"
+                        android:background="@drawable/bg_info_edit_text"
                         android:gravity="center"
                         android:paddingLeft="2dp"
                         android:paddingTop="10dp"
@@ -108,10 +106,11 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="3dp"
                         android:layout_marginLeft="3dp"
-                        android:background="@drawable/bg_info_edittext"
+                        android:background="@drawable/bg_info_edit_text"
                         android:drawableRight="@drawable/ic_call_black_24dp"
                         android:drawablePadding="20dp"
                         android:hint="1234567890"
+                        android:imeOptions="actionDone"
                         android:inputType="numberDecimal"
                         android:padding="10dp"
                         android:textSize="18sp" />
@@ -132,15 +131,22 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="register as"
-                    android:textColor="@color/textColorConversationListItemTitle"
+                    android:textColor="@color/text_dark"
                     android:textStyle="bold" />
 
-                <Spinner
-                    android:id="@+id/sp_register_type"
+                <FrameLayout
+                    android:layout_marginTop="5dp"
+
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="16dp"
-                    android:spinnerMode="dropdown" />
+                    android:background="@drawable/bg_info_edit_text"
+                    android:layout_height="wrap_content">
+
+                    <Spinner
+                        android:id="@+id/sp_register_type"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:spinnerMode="dropdown" />
+                </FrameLayout>
             </LinearLayout>
 
             <Button

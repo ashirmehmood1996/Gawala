@@ -4,39 +4,45 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentTransaction;
 
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Address;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.example.gawala.Consumer.Activities.ConsumerDashBoardActivity;
 import com.android.example.gawala.Generel.AsyncTasks.GeoCoderAsyncTask;
 import com.android.example.gawala.Producer.Fragments.FullScreenEditCitiesFragment;
 import com.android.example.gawala.Producer.Models.CityModel;
 import com.android.example.gawala.R;
+import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.mikhaellopez.circularimageview.CircularImageView;
+import com.yalantis.ucrop.UCrop;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 
 public class PersonalInfoActivity extends AppCompatActivity implements FullScreenEditCitiesFragment.Callback {
@@ -50,13 +56,16 @@ public class PersonalInfoActivity extends AppCompatActivity implements FullScree
     private LinearLayout deliveryAreasContainerLinearLayout;
     private TextView deliveryAreasTextView;
     private ImageButton editDeliverAreasImageButtons;
+    private CircularImageView profileCircularImageView;
+
 
     //data
-    private String name, number, locatioName, type;
+    private String name, number, locatioAddress, type, profileImageUri;
     private LatLng latLng;
-    private AlertDialog mAlertDialog;
+    private AlertDialog mProgressDialog;
 
     private ArrayList<CityModel> cityModelArrayList;
+    private int RC_PICK_FROM_GALLERY = 12121;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +92,9 @@ public class PersonalInfoActivity extends AppCompatActivity implements FullScree
         editDeliverAreasImageButtons = findViewById(R.id.ib_personal_info_edit_delivery_areas);
 
         cityModelArrayList = new ArrayList<>();
+
+        profileCircularImageView = findViewById(R.id.iv_personal_info_image);
+
     }
 
     private void attachListeners() {
@@ -92,6 +104,99 @@ public class PersonalInfoActivity extends AppCompatActivity implements FullScree
             showEditDeliveryAreasDialog();
         });
 
+        profileCircularImageView.setOnClickListener(view -> {
+            Intent galleryIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.INTERNAL_CONTENT_URI);
+            galleryIntent.setType("image/*");
+
+            //                //We pass an extra array with the accepted mime types. This will ensure only components with these MIME types as targeted.
+            //                String[] mimeTypes = {"image/jpeg", "image/png"};
+            //                galleryIntent.putExtra(Intent.EXTRA_MIME_TYPES,mimeTypes);
+
+            startActivityForResult(galleryIntent
+                    , RC_PICK_FROM_GALLERY);
+            mProgressDialog.show();
+
+        });
+
+    }
+
+
+    private void uploadImageInFirebaseCloudStorage(Bitmap bitmap) {
+
+        StorageReference rootStorageReference = FirebaseStorage.getInstance().getReference();
+        //String fileType = getContentResolver().getType(profileImageUri);
+        final StorageReference profilePicRef = rootStorageReference.child("profilePictures/" + FirebaseAuth.getInstance().getCurrentUser().getUid()/*+ fileType*/);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
+        byte[] data = baos.toByteArray();
+        final UploadTask uploadTask = profilePicRef.putBytes(data);
+
+// Register observers to listen for when the download is done or if it fails
+        uploadTask.addOnFailureListener(exception -> {
+            // Handle unsuccessful uploads
+            Toast.makeText(getApplicationContext(), "Upload unsuccessful \n" + exception.getMessage(), Toast.LENGTH_SHORT).show();
+            mProgressDialog.dismiss();
+        }).addOnSuccessListener(taskSnapshot -> {
+            /*Task<Uri> urlTask = */
+            uploadTask.continueWithTask(task -> {
+                if (!task.isSuccessful()) {
+                    throw task.getException();
+                }
+
+                // Continue with the task to get the download URL
+                return profilePicRef.getDownloadUrl();
+            }).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    Uri downloadUri = task.getResult();
+                    uploadImageUrlInFireabseRealTimeDatabase(downloadUri);
+
+                    // Toast.makeText(SettingsActivity.this, "Url is obtained", Toast.LENGTH_SHORT).show();
+//                            Glide.with(getApplicationContext())
+//                                    .load(downloadUri)
+//                                    .into(profileCircularImageView);
+                    mProgressDialog.dismiss();
+                } else {
+                    // Handle failures
+                    // ...
+                    mProgressDialog.dismiss();
+                    Toast.makeText(getApplicationContext(), "Error obtaining url", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+
+        });
+
+    }
+
+    private void uploadImageUrlInFireabseRealTimeDatabase(final Uri downloadUri) {
+        DatabaseReference curruntUserDataNode = FirebaseDatabase.getInstance().getReference().child("users")
+                .child("" + FirebaseAuth.getInstance().getCurrentUser().getUid());
+        curruntUserDataNode.child("profile_image_uri").setValue(downloadUri.toString())
+                .addOnCompleteListener(task -> {
+                    setImageUriToAccountData(downloadUri);
+                });
+
+    }
+
+    private void setImageUriToAccountData(Uri downloadUri) {
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        UserProfileChangeRequest userProfileChangeRequest = new UserProfileChangeRequest.Builder()
+                .setPhotoUri(downloadUri).build();
+        if (currentUser != null) {
+            currentUser.updateProfile(userProfileChangeRequest).addOnCompleteListener(task -> {
+                if (PersonalInfoActivity.this != null) {
+                    if (mProgressDialog != null && mProgressDialog.isShowing())//null senario can only accur here because this code can run even when the acivity is dead
+                        mProgressDialog.dismiss();
+                    if (task.isSuccessful()) {
+                        Toast.makeText(getApplicationContext(), "image uploaded successfully", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "profile updated failed", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
     }
 
     private void showEditDeliveryAreasDialog() {
@@ -136,15 +241,59 @@ public class PersonalInfoActivity extends AppCompatActivity implements FullScree
                     new GeoCoderAsyncTask(PersonalInfoActivity.this) {
                         @Override
                         protected void onPostExecute(Address address) {
-                            locatioName = address.getAddressLine(0);
+                            locatioAddress = address.getAddressLine(0);
                             // TODO: 10/29/2019 later animate the layout changes
-                            locationTextView.setText(locatioName);
+                            locationTextView.setText(locatioAddress);
                         }
                     }.execute(latLng);
                     sendDataToFirebase(lat, lng);
                 }
             }
 
+        } else if (requestCode == RC_PICK_FROM_GALLERY) {
+            if (resultCode == RESULT_OK) {
+                Uri imageUri = data.getData();
+
+
+                File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Baat Cheet Cropped");
+                if (!dir.exists()) {//if directory is not available
+                    dir.mkdir();    //then create a new directory
+                }
+
+                //File file = new File(dir, currentChildCompleteInfoModel.getUserID()+".jpg");
+                //final File localFile = File.createTempFile("" + currentChildCompleteInfoModel.getUserID(), ".jpg", dir);
+                File localFile = new File(dir, "" + FirebaseAuth.getInstance().getCurrentUser().getUid() + ".jpg");
+
+
+                UCrop.of(imageUri, Uri.fromFile(localFile))
+                        .withAspectRatio(1, 1)
+                        .withMaxResultSize(960, 960)
+                        .start(this);
+
+
+            } else {
+                mProgressDialog.dismiss();
+                Toast.makeText(this, "Upload Cancelled", Toast.LENGTH_SHORT).show();
+
+            }
+        }
+        if (requestCode == UCrop.REQUEST_CROP) {
+            if (resultCode == RESULT_OK) {
+                final Uri resultUri = UCrop.getOutput(data);
+
+                Bitmap selectedBitmap = BitmapFactory.decodeFile(resultUri.getPath());
+                uploadImageInFirebaseCloudStorage(selectedBitmap);
+
+                profileCircularImageView.setImageBitmap(selectedBitmap);
+
+                Toast.makeText(this, "Result is generated", Toast.LENGTH_SHORT).show();
+
+            } else {
+                mProgressDialog.dismiss();
+                final Throwable cropError = UCrop.getError(data);
+                Toast.makeText(this, "operation unsuccessfull" + cropError.getMessage(), Toast.LENGTH_SHORT).show();
+                System.out.println("errorCrop: " + cropError.getMessage());
+            }
         } else
             super.onActivityResult(requestCode, resultCode, data);
     }
@@ -155,15 +304,12 @@ public class PersonalInfoActivity extends AppCompatActivity implements FullScree
         locationMap.put("lng", "" + lng);
 
         rootRef.child("users").child(myId).child("location").setValue(locationMap)
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            Toast.makeText(PersonalInfoActivity.this, "Delivery Location set Successfully", Toast.LENGTH_SHORT).show();
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(getApplicationContext(), "Delivery Location set Successfully", Toast.LENGTH_SHORT).show();
 
-                        } else {
-                            Toast.makeText(PersonalInfoActivity.this, "unable to set Delivery Location", Toast.LENGTH_SHORT).show();
-                        }
+                    } else {
+                        Toast.makeText(getApplicationContext(), "unable to set Delivery Location", Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -171,77 +317,91 @@ public class PersonalInfoActivity extends AppCompatActivity implements FullScree
 
     private void loadDataFromFriebase() {
         initializeDialog();
-        this.mAlertDialog.show();
+        this.mProgressDialog.show();
 
 
         rootRef.child("users").child(myId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    name = dataSnapshot.child("name").getValue(String.class);
-                    nameTextView.setText(name);
-                    number = dataSnapshot.child("number").getValue(String.class);
-                    numberTextView.setText(number);
-                    type = dataSnapshot.child("type").getValue(String.class);
-                    typeTextView.setText(type);
+                if (PersonalInfoActivity.this != null) {
+                    if (dataSnapshot.exists()) {
 
-                    if (type.equals("producer")) {
-                        deliveryAreasContainerLinearLayout.setVisibility(View.VISIBLE);
-                        if (dataSnapshot.hasChild("cities")) {
-                            for (DataSnapshot countrySnap : dataSnapshot.child("cities").getChildren()) {
-                                String countryName = countrySnap.getKey();
-                                for (DataSnapshot citySnap : countrySnap.getChildren()) {
-                                    String cityName = citySnap.getValue(String.class);
-                                    String id = citySnap.getKey();
-                                    CityModel cityModel = new CityModel(id, countryName, cityName);
-                                    cityModelArrayList.add(cityModel);
+                        if (dataSnapshot.hasChild("profile_image_uri")) {
+                            profileImageUri = dataSnapshot.child("profile_image_uri").getValue(String.class);
+                            Glide.with(getApplicationContext())
+                                    .load(profileImageUri)
+                                    .into(profileCircularImageView);
+                        }
+                        name = dataSnapshot.child("name").getValue(String.class);
+                        nameTextView.setText(name);
+                        number = dataSnapshot.child("number").getValue(String.class);
+                        numberTextView.setText(number);
+                        type = dataSnapshot.child("type").getValue(String.class);
+                        typeTextView.setText(type);
+
+                        if (type.equals("producer")) {
+                            deliveryAreasContainerLinearLayout.setVisibility(View.VISIBLE);
+                            if (dataSnapshot.hasChild("cities")) {
+                                for (DataSnapshot countrySnap : dataSnapshot.child("cities").getChildren()) {
+                                    String countryName = countrySnap.getKey();
+                                    for (DataSnapshot citySnap : countrySnap.getChildren()) {
+                                        String cityName = citySnap.getValue(String.class);
+                                        String id = citySnap.getKey();
+                                        CityModel cityModel = new CityModel(id, countryName, cityName);
+                                        cityModelArrayList.add(cityModel);
+                                    }
                                 }
+
+                                deliveryAreasTextView.setText("");
+                                for (CityModel cityModel : cityModelArrayList) {
+                                    deliveryAreasTextView.append(String.format("%s, %s\n", cityModel.getCity(), cityModel.getCountry()));
+                                }
+
+                            } else {
+                                deliveryAreasTextView.setText("Please Specify the delivery Areas, tap on Edit button");
+                                deliveryAreasTextView.setTextColor(Color.RED);
                             }
 
-                            deliveryAreasTextView.setText("");
-                            for (CityModel cityModel : cityModelArrayList) {
-                                deliveryAreasTextView.append(String.format("%s, %s\n", cityModel.getCity(), cityModel.getCountry()));
-                            }
-
+                        }
+                        if (dataSnapshot.hasChild("location")) {
+                            double lat = Double.parseDouble(dataSnapshot.child("location").child("lat").getValue(String.class));
+                            double lng = Double.parseDouble(dataSnapshot.child("location").child("lng").getValue(String.class));
+                            locationTextView.setText("fetching location...");
+                            locationTextView.setText("fetching location...");
+                            latLng = new LatLng(lat, lng);
+                            new GeoCoderAsyncTask(PersonalInfoActivity.this) {
+                                @Override
+                                protected void onPostExecute(Address address) {
+                                    if (address != null) {
+                                        locatioAddress = address.getAddressLine(0);
+                                        locationTextView.setText(locatioAddress);
+                                    } else {
+                                        locationTextView.setText("problem in fetching the location");
+                                    }
+                                    mProgressDialog.dismiss();
+                                }
+                            }.execute(latLng);
                         } else {
-                            deliveryAreasTextView.setText("Please Specify the delivery Areas, tap on Edit button");
-                            deliveryAreasTextView.setTextColor(Color.RED);
+                            mProgressDialog.dismiss();
+                            Toast.makeText(getApplicationContext(), "location was not set", Toast.LENGTH_SHORT).show();
+                            locationTextView.setText("Warning ! Location was not provided");
                         }
 
-                    }
-                    if (dataSnapshot.hasChild("location")) {
-                        double lat = Double.parseDouble(dataSnapshot.child("location").child("lat").getValue(String.class));
-                        double lng = Double.parseDouble(dataSnapshot.child("location").child("lng").getValue(String.class));
-                        locationTextView.setText("fetching location...");
-                        locationTextView.setText("fetching location...");
-                        latLng = new LatLng(lat, lng);
-                        new GeoCoderAsyncTask(PersonalInfoActivity.this) {
-                            @Override
-                            protected void onPostExecute(Address address) {
-                                locatioName = address.getAddressLine(0);;
-                                locationTextView.setText(locatioName);
-                                mAlertDialog.dismiss();
-                            }
-                        }.execute(latLng);
                     } else {
-                        mAlertDialog.dismiss();
-                        Toast.makeText(PersonalInfoActivity.this, "location was not set", Toast.LENGTH_SHORT).show();
-                        locationTextView.setText("Warning ! Location was not provided");
+                        Toast.makeText(PersonalInfoActivity.this, "Something went wrong. Please restart the application", Toast.LENGTH_SHORT).show();
+                        finish();
+                        mProgressDialog.dismiss();
                     }
 
-                } else {
-                    Toast.makeText(PersonalInfoActivity.this, "Something went wrong. Please restart the application", Toast.LENGTH_SHORT).show();
-                    finish();
-                    mAlertDialog.dismiss();
                 }
-
-
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(PersonalInfoActivity.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
-                mAlertDialog.dismiss();
+                if (PersonalInfoActivity.this != null) {
+                    Toast.makeText(getApplicationContext(), "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                    mProgressDialog.dismiss();
+                }
             }
         });
     }
@@ -249,7 +409,7 @@ public class PersonalInfoActivity extends AppCompatActivity implements FullScree
 
     private void initializeDialog() {
         LinearLayout alertDialog = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_progress, null);
-        this.mAlertDialog = new AlertDialog.Builder(this).setView(alertDialog).setCancelable(false).create();
+        this.mProgressDialog = new AlertDialog.Builder(this).setView(alertDialog).setCancelable(false).create();
     }
 
     @Override

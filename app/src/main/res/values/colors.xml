@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#00BCD4</color>
-    <color name="colorPrimaryDark">#0099AF</color>
-    <color name="colorAccent">#D81B60</color>
+    <color name="colorPrimary">#21242C</color>
+    <color name="bgColor">#636364</color>
+    <color name="colorPrimaryDark">#232324</color>
+    <color name="colorAccent">#9C7B0A</color>
 
-    <color name="textColorConversationListItemDetail">#B4BAC0</color>
-    <color name="textColorConversationListItemTitle">#2B3D4D</color>
+  <!--<color name="colorPrimary">#00BCD4</color>
+    <color name="colorPrimaryDark">#0099AF</color>
+    <color name="colorAccent">#D81B60</color>-->
+
+    <color name="text_light">#B4BAC0</color>
+    <color name="text_dark">#2B3D4D</color>
 </resources>

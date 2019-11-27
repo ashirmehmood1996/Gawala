@@ -8,22 +8,34 @@
     android:orientation="vertical"
     tools:context=".Producer.Activities.ProducerAddServiceActivity">
 
+add the image on list later will be replaced by thumbnails and alos all pictures ion consumer side also
+
+    <ImageView
+        android:id="@+id/iv_add_service_image"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@color/colorPrimary"
+        android:padding="16dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_add_a_photo_black_24dp" />
+
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
-        android:padding="4dp"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:padding="4dp">
 
         <EditText
             android:id="@+id/et_add_service_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_margin="6dp"
             android:layout_marginStart="3dp"
             android:layout_marginLeft="3dp"
-            android:background="@drawable/bg_info_edittext"
+            android:background="@drawable/bg_info_edit_text"
             android:hint="Name"
-            android:maxLines="1"
             android:inputType="text"
-            android:layout_margin="6dp"
+            android:maxLines="1"
             android:padding="10dp"
             android:textSize="18sp" />
 
@@ -31,42 +43,42 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
-        android:layout_marginTop="4dp"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp">
 
         <EditText
             android:id="@+id/et_add_service_desc"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_margin="6dp"
             android:layout_marginStart="3dp"
             android:layout_marginLeft="3dp"
-            android:background="@drawable/bg_info_edittext"
+            android:background="@drawable/bg_info_edit_text"
             android:hint="Description"
-            android:maxLines="6"
-            android:layout_margin="6dp"
-            android:padding="10dp"
             android:inputType="text"
+            android:maxLines="6"
+            android:padding="10dp"
             android:textSize="18sp" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
-        android:layout_marginTop="4dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp">
 
         <EditText
             android:id="@+id/et_add_service_price"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_info_edittext"
+            android:layout_margin="6dp"
             android:layout_marginStart="3dp"
             android:layout_marginLeft="3dp"
-            android:layout_margin="6dp"
-            android:padding="10dp"
+            android:background="@drawable/bg_info_edit_text"
             android:hint="Price"
-            android:maxLines="1"
             android:inputType="numberDecimal"
+            android:maxLines="1"
+            android:padding="10dp"
             android:textSize="18sp" />
 
     </com.google.android.material.textfield.TextInputLayout>
@@ -74,19 +86,19 @@
     <com.google.android.material.textfield.TextInputLayout
 
         android:layout_width="match_parent"
-        android:layout_marginTop="4dp"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp">
 
         <EditText
             android:id="@+id/et_add_service_type"
-            android:background="@drawable/bg_info_edittext"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_margin="6dp"
             android:layout_marginStart="3dp"
             android:layout_marginLeft="3dp"
+            android:background="@drawable/bg_info_edit_text"
             android:hint="Type"
             android:inputType="text"
-            android:layout_margin="6dp"
             android:padding="10dp"
             android:textSize="18sp" />
 

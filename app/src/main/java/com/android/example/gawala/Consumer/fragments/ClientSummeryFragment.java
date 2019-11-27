@@ -71,7 +71,7 @@ public class ClientSummeryFragment extends Fragment {
             producerID = getArguments().getString(ARG_PRODUCER_ID);
         }
         myId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        clientSummeryArrayList=new ArrayList<>();
+        clientSummeryArrayList = new ArrayList<>();
         initializeDialog();
     }
 
@@ -108,66 +108,67 @@ public class ClientSummeryFragment extends Fragment {
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
+                        if (ClientSummeryFragment.this != null) {
+                            if (dataSnapshot.exists()) {
+                                int totalItems = 0;
+                                int totalCost = 0;
+                                for (DataSnapshot sessionSnapShot : dataSnapshot.getChildren()) {
 
-                            int totalItems = 0;
-                            int totalCost = 0;
-                            for (DataSnapshot sessionSnapShot : dataSnapshot.getChildren()) {
+                                    long timeStamp = sessionSnapShot.child("time_stamp").getValue(Long.class);
 
-                                long timeStamp = sessionSnapShot.child("time_stamp").getValue(Long.class);
-
-                                DataSnapshot thisClientData = sessionSnapShot.child("clients").child(myId);
+                                    DataSnapshot thisClientData = sessionSnapShot.child("clients").child(myId);
 
 
-                                ArrayList<AcquiredGoodModel> acquiredGoodModels=new ArrayList<>();
-                                for (DataSnapshot aquiredGoodSnap:thisClientData.child("goods").getChildren()){
-                                    acquiredGoodModels.add(aquiredGoodSnap.getValue(AcquiredGoodModel.class));
+                                    ArrayList<AcquiredGoodModel> acquiredGoodModels = new ArrayList<>();
+                                    for (DataSnapshot aquiredGoodSnap : thisClientData.child("goods").getChildren()) {
+                                        acquiredGoodModels.add(aquiredGoodSnap.getValue(AcquiredGoodModel.class));
+                                    }
+                                    ClientSummery clientSummery = new ClientSummery(myId, "not needed", acquiredGoodModels);
+                                    clientSummeryArrayList.add(clientSummery);
+
+
+                                    TableRow tableRow = (TableRow) getLayoutInflater().inflate(R.layout.table_row_client_summery, null);
+
+                                    TextView dateView = tableRow.findViewById(R.id.tv_tr_date);
+                                    String time = getFormattedDate(timeStamp);
+                                    dateView.setText(time);
+
+                                    TextView volumeView = tableRow.findViewById(R.id.tv_tr_items);
+                                    volumeView.setText(String.format("%d item(s)", clientSummery.getAcquiredGoodModelArrayList().size()));
+
+                                    TextView costView = tableRow.findViewById(R.id.tv_tr_cost);
+                                    costView.setText(clientSummery.getTotalCost() + " PKR");
+                                    tableLayout.addView(tableRow);
+
+                                    totalItems += clientSummery.getAcquiredGoodModelArrayList().size();
+                                    totalCost += clientSummery.getTotalCost();
                                 }
-                                ClientSummery clientSummery=new ClientSummery(myId,"not needed",acquiredGoodModels);
-                                clientSummeryArrayList.add(clientSummery);
-
 
                                 TableRow tableRow = (TableRow) getLayoutInflater().inflate(R.layout.table_row_client_summery, null);
-
                                 TextView dateView = tableRow.findViewById(R.id.tv_tr_date);
-                                String time = getFormattedDate(timeStamp);
-                                dateView.setText(time);
-
+                                dateView.setText(Html.fromHtml("<b>TOTAL</b>"));
                                 TextView volumeView = tableRow.findViewById(R.id.tv_tr_items);
-                                volumeView.setText(String.format("%d item(s)", clientSummery.getAcquiredGoodModelArrayList().size()));
-
+                                volumeView.setText(Html.fromHtml("<b>" + totalItems + " item(s)</b>"));
                                 TextView costView = tableRow.findViewById(R.id.tv_tr_cost);
-                                costView.setText(clientSummery.getTotalCost() + " PKR");
+                                costView.setText(Html.fromHtml("<b>" + totalCost + " PKR</b>"));
                                 tableLayout.addView(tableRow);
-
-                                totalItems+=clientSummery.getAcquiredGoodModelArrayList().size();
-                                totalCost+=clientSummery.getTotalCost();
+                                mAlertDialog.dismiss();
+                            } else {
+                                mAlertDialog.dismiss();
+                                Toast.makeText(getContext(), "there was no summary for this month", Toast.LENGTH_LONG).show();
+                                getActivity().getSupportFragmentManager().beginTransaction().remove(ClientSummeryFragment.this).commit();
                             }
-
-                            TableRow tableRow = (TableRow) getLayoutInflater().inflate(R.layout.table_row_client_summery, null);
-                            TextView dateView = tableRow.findViewById(R.id.tv_tr_date);
-                            dateView.setText(Html.fromHtml("<b>TOTAL</b>"));
-                            TextView volumeView = tableRow.findViewById(R.id.tv_tr_items);
-                            volumeView.setText(Html.fromHtml("<b>" + totalItems + " item(s)</b>"));
-                            TextView costView = tableRow.findViewById(R.id.tv_tr_cost);
-                            costView.setText(Html.fromHtml("<b>" + totalCost + " PKR</b>"));
-                            tableLayout.addView(tableRow);
-                            mAlertDialog.dismiss();
-                        }else {
-                            mAlertDialog.dismiss();
-                            Toast.makeText(getContext(), "there was no summary for this month", Toast.LENGTH_LONG).show();
-                            getActivity().getSupportFragmentManager().beginTransaction().remove(ClientSummeryFragment.this).commit();
                         }
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
-                        mAlertDialog.dismiss();
+                        if (ClientSummeryFragment.this != null)
+                            mAlertDialog.dismiss();
 
                     }
                 });
     }
-
 
 
     private void initializeDialog() {

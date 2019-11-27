@@ -17,6 +17,6 @@
         android:layout_gravity="center"
         android:fontFamily="sans-serif-condensed"
         android:text="Processing .... "
-        android:textColor="@color/textColorConversationListItemTitle"
+        android:textColor="@color/text_dark"
         android:textSize="18sp" />
 </LinearLayout>

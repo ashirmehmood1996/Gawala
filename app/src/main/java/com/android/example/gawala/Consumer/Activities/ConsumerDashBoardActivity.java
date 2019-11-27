@@ -4,11 +4,18 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 
+import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,6 +27,8 @@ import com.android.example.gawala.Generel.Activities.LoginActivity;
 import com.android.example.gawala.Generel.Activities.NotificationsActivity;
 import com.android.example.gawala.Generel.Activities.PersonalInfoActivity;
 import com.android.example.gawala.Generel.Activities.PickLocationMapsActivity;
+import com.android.example.gawala.Generel.Utils.SharedPreferenceUtil;
+import com.android.example.gawala.Producer.Activities.ProducerNavMapActivity;
 import com.android.example.gawala.R;
 import com.android.example.gawala.Consumer.Utils.ConsumerFirebaseHelper;
 import com.android.example.gawala.Generel.Utils.UtilsMessaging;
@@ -39,19 +48,25 @@ import java.util.HashMap;
 
 public class ConsumerDashBoardActivity extends AppCompatActivity implements View.OnClickListener {
     private Button offdeliveryDaysButton, showSummeryButton, myProvidesButton,
-            myServicesButton, showMapButton, myProfilebutton, notificationsButton;
+            myServicesButton, /*showMapButton,*/
+            myProfilebutton, notificationsButton;
 
     //firbase related
     private DatabaseReference rootRef;
     private String myId;
     private String producerId;
     //    private String producuerKey;
-    private String producerStatus;
-    private String mCurrentMilkPrice;
+//    private String producerStatus;
+//    private String mCurrentMilkPrice;
     private boolean mIsAtHome;
     private String SUMMERY_FRAG_TAG = "SummerFragmentTag";
     private AlertDialog mAlertDialog;
     private int RC_SET_DELIVERY_LOCATION = 122;
+
+    private final int RC_PERMISSION_ALL = 100;
+    private final String[] PERMISSIONS = {
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            android.Manifest.permission.ACCESS_FINE_LOCATION};
 
 
     @Override
@@ -64,18 +79,25 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
         initFilds();
         attachListeners();
 
-//        checkIfUserIsCoonnectedToProducer();
+        if (!hasPermissions(this, PERMISSIONS)) {
+            requestAllPermissions();
+        } else {
+            checkIfUserIsCoonnectedToProducer();
+            checkIfDeliveryLocationIsProvided();
+        }
+
+
         UtilsMessaging.initFCM();
-        checkIfDeliveryLocationIsProvided();
 
     }
+
 
     private void initFilds() {
         offdeliveryDaysButton = findViewById(R.id.bt_con_dash_off_delivery_days);
         showSummeryButton = findViewById(R.id.bt_con_dash_show_summery);
         myProvidesButton = findViewById(R.id.bt_con_dash_my_providers);
         myServicesButton = findViewById(R.id.bt_con_dash_my_services);
-        showMapButton = findViewById(R.id.bt_con_show_map);
+//        showMapButton = findViewById(R.id.bt_con_show_map);
         myProfilebutton = findViewById(R.id.bt_con_dash_my_profile);
         notificationsButton = findViewById(R.id.bt_con_dash_notifications);
 
@@ -91,9 +113,71 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
         showSummeryButton.setOnClickListener(this);
         myProvidesButton.setOnClickListener(this);
         myServicesButton.setOnClickListener(this);
-        showMapButton.setOnClickListener(this);
+//        showMapButton.setOnClickListener(this);
         myProfilebutton.setOnClickListener(this);
         notificationsButton.setOnClickListener(this);
+    }
+
+    private boolean hasPermissions(Context context, String... permissions) {
+        if (context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private void requestAllPermissions() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Allow Permissions and turn on location")
+                    .setCancelable(false)
+                    .setMessage("In order for this app to function properly, storage and location permissions must be granted")
+                    .setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                ActivityCompat.requestPermissions(ConsumerDashBoardActivity.this, PERMISSIONS,
+                                        RC_PERMISSION_ALL);
+                            }
+                        }
+                    })
+                    .create().show();
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                ActivityCompat.requestPermissions(this, PERMISSIONS,
+                        RC_PERMISSION_ALL);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        //mLocationPermissionGranted = false;
+        // If request is cancelled, the result arrays are empty.
+        if (requestCode == RC_PERMISSION_ALL) {
+            if (permissions.length > 0 && /*permissions[0].equals(android.Manifest.permission.READ_EXTERNAL_STORAGE) &&*/ grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                recreate();
+            } else if (grantResults.length > 0 &&/* permissions[0].equals(Manifest.permission.ACCESS_FINE_LOCATION) && */grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                recreate();
+//                    mLocationPermissionGranted = true;
+            } else if (/*grantResults.length > 0 &&*/ grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                Toast.makeText(this, "Permissions denied the app will shut down shortly", Toast.LENGTH_LONG).show();
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        finish();
+                    }
+                }, 2000);
+            }
+        }
+
+        //      donot allow the onmap raedy proceed unless the permissions are granted and gps is on
+//
     }
 
 
@@ -103,13 +187,15 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
     }
 
     private void checkIfUserIsCoonnectedToProducer() {
+        this.mAlertDialog.show();
         //lter deal with query
         rootRef.child("clients")/*.orderByChild("number").equalTo(FirebaseAuth.getInstance().getCurrentUser().getPhoneNumber())*/
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
+                        if (dataSnapshot.exists() && ConsumerDashBoardActivity.this != null) {
                             boolean found = false;
+                            outerLoop:
                             for (DataSnapshot producerSnap : dataSnapshot.getChildren()) {
 
                                 for (DataSnapshot clientSnap : producerSnap.getChildren()) {
@@ -117,7 +203,8 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
                                         producerId = dataSnapshot.getChildren().iterator().next().getKey();//producer key
                                         found = true;
 //                                        fetchReleventDataUsingKey(producerId);
-                                        break;
+                                        mAlertDialog.dismiss();
+                                        break outerLoop;
                                     }
                                 }
                             }
@@ -188,85 +275,88 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
 ////
 ////    }
 
-    private void fetchReleventDataUsingKey(final String producuerKey) {
-
-        //used for setting and getting clients own data fields
-        rootRef.child("clients")
-                .child(producuerKey)
-                .child(myId)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
-
-                            if (!dataSnapshot.child("live_data").child("at_home").exists()) {
-                                mIsAtHome = true;
-                                ConsumerFirebaseHelper.atHome(mIsAtHome, producuerKey);
-                            } else {
-                                mIsAtHome = dataSnapshot.child("live_data").child("at_home").getValue(Boolean.class);
-                                if (mIsAtHome) offdeliveryDaysButton.setText("I am not at Home");
-                                else offdeliveryDaysButton.setText("I am at Home");
-
-                            }
-
-                        } else {
-                            Toast.makeText(ConsumerDashBoardActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
-                        }
-                        mAlertDialog.dismiss();
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                        mAlertDialog.dismiss();
-
-                    }
-                });
-
-
-//        //to get the producer related infromation
-//        rootRef.child("data").child(producuerKey)
-//                .child("live_data").addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-//                if (dataSnapshot.exists()) {
-//                    //outer variables
-//                    producerStatus = dataSnapshot.child("status").getValue(String.class);
-//                    mCurrentMilkPrice = dataSnapshot.child("milk_price").getValue(String.class);
-//                    if (producerStatus == null) {
-//                    if (producerStatus == null) {
-//                        Toast.makeText(ConsumerDashBoardActivity.this, "Producer status was null ", Toast.LENGTH_SHORT).show();
-//                        producerStatus = "unknown";
-//                        producerStatustextView.setText(producerStatus);
-//                        return;
+//    private void fetchReleventDataUsingKey(final String producuerKey) {
+//
+//        //used for setting and getting clients own data fields
+//        rootRef.child("clients")
+//                .child(producuerKey)
+//                .child(myId)
+//                .addListenerForSingleValueEvent(new ValueEventListener() {
+//                    @Override
+//                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                        if (dataSnapshot.exists()) {
+//
+//                            if (!dataSnapshot.child("live_data").child("at_home").exists()) {
+//                                mIsAtHome = true;
+//                                ConsumerFirebaseHelper.atHome(mIsAtHome, producuerKey);
+//                            } else {
+//                                mIsAtHome = dataSnapshot.child("live_data").child("at_home").getValue(Boolean.class);
+//                                if (mIsAtHome) offdeliveryDaysButton.setText("I am not at Home");
+//                                else offdeliveryDaysButton.setText("I am at Home");
+//
+//                            }
+//
+//                        } else {
+//                            Toast.makeText(ConsumerDashBoardActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+//                        }
+//                        mAlertDialog.dismiss();
 //                    }
-//                    if (producerStatus.equals(getResources().getString(R.string.status_producer_inactive))) {
-//                        producerStatustextView.setTextColor(Color.GRAY);
-//                    } else if (producerStatus.equals(getResources().getString(R.string.status_producer_onduty))) {
-//                        producerStatustextView.setTextColor(Color.GREEN);
+//
+//                    @Override
+//                    public void onCancelled(@NonNull DatabaseError databaseError) {
+//                        mAlertDialog.dismiss();
+//
 //                    }
-//                    producerStatustextView.setText(producerStatus);
-//                    producerStatustextView.setText(producerStatus);
-//                }
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError databaseError) {
-//
-//            }
+//                });
 //
 //
-//        });
-
-    }
+////        //to get the producer related infromation
+////        rootRef.child("data").child(producuerKey)
+////                .child("live_data").addValueEventListener(new ValueEventListener() {
+////            @Override
+////            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+////                if (dataSnapshot.exists()) {
+////                    //outer variables
+////                    producerStatus = dataSnapshot.child("status").getValue(String.class);
+////                    mCurrentMilkPrice = dataSnapshot.child("milk_price").getValue(String.class);
+////                    if (producerStatus == null) {
+////                    if (producerStatus == null) {
+////                        Toast.makeText(ConsumerDashBoardActivity.this, "Producer status was null ", Toast.LENGTH_SHORT).show();
+////                        producerStatus = "unknown";
+////                        producerStatustextView.setText(producerStatus);
+////                        return;
+////                    }
+////                    if (producerStatus.equals(getResources().getString(R.string.status_producer_inactive))) {
+////                        producerStatustextView.setTextColor(Color.GRAY);
+////                    } else if (producerStatus.equals(getResources().getString(R.string.status_producer_onduty))) {
+////                        producerStatustextView.setTextColor(Color.GREEN);
+////                    }
+////                    producerStatustextView.setText(producerStatus);
+////                    producerStatustextView.setText(producerStatus);
+////                }
+////            }
+////
+////            @Override
+////            public void onCancelled(@NonNull DatabaseError databaseError) {
+////
+////            }
+////
+////
+////        });
+//
+//    }
 
     private void checkIfDeliveryLocationIsProvided() {
         rootRef.child("users").child(myId).child("location").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.exists()) { //location is not set
-                    showDialogToSendToPickupLocationActivty();
-                } else {//location was set
-                    //and can be fetched here if needed
+                if (ConsumerDashBoardActivity.this != null) {
+                    if (!dataSnapshot.exists()) { //location is not set
+                        showDialogToSendToPickupLocationActivty();
+                    } else {//location was set
+                        SharedPreferenceUtil.storeValue(getApplicationContext(), "lat", dataSnapshot.child("lat").getValue(String.class));
+                        SharedPreferenceUtil.storeValue(getApplicationContext(), "lng", dataSnapshot.child("lng").getValue(String.class));
+                    }
                 }
             }
 
@@ -275,10 +365,10 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
 
             }
         });
-
     }
 
     private void showDialogToSendToPickupLocationActivty() {
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setIcon(R.drawable.ic_warning_black_24dp);
         builder.setTitle("Set Delivery Location");
@@ -335,7 +425,10 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
-                            Toast.makeText(ConsumerDashBoardActivity.this, "Delivery Location set Successfully", Toast.LENGTH_SHORT).show();
+
+                            SharedPreferenceUtil.storeValue(getApplicationContext(), "lat", lat + "");
+                            SharedPreferenceUtil.storeValue(getApplicationContext(), "lng", lng + "");
+                            Toast.makeText(ConsumerDashBoardActivity.this, "Delivery Location set1 Successfully", Toast.LENGTH_SHORT).show();
 
                         } else {
                             Toast.makeText(ConsumerDashBoardActivity.this, "unable to set Delivery Location", Toast.LENGTH_SHORT).show();
@@ -349,7 +442,7 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.bt_con_dash_off_delivery_days:
-                startActivity(new Intent(this,DaysOffActivity.class));
+                startActivity(new Intent(this, DaysOffActivity.class));
 
 //                showNoMilkRecieveAlert(v);
                 break;
@@ -365,11 +458,11 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
             case R.id.bt_con_dash_my_services:
                 startActivity(new Intent(this, AcquiredGoodsActivity.class));
                 break;
-            case R.id.bt_con_show_map:
-                Intent intent = new Intent(this, ConsumerMapActivity.class);
-                intent.putExtra("producer_id", producerId);
-                startActivity(intent);
-                break;
+//            case R.id.bt_con_show_map:
+//                Intent intent = new Intent(this, ConsumerMapActivity.class);
+//                intent.putExtra("producer_id", producerId);
+//                startActivity(intent);
+//                break;
             case R.id.bt_con_dash_my_profile:
                 Intent intent1 = new Intent(this, PersonalInfoActivity.class);
                 startActivity(intent1);
@@ -458,15 +551,15 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
             public void onComplete(@NonNull Task<Void> task) {
                 AuthUI.getInstance()
                         .signOut(ConsumerDashBoardActivity.this)
-                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if (task.isSuccessful()) {
-                                    Toast.makeText(ConsumerDashBoardActivity.this, "logout successfull", Toast.LENGTH_SHORT).show();
-                                    startActivity(new Intent(ConsumerDashBoardActivity.this, LoginActivity.class));
-                                    finish();
-                                } else {
-                                    Toast.makeText(ConsumerDashBoardActivity.this, "logout failed", Toast.LENGTH_SHORT).show();
-                                }
+                        .addOnCompleteListener(task1 -> {
+                            if (task1.isSuccessful()) {
+                                SharedPreferenceUtil.storeValue(getApplicationContext(), "lat", null);
+                                SharedPreferenceUtil.storeValue(getApplicationContext(), "lng", null);
+                                Toast.makeText(ConsumerDashBoardActivity.this, "logout successful", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(ConsumerDashBoardActivity.this, LoginActivity.class));
+                                finish();
+                            } else {
+                                Toast.makeText(ConsumerDashBoardActivity.this, "logout failed", Toast.LENGTH_SHORT).show();
                             }
                         });
             }

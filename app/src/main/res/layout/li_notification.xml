@@ -52,7 +52,7 @@
             android:ellipsize="end"
             android:maxLines="2"
             android:padding="2dp"
-            android:textColor="@color/textColorConversationListItemDetail"
+            android:textColor="@color/text_light"
             android:textSize="14sp"
             tools:text="location" />
     </LinearLayout>
@@ -62,7 +62,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="2dp"
-        android:textColor="@color/textColorConversationListItemDetail"
+        android:textColor="@color/text_light"
         android:textSize="14sp"
         tools:text="12:00 pm" />
 </LinearLayout>

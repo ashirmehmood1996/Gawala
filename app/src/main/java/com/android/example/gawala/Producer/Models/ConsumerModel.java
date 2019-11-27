@@ -4,9 +4,9 @@ import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 import com.google.android.gms.maps.model.Marker;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 
-public class ConsumerModel {
+public class ConsumerModel{ // FIXME: 11/24/2019 there is a  saerialization problem when ever i open another actiivty while the dashboard fragment is open
+    // fixme later we will avoid doing it  by directly getting the arraylist from activity with a oublci method
     private String id;
     private String name;
     private String number;
@@ -16,6 +16,7 @@ public class ConsumerModel {
     private String lng;
     private Marker marker;
     private String locationName;
+    private String imageUrl;
 
     //changing data
     private float amountOfMilk;
@@ -29,7 +30,7 @@ public class ConsumerModel {
     private ArrayList<AcquiredGoodModel> demandArray;
 
 
-    public ConsumerModel(String id, String name, String numebr, String time_stamp, String lat, String lng) {
+    public ConsumerModel(String id, String name, String numebr, String time_stamp, String lat, String lng,String imageUrl) {
         this.id = id;
         this.name = name;
         this.number = numebr;
@@ -39,6 +40,7 @@ public class ConsumerModel {
         this.isDelivered=false;
         this.hasDemand=false;
         this.isOnVacation=false;
+        this.imageUrl=imageUrl;
 
     }
 
@@ -128,5 +130,13 @@ public class ConsumerModel {
 
     public void setOnVacation(boolean onVacation) {
         isOnVacation = onVacation;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

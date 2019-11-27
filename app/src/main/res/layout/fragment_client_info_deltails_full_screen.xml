@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#ffffff"
+        android:gravity="top"
+        android:orientation="vertical"
+        android:padding="16dp"
+        tools:context=".Generel.Activities.PersonalInfoActivity">
+
+
+        <ImageView
+            android:id="@+id/iv_frag_con_details_image"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_centerHorizontal="true"
+            android:layout_gravity="center"
+            android:layout_margin="8dp"
+            android:contentDescription="@string/nav_header_desc"
+            app:srcCompat="@mipmap/ic_launcher_round" />
+
+
+        <TextView
+            android:id="@+id/tv_frag_con_details_name"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:padding="8dp"
+            android:text="@string/nav_header_title"
+            android:textColor="@color/text_dark"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_frag_con_details_number"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingBottom="16dp"
+            android:text="@string/nav_header_subtitle"
+            android:textColor="@color/text_light" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="#aaaaaa" />
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Location"
+            android:textColor="#000"
+            android:textStyle="bold" />
+
+
+        <TextView
+            android:id="@+id/tv_frag_con_details_location"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:text="2 new Gulber Road Peshawar Cantt 2 new Gulber Road Peshawar Cantt 2 new Gulber Road Peshawar Cantt" />
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="User Type"
+            android:textColor="#000"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_frag_con_details_user_type"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="user type" />
+
+        <!--space holder view-->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/bt_frag_con_details_distance_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_button_solid"
+            android:enabled="false"
+            android:fontFamily="sans-serif-condensed-light"
+            android:padding="16dp"
+            android:text="loading please wait....."
+            android:textAllCaps="false"
+            android:textColor="#ffffff"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/ib_frag_con_details_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_bt_round"
+        android:padding="10dp"
+        android:src="@drawable/ic_keyboard_backspace_black_24dp" />
+</RelativeLayout>

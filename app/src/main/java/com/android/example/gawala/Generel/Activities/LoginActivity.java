@@ -53,7 +53,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        getSupportActionBar().setTitle("Login..");
+//        getSupportActionBar().setTitle("Login..");
         initFields();
         attachListeners();
 
@@ -130,22 +130,25 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 .orderByChild("number").equalTo(number).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    sendToPhoneAuhUI(number);
+                if (LoginActivity.this != null) {
+                    if (dataSnapshot.exists()) {
+                        sendToPhoneAuhUI(number);
 
-                } else {
-                    wrongInputAlertTextView.setText("the number provided is not registered please tap register to create an account");
-                    wrongInputAlertTextView.setVisibility(View.VISIBLE);
-                    mAlertDialog.dismiss();
+                    } else {
+                        wrongInputAlertTextView.setText("the number provided is not registered please tap register to create an account");
+                        wrongInputAlertTextView.setVisibility(View.VISIBLE);
+                        mAlertDialog.dismiss();
 
+                    }
+                    loginButton.setEnabled(true);
+                    signupButton.setEnabled(true);
                 }
-                loginButton.setEnabled(true);
-                signupButton.setEnabled(true);
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                mAlertDialog.dismiss();
+                if (LoginActivity.this != null)
+                    mAlertDialog.dismiss();
             }
         });
     }
@@ -187,22 +190,24 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     .child("type").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    String userType = dataSnapshot.getValue(String.class);
-                    if (userType != null && userType.equals("producer")) {
-                        //            showProgressBar(false);
-                        startActivity(new Intent(LoginActivity.this, ProducerNavMapActivity.class));
-                        mAlertDialog.dismiss();
-                        finish();
-                    } else if (userType != null && userType.equals("consumer")) {
-                        //          showProgressBar(false);
-                        startActivity(new Intent(LoginActivity.this, ConsumerDashBoardActivity.class));
+                    if (LoginActivity.this != null) {
+                        String userType = dataSnapshot.getValue(String.class);
+                        if (userType != null && userType.equals("producer")) {
+                            //            showProgressBar(false);
+                            startActivity(new Intent(LoginActivity.this, ProducerNavMapActivity.class));
+                            mAlertDialog.dismiss();
+                            finish();
+                        } else if (userType != null && userType.equals("consumer")) {
+                            //          showProgressBar(false);
+                            startActivity(new Intent(LoginActivity.this, ConsumerDashBoardActivity.class));
 
-                        mAlertDialog.dismiss();
-                        finish();
-                    } else {
-                        mAlertDialog.dismiss();
-                        Toast.makeText(LoginActivity.this, "some error accured please restart the application", Toast.LENGTH_SHORT).show();
+                            mAlertDialog.dismiss();
+                            finish();
+                        } else {
+                            mAlertDialog.dismiss();
+                            Toast.makeText(LoginActivity.this, "some error accured please restart the application", Toast.LENGTH_SHORT).show();
 
+                        }
                     }
                 }
 

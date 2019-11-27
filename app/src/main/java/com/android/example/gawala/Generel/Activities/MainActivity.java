@@ -51,13 +51,10 @@ public class MainActivity extends AppCompatActivity {
             progressBar.setVisibility(View.GONE);
             alertContanerLieanrLayout.setVisibility(View.VISIBLE);
             alertContanerLieanrLayout.findViewById(R.id.bt_main_refresh)
-                    .setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            finish();
-                            startActivity(getIntent());
+                    .setOnClickListener(v -> {
+                        finish();
+                        startActivity(getIntent());
 
-                        }
                     });
             Toast.makeText(this, "please check your internet connection", Toast.LENGTH_SHORT).show();
         }
@@ -80,20 +77,24 @@ public class MainActivity extends AppCompatActivity {
                     .child("type").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    String userType = dataSnapshot.getValue(String.class);
-                    if (userType != null && userType.equals("producer")) {
-                        //            showProgressBar(false);
-                        startActivity(new Intent(MainActivity.this, ProducerNavMapActivity.class));
-                        finish();
-                    } else if (userType != null && userType.equals("consumer")) {
-                        //          showProgressBar(false);
-                        startActivity(new Intent(MainActivity.this, ConsumerDashBoardActivity.class));
-                        finish();
-                    } else {
-                        Toast.makeText(MainActivity.this, "some error accured please restart the application", Toast.LENGTH_SHORT).show();
+                    if (MainActivity.this != null) {
+                        String userType = dataSnapshot.getValue(String.class);
+                        if (userType != null && userType.equals("producer")) {
+                            //            showProgressBar(false);
+                            startActivity(new Intent(MainActivity.this, ProducerNavMapActivity.class));
+                            finish();
+                        } else if (userType != null && userType.equals("consumer")) {
+                            //          showProgressBar(false);
+                            startActivity(new Intent(MainActivity.this, ConsumerDashBoardActivity.class));
+                            finish();
+                        } else {
+                            Toast.makeText(MainActivity.this, "some error accured please restart the application", Toast.LENGTH_SHORT).show();
 
+
+                        }
                     }
                 }
+
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
@@ -122,13 +123,17 @@ public class MainActivity extends AppCompatActivity {
 //  done!!! fifth add option to let the user decide dates on a calender on which he/she does not want the delivery and it should be reversible just in case
 //  done!!! allow the consumer only to edit his location , remove option from provider
 //  here ???
-//  later second3 we let the provider decide an approximate radius or polyline in which he will deliver its services still if it gets request that covers an area where producer is not willing to deliver then he can simply reject the request of client
+//  done !!! later seventh improve UI and add extra animation features if time
 //  later third we add repeated notifications for the approaching provider to the consumer with in the time or distance consumer wants the notificatiosn to be delivered
 //      logic for third can be that we have a fixed number of notification to be send each be represented by integer and each time a variable is set/incremented that defines whihc notfifications conition is required to be checked and how many are already sent
 //      e.g. 0 represents no notification sent,1 represent initial notification is sent 2 represents half way notification is sent , 3 represents 5 minutes for approach etc
 //      repeated notifications can have a number of user options e.g. frequency, volume, tune selection , caller like activity alert  for final alert that has a mute option init
-//  later seventh improve UI and add extra animation features if time
 
-
-
-
+// TODO: 11/23/2019 now latest
+//  done !!!! 1) add pictures to the profiles and products add picture to the producer details activty and the to the services
+//  3) make the records summery more robust like an option to fetch the monthly or yearly summery can also add the payment recived or not module also
+//  4) show customers in real time that the request is accepted or rejected
+//  5) make record of all notifitcations for both consumers and producers
+//  6) before starting the ride. Producer should be able to see what he has to carry in dashboard fragment. the name can also be changed
+//  7) you must make the ride up and running in background
+//  2) later  take the repetitive notiofications module take haelp from the previous hints that were created by you few lines above in previous to do

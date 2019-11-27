@@ -48,19 +48,16 @@ public final class ProducerFirebaseHelper {
                 .push();
         String good_id = currentGoogRef.getKey();
         goodModel.setId(good_id);
-        currentGoogRef.setValue(goodModel).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    if (activity != null) {
-                        Toast.makeText(activity, "product added successfully", Toast.LENGTH_SHORT).show();
-                        activity.finish();
-                    }
-
-                } else {
-                    if (activity != null)
-                        Toast.makeText(activity, "Some error accured, product was not added", Toast.LENGTH_SHORT).show();
+        currentGoogRef.setValue(goodModel).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                if (activity != null) {
+                    Toast.makeText(activity, "product added successfully", Toast.LENGTH_SHORT).show();
+                    activity.finish();
                 }
+
+            } else {
+                if (activity != null)
+                    Toast.makeText(activity, "Some error accured, product was not added", Toast.LENGTH_SHORT).show();
             }
         });
 

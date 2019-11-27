@@ -5,6 +5,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -39,6 +40,8 @@ public class DaysOffActivity extends AppCompatActivity implements View.OnClickLi
     private List<EventDay> eventDayArrayList;
     private Button editDaysOffbutton, resetcalendarButton;
     private AlertDialog mAlertDialog;
+    private ValueEventListener mDaysOffListener;
+    private DatabaseReference offDaysNodeRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +50,17 @@ public class DaysOffActivity extends AppCompatActivity implements View.OnClickLi
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         initFields();
         attachListeners();
-        loadPreviouslySetDaysOff();
+        setDaysOffListener();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
     }
 
     private void initFields() {
@@ -64,16 +77,8 @@ public class DaysOffActivity extends AppCompatActivity implements View.OnClickLi
                 showCalenderDatepickerDialog();
             }
         });
-        initializeDialog();
-    }
-
-    private void attachListeners() {
-        editDaysOffbutton.setOnClickListener(this);
-        resetcalendarButton.setOnClickListener(this);
-    }
-
-    private void loadPreviouslySetDaysOff() {
-        rootRef.child("days_off").child(myId).child("days").addValueEventListener(new ValueEventListener() {
+        offDaysNodeRef = rootRef.child("days_off").child(myId).child("days");
+        mDaysOffListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
@@ -89,13 +94,29 @@ public class DaysOffActivity extends AppCompatActivity implements View.OnClickLi
                     calendarView.setSelectedDates(daysOffList);
                     calendarView.setEvents(eventDayArrayList);
                 } else
-                    Toast.makeText(DaysOffActivity.this, "no data found", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "no data found", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
             }
-        });
+        };
+        initializeDialog();
+    }
+
+    private void attachListeners() {
+        editDaysOffbutton.setOnClickListener(this);
+        resetcalendarButton.setOnClickListener(this);
+    }
+
+    private void setDaysOffListener() {
+        offDaysNodeRef.addValueEventListener(mDaysOffListener);
+    }
+
+    @Override
+    protected void onDestroy() {
+        offDaysNodeRef.removeEventListener(mDaysOffListener);
+        super.onDestroy();
     }
 
     @Override
@@ -183,10 +204,10 @@ public class DaysOffActivity extends AppCompatActivity implements View.OnClickLi
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
-                            Toast.makeText(DaysOffActivity.this, "Successfully updated the off delivery days", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "Successfully updated the off delivery days", Toast.LENGTH_SHORT).show();
 
                         } else {
-                            Toast.makeText(DaysOffActivity.this, "ERROR: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "ERROR: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                         }
                         mAlertDialog.cancel();
                     }
@@ -199,17 +220,19 @@ public class DaysOffActivity extends AppCompatActivity implements View.OnClickLi
         rootRef.child("days_off").child(myId).child("days").removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    Toast.makeText(DaysOffActivity.this, "Successfully updated the off delivery days", Toast.LENGTH_SHORT).show();
-                    daysOffList.clear();
-                    eventDayArrayList.clear();
-                    calendarView.setSelectedDates(daysOffList);
-                    calendarView.setEvents(eventDayArrayList);
+                if (DaysOffActivity.this != null) {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(getApplicationContext(), "Successfully updated the off delivery days", Toast.LENGTH_SHORT).show();
+                        daysOffList.clear();
+                        eventDayArrayList.clear();
+                        calendarView.setSelectedDates(daysOffList);
+                        calendarView.setEvents(eventDayArrayList);
 
-                } else {
-                    Toast.makeText(DaysOffActivity.this, "ERROR: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "ERROR: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                    mAlertDialog.cancel();
                 }
-                mAlertDialog.cancel();
             }
         });
     }

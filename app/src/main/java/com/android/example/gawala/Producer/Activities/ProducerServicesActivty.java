@@ -23,6 +23,9 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 
+import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING;
+import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_IDLE;
+
 public class ProducerServicesActivty extends AppCompatActivity implements GoodsAdapter.CallBack {
     private FloatingActionButton addServiceButton;
     private DatabaseReference myGoodsRef;
@@ -96,13 +99,25 @@ public class ProducerServicesActivty extends AppCompatActivity implements GoodsA
     }
 
     private void atachListeners() {
-        addServiceButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(ProducerServicesActivty.this, ProducerAddServiceActivity.class));
-            }
-        });
+        addServiceButton.setOnClickListener(v -> startActivity(new Intent(ProducerServicesActivty.this, ProducerAddServiceActivity.class)));
 
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if ((newState == SCROLL_STATE_IDLE /*|| newState == SCROLL_STATE_SETTLING*/)/* && addServiceButton.getVisibility() != View.VISIBLE*/)
+                    addServiceButton.show();
+                else if (newState == SCROLL_STATE_DRAGGING && addServiceButton.getVisibility() == View.VISIBLE)
+                    addServiceButton.hide();
+                /*if ((!recyclerView.canScrollVertically(1) || !recyclerView.canScrollVertically(-1))
+                        && addServiceButton.getVisibility() != View.VISIBLE) {
+                    addServiceButton.show();
+
+                }*/
+            }
+
+
+        });
 
     }
 
@@ -116,6 +131,7 @@ public class ProducerServicesActivty extends AppCompatActivity implements GoodsA
     protected void onStop() {
         myGoodsRef.removeEventListener(goodsListListener);
         goodModelArrayList.clear();
+        goodsAdapter.notifyDataSetChanged();
         super.onStop();
     }
 
@@ -126,14 +142,15 @@ public class ProducerServicesActivty extends AppCompatActivity implements GoodsA
         intent.putExtra("goods_model", currentModel);
         startActivity(intent);
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
 
-        if (item.getItemId()==android.R.id.home){
+        if (item.getItemId() == android.R.id.home) {
             onBackPressed();
             return true;
-        }else {
+        } else {
             return super.onOptionsItemSelected(item);
 
         }

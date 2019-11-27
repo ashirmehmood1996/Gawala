@@ -66,31 +66,33 @@ public class NotificationsActivity extends AppCompatActivity implements Notifica
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
-                            notificationModelArrayList.clear();
-                            for (DataSnapshot notificationsSnap : dataSnapshot.getChildren()) {
-                                String senderId = notificationsSnap.getKey();
-                                for (DataSnapshot childNotiiftionSnap : notificationsSnap.getChildren()) {
-                                    String notificationId = childNotiiftionSnap.getKey();
-                                    String title = childNotiiftionSnap.child("title").getValue(String.class);
-                                    String message = childNotiiftionSnap.child("message").getValue(String.class);
-                                    String timeStamp = childNotiiftionSnap.child("time_stamp").getValue(String.class);//this may be null so deal bufddy
-                                    String type = childNotiiftionSnap.child("type").getValue(String.class);
-                                    NotificationModel notificationModel = new NotificationModel(notificationId, senderId, title, type, message, timeStamp);
-                                    notificationModelArrayList.add(notificationModel);
+                        if (NotificationsActivity.this != null) {
+                            if (dataSnapshot.exists()) {
+                                notificationModelArrayList.clear();
+                                for (DataSnapshot notificationsSnap : dataSnapshot.getChildren()) {
+                                    String senderId = notificationsSnap.getKey();
+                                    for (DataSnapshot childNotiiftionSnap : notificationsSnap.getChildren()) {
+                                        String notificationId = childNotiiftionSnap.getKey();
+                                        String title = childNotiiftionSnap.child("title").getValue(String.class);
+                                        String message = childNotiiftionSnap.child("message").getValue(String.class);
+                                        String timeStamp = childNotiiftionSnap.child("time_stamp").getValue(String.class);//this may be null so deal bufddy
+                                        String type = childNotiiftionSnap.child("type").getValue(String.class);
+                                        NotificationModel notificationModel = new NotificationModel(notificationId, senderId, title, type, message, timeStamp);
+                                        notificationModelArrayList.add(notificationModel);
+                                    }
                                 }
-                            }
-                            notificationsAdapter.notifyDataSetChanged();
-                        } else {
-                            Toast.makeText(NotificationsActivity.this, "No notifications yet", Toast.LENGTH_SHORT).show();
+                                notificationsAdapter.notifyDataSetChanged();
+                            } else {
+                                Toast.makeText(NotificationsActivity.this, "No notifications yet", Toast.LENGTH_SHORT).show();
 
+                            }
+                            if (notificationModelArrayList.size() == 0) {
+                                emptyViewcontainer.setVisibility(View.VISIBLE);
+                            } else {
+                                emptyViewcontainer.setVisibility(View.GONE);
+                            }
+                            mAlertDialog.cancel();
                         }
-                        if (notificationModelArrayList.size() == 0) {
-                            emptyViewcontainer.setVisibility(View.VISIBLE);
-                        } else {
-                            emptyViewcontainer.setVisibility(View.GONE);
-                        }
-                        mAlertDialog.cancel();
                     }
 
                     @Override
