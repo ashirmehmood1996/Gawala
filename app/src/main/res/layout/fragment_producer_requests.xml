@@ -1,60 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:background="#ffffff"
-    android:paddingTop="@dimen/top_margin_nav_prod_map"
-    android:layout_height="match_parent"
-    tools:context=".Producer.Fragments.ProducerClientsRequestsFragment">
+    android:layout_height="wrap_content"
+    android:layout_alignParentTop="true"
+    android:orientation="vertical"
+    tools:context=".Producer.Fragments.ProducerClientsFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:orientation="vertical">
+        android:background="#000"
+        android:elevation="4dp"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/tv_pro_requests_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="#000"
+            android:padding="10dp"
+            android:src="@drawable/ic_keyboard_backspace_white_24dp" />
 
         <TextView
-            android:id="@+id/tv_pro_new_requests"
-            android:layout_width="match_parent"
-            android:elevation="4dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@color/colorPrimary"
-            android:layout_margin="2dp"
-            android:paddingLeft="16dp"
-            android:paddingTop="16dp"
-            android:paddingRight="16dp"
-            android:paddingBottom="4dp"
-            android:text="New Requests"
-            android:textColor="#ffffff"
-            android:textSize="18sp" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_pro_request"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/tv_pro_clients"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/colorPrimary"
-            android:paddingLeft="16dp"
-            android:paddingTop="16dp"
-            android:paddingRight="16dp"
-            android:paddingBottom="4dp"
+            android:layout_centerInParent="true"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:padding="16dp"
             android:text="Clients"
-            android:layout_margin="2dp"
-            android:elevation="4dp"
-            android:textColor="#ffffff"
-            android:textSize="18sp" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_pro_consumers"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:textColor="#fff"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
 
 
-</RelativeLayout>
+    <TextView
+        android:id="@+id/tv_pro_new_requests"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="2dp"
+        android:background="@color/colorPrimary"
+        android:elevation="4dp"
+        android:paddingLeft="16dp"
+        android:paddingTop="16dp"
+        android:paddingRight="16dp"
+        android:paddingBottom="4dp"
+        android:text="New Requests"
+        android:textColor="#ffffff"
+        android:textSize="18sp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_pro_request"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/tv_pro_clients"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="2dp"
+        android:background="@color/colorPrimary"
+        android:elevation="4dp"
+        android:paddingLeft="16dp"
+        android:paddingTop="16dp"
+        android:paddingRight="16dp"
+        android:paddingBottom="4dp"
+        android:text="Clients"
+        android:textColor="#ffffff"
+        android:textSize="18sp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_pro_consumers"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>
+
+

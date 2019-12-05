@@ -21,7 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.example.gawala.Generel.AsyncTasks.GeoCoderAsyncTask;
-import com.android.example.gawala.Producer.Fragments.FullScreenEditCitiesFragment;
+import com.android.example.gawala.Producer.Fragments.EditCitiesFragment;
 import com.android.example.gawala.Producer.Models.CityModel;
 import com.android.example.gawala.R;
 import com.bumptech.glide.Glide;
@@ -45,7 +45,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class PersonalInfoActivity extends AppCompatActivity implements FullScreenEditCitiesFragment.Callback {
+public class PersonalInfoActivity extends AppCompatActivity implements EditCitiesFragment.Callback {
     private static final int RC_SET_DELIVERY_LOCATION = 121;
     private static final String DIALOG_EDIT_CITIES = "dialogFragment";
     private TextView nameTextView, numberTextView, locationTextView, typeTextView;
@@ -201,11 +201,11 @@ public class PersonalInfoActivity extends AppCompatActivity implements FullScree
 
     private void showEditDeliveryAreasDialog() {
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        FullScreenEditCitiesFragment dialogFragmentPrev = (FullScreenEditCitiesFragment) getSupportFragmentManager().findFragmentByTag(DIALOG_EDIT_CITIES);
+        EditCitiesFragment dialogFragmentPrev = (EditCitiesFragment) getSupportFragmentManager().findFragmentByTag(DIALOG_EDIT_CITIES);
         if (dialogFragmentPrev != null) {
             fragmentTransaction.remove(dialogFragmentPrev);
         }
-        FullScreenEditCitiesFragment dialogFragment = FullScreenEditCitiesFragment.getInmstance();
+        EditCitiesFragment dialogFragment = EditCitiesFragment.getInmstance();
         dialogFragment.setCallback(this);
         dialogFragment.show(fragmentTransaction, DIALOG_EDIT_CITIES);
     }

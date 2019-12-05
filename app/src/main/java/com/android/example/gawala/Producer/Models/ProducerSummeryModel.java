@@ -1,29 +1,29 @@
 package com.android.example.gawala.Producer.Models;
 
-import com.android.example.gawala.Generel.Models.ClientSummery;
+import com.android.example.gawala.Generel.Models.ClientSummeryModel;
 
 import java.util.ArrayList;
 
 public class ProducerSummeryModel {
     private String sessionID;
     private long timeStamp;
-    private ArrayList<ClientSummery> clientSummeryArrayList;
+    private ArrayList<ClientSummeryModel> clientSummeryModelArrayList;
     //    private float totalMilkVolume;
     private float totalAmount;
 
-    public ProducerSummeryModel(String sessionID, long timeStamp, ArrayList<ClientSummery> clientSummeryArrayList) {
+    public ProducerSummeryModel(String sessionID, long timeStamp, ArrayList<ClientSummeryModel> clientSummeryModelArrayList) {
         this.sessionID = sessionID;
 
         this.timeStamp = timeStamp;
-        this.clientSummeryArrayList = clientSummeryArrayList;
+        this.clientSummeryModelArrayList = clientSummeryModelArrayList;
 
         this.totalAmount = calculateTalAmount();
     }
 
     private float calculateTalAmount() {
         float totalAmount = 0;
-        for (ClientSummery clientSummery : clientSummeryArrayList){
-            totalAmount+= clientSummery.getTotalCost();
+        for (ClientSummeryModel clientSummeryModel : clientSummeryModelArrayList){
+            totalAmount+= clientSummeryModel.getTotalCost();
         }
         return totalAmount;
     }
@@ -37,8 +37,8 @@ public class ProducerSummeryModel {
         return timeStamp;
     }
 
-    public ArrayList<ClientSummery> getClientSummeryArrayList() {
-        return clientSummeryArrayList;
+    public ArrayList<ClientSummeryModel> getClientSummeryModelArrayList() {
+        return clientSummeryModelArrayList;
     }
 
 

@@ -25,7 +25,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
-    private LinearLayout alertContanerLieanrLayout;
+    private LinearLayout alertContainerLieanrLayout;
     private ProgressBar progressBar;
 
     @Override
@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        alertContanerLieanrLayout = findViewById(R.id.ll_main_alert_container);
+        alertContainerLieanrLayout = findViewById(R.id.ll_main_alert_container);
         progressBar = findViewById(R.id.pb_main);
 
     }
@@ -49,8 +49,8 @@ public class MainActivity extends AppCompatActivity {
             }
         } else {
             progressBar.setVisibility(View.GONE);
-            alertContanerLieanrLayout.setVisibility(View.VISIBLE);
-            alertContanerLieanrLayout.findViewById(R.id.bt_main_refresh)
+            alertContainerLieanrLayout.setVisibility(View.VISIBLE);
+            alertContainerLieanrLayout.findViewById(R.id.bt_main_refresh)
                     .setOnClickListener(v -> {
                         finish();
                         startActivity(getIntent());
@@ -131,9 +131,14 @@ public class MainActivity extends AppCompatActivity {
 
 // TODO: 11/23/2019 now latest
 //  done !!!! 1) add pictures to the profiles and products add picture to the producer details activty and the to the services
-//  3) make the records summery more robust like an option to fetch the monthly or yearly summery can also add the payment recived or not module also
-//  4) show customers in real time that the request is accepted or rejected
-//  5) make record of all notifitcations for both consumers and producers
-//  6) before starting the ride. Producer should be able to see what he has to carry in dashboard fragment. the name can also be changed
-//  7) you must make the ride up and running in background
-//  2) later  take the repetitive notiofications module take haelp from the previous hints that were created by you few lines above in previous to do
+//  4) !!! done show customers in real time that the request is accepted or rejected
+//  6) !!! done before starting the ride. Producer should be able to see what he has to carry in dashboard fragment. the name can also be changed
+//  8) !!! done set the manage vacations disable issue
+//  9) improve the UI i.e. add animations plus fine tune coloring add Image to makers
+//  2) later  take the repetitive notiofications module take help from the previous hints that were created by you few lines above in previous to do
+//  5) later  make record of all notifitcations for both consumers and producers
+//  7) later  you must make the ride up and running in background
+//  3) !!? partially done make the records summery more robust like an option to fetch the monthly or yearly summery can also add the payment recived or not module also
+//  10) make the notification batch working and to other places like notification button and app oicon too
+
+

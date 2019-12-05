@@ -14,6 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
@@ -34,11 +35,14 @@ import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 import com.android.example.gawala.Generel.Models.GoodModel;
 import com.android.example.gawala.Generel.Utils.SharedPreferenceUtil;
 import com.android.example.gawala.Producer.Adapters.AciveRideStopsAdaper;
-import com.android.example.gawala.Producer.Fragments.ProducerSettingsDialogFragment;
+import com.android.example.gawala.Producer.Fragments.ProducerClientsFragment;
+import com.android.example.gawala.Producer.Fragments.ProducerRideInfoFragment;
+import com.android.example.gawala.Producer.Fragments.ProducerSettingsFragment;
+import com.android.example.gawala.Producer.Fragments.ProducerSummeryItemDetailsFragment;
 import com.android.example.gawala.Producer.Models.ConsumerModel;
-import com.android.example.gawala.Producer.Fragments.ProducerClientsRequestsFragment;
 import com.android.example.gawala.Producer.Interfaces.LatLngInterpolator;
 import com.android.example.gawala.Producer.Models.DistanceMatrixModel;
+import com.android.example.gawala.Producer.Models.ProducerSummeryModel;
 import com.android.example.gawala.Producer.Utils.DistanceMatrixAsyncTask;
 import com.android.example.gawala.Producer.Utils.ProducerFirebaseHelper;
 import com.android.example.gawala.Producer.Utils.HttpRequestHelper;
@@ -46,7 +50,6 @@ import com.android.example.gawala.Producer.Utils.UrlGenrator;
 import com.android.example.gawala.Generel.Utils.UtilsMessaging;
 import com.android.example.gawala.Producer.directionhelpers.FetchURL;
 import com.android.example.gawala.Producer.directionhelpers.TaskLoadedCallback;
-import com.android.example.gawala.Producer.Fragments.ProducerDashBoardFragment;
 import com.android.example.gawala.Producer.Fragments.ProducerSummeryFragment;
 import com.android.example.gawala.R;
 import com.bumptech.glide.Glide;
@@ -82,12 +85,12 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
-import androidx.appcompat.app.ActionBarDrawerToggle;
 
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.util.Property;
+import android.view.Gravity;
 import android.view.MenuItem;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -101,19 +104,21 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.mikhaellopez.circularimageview.CircularImageView;
 
+import androidx.core.view.MenuItemCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -123,16 +128,18 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 
+import static androidx.annotation.Dimension.SP;
+
 
 public class ProducerNavMapActivity extends AppCompatActivity
         implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener,
-        ProducerDashBoardFragment.Callbacks, TaskLoadedCallback/*,
-        ProducerClientsRequestsFragment.CallBacks */ {
+        ProducerRideInfoFragment.Callbacks, TaskLoadedCallback/*,
+        ProducerClientsFragment.CallBacks */ {
 
     private Uri mPhotoImageUri = null;
     private static final int RC_SET_DELIVERY_LOCATION = 102;
     private final int RC_LOCAION_ON = 101;
-    private final String PRODUCER_DASHBOARD_FRAGMENT_TAG = "ProducerDashBoardFragment";
+    private final String PRODUCER_DASHBOARD_FRAGMENT_TAG = "ProducerRideInfoFragment";
     private final String SUMMERY_FRAGMENT_TAG = "SummeryProducerTag";
     private String PRODUCER_CLIENT_REQUEST_FRAGMENT_TAG = "ProducerClientRequestFragment";
     private final int RC_PERMISSION_ALL = 100;
@@ -160,6 +167,10 @@ public class ProducerNavMapActivity extends AppCompatActivity
     private boolean shouldDrawfullRoute = true;
     public static int activeStopPosition = 0;
 
+    private int notificationsCount = 0;
+    private RelativeLayout drawerToggleMenuIconRelativeLayout;
+    private TextView notificationsCounterTextView;
+    private TextView counterActionViewTextView;
     private Button deliveredToCurrentStopButton;
     //    private View journyInfoContainer;
     private TextView distanceTextView, speedTextView, timeTextView;
@@ -178,13 +189,12 @@ public class ProducerNavMapActivity extends AppCompatActivity
     private String myID;
     private static final String TAG = "ProducerMap";
     private ArrayList<ConsumerModel> mActiveRideArrayList;
-    private AlertDialog mAlertDialog;
+    private AlertDialog mProgressDialog;
 
     private TextToSpeech textToSpeech;
     private String DIALOG_Settings = "dialogSettings";
     private DatabaseReference myLocationNodeRef;
     private ValueEventListener mMyLocationNodelListener;
-
 
     private CircularImageView profileCircularImageView;
     private TextView nameTextView, numberTextView;
@@ -193,7 +203,6 @@ public class ProducerNavMapActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_producer_map);
-
         initFields();
         attachListeners();
         if (!hasPermissions(this, PERMISSIONS)) {
@@ -319,15 +328,15 @@ public class ProducerNavMapActivity extends AppCompatActivity
         };
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        Toolbar toolbar = findViewById(R.id.tb_producer_nav);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("Map");
+//        Toolbar toolbar = findViewById(R.id.tb_producer_nav);
+//        setSupportActionBar(toolbar);
+//        getSupportActionBar().setTitle("Map");
         drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
+//        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+//                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+//        drawer.addDrawerListener(toggle);
+//        toggle.syncState();
         navigationView.setNavigationItemSelectedListener(this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -354,6 +363,19 @@ public class ProducerNavMapActivity extends AppCompatActivity
         initBottomSheet();
         initializeDialog();
 
+        //for counter in drawer menu
+        counterActionViewTextView = (TextView) MenuItemCompat.getActionView(navigationView.getMenu().
+                findItem(R.id.nav_producer_map_clients));
+        setUpCounterLayout();
+    }
+
+    private void setUpCounterLayout() {
+        counterActionViewTextView.setText("9+");
+//        counterActionViewTextView.setBackground(getResources().getDrawable(R.drawable.round_circle_red));
+        counterActionViewTextView.setGravity(Gravity.CENTER);
+        counterActionViewTextView.setTextColor(Color.RED);
+        counterActionViewTextView.setTextSize(SP, 16);
+        counterActionViewTextView.setTypeface(Typeface.DEFAULT_BOLD);
 
     }
 
@@ -380,12 +402,15 @@ public class ProducerNavMapActivity extends AppCompatActivity
 //        abortJournyButton = findViewById(R.id.bt_prod_abort_journy);
         deliveredToCurrentStopButton = findViewById(R.id.bt_prod_delivered_to_current_stop);
         setBottomSheetCallBacks();
+        drawerToggleMenuIconRelativeLayout = findViewById(R.id.rl_producer_nav_menu_icon_container);
+        notificationsCounterTextView = findViewById(R.id.tv_producer_nav_menu_icon_counter);
+
 
     }
 
     private void initializeDialog() {
         LinearLayout alertDialog = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_progress, null);
-        this.mAlertDialog = new AlertDialog.Builder(this).setView(alertDialog).setCancelable(false).create();
+        this.mProgressDialog = new AlertDialog.Builder(this).setView(alertDialog).setCancelable(false).create();
     }
 
     private void setBottomSheetCallBacks() {
@@ -398,7 +423,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
                 switch (newState) {
 
                     case BottomSheetBehavior.STATE_HIDDEN:
-                        mMap.setPadding(0, 150, 0, 0);
+                        mMap.setPadding(0, 0, 0, 0);
                         break;
 
                     case BottomSheetBehavior.STATE_EXPANDED:
@@ -407,7 +432,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
                         break;
 
                     case BottomSheetBehavior.STATE_COLLAPSED:
-                        mMap.setPadding(0, 150, 0, bottomSheetBehavior.getPeekHeight());
+                        mMap.setPadding(0, 0, 0, bottomSheetBehavior.getPeekHeight());
                         toggleImageButton.setImageResource(R.drawable.ic_keyboard_arrow_up_black_24dp);
                         break;
 
@@ -436,6 +461,9 @@ public class ProducerNavMapActivity extends AppCompatActivity
 //                abortJourny();
 //            }
 //        });
+        drawerToggleMenuIconRelativeLayout.setOnClickListener(v -> {
+            drawer.openDrawer(Gravity.LEFT);
+        });
 
         deliveredToCurrentStopButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -663,13 +691,13 @@ public class ProducerNavMapActivity extends AppCompatActivity
             drawer.closeDrawer(GravityCompat.START);
         } else if (mFragmentManager.findFragmentByTag(PRODUCER_DASHBOARD_FRAGMENT_TAG) != null) {
             mFragmentManager.beginTransaction().remove(mFragmentManager.findFragmentByTag(PRODUCER_DASHBOARD_FRAGMENT_TAG)).commit();
-            getSupportActionBar().setTitle("Map");
+//            getSupportActionBar().setTitle("Map");
         } else if (mFragmentManager.findFragmentByTag(PRODUCER_CLIENT_REQUEST_FRAGMENT_TAG) != null) {
             mFragmentManager.beginTransaction().remove(mFragmentManager.findFragmentByTag(PRODUCER_CLIENT_REQUEST_FRAGMENT_TAG)).commit();
-            getSupportActionBar().setTitle("Map");
+//            getSupportActionBar().setTitle("Map");
         } else if (mFragmentManager.findFragmentByTag(SUMMERY_FRAGMENT_TAG) != null) {
             mFragmentManager.beginTransaction().remove(mFragmentManager.findFragmentByTag(SUMMERY_FRAGMENT_TAG)).commit();
-            getSupportActionBar().setTitle("Map");
+//            getSupportActionBar().setTitle("Map");
         } else {
             super.onBackPressed();
         }
@@ -688,39 +716,20 @@ public class ProducerNavMapActivity extends AppCompatActivity
                 }
                 break;
             case R.id.nav_producer_map_clients:
-
-                if (mFragmentManager.findFragmentByTag(PRODUCER_CLIENT_REQUEST_FRAGMENT_TAG) == null) {
-                    ProducerClientsRequestsFragment producerClientsRequestsFragment = ProducerClientsRequestsFragment.geInstance();
-//                    producerClientsRequestsFragment.setCallBacks(this);
-
-                    mFragmentManager.beginTransaction()
-                            .replace(R.id.frame_prod_map_fragment_container,
-                                    producerClientsRequestsFragment
-                                    , PRODUCER_CLIENT_REQUEST_FRAGMENT_TAG)
-                            .commit();
-                }
+                showClientsFragment();
                 break;
             case R.id.nav_producer_map_notifications:
                 startActivity(new Intent(this, NotificationsActivity.class));
                 break;
 
-            case R.id.nav_producer_map_dashboard:
-                if (mFragmentManager.findFragmentByTag(PRODUCER_DASHBOARD_FRAGMENT_TAG) == null) {
-                    this.mAlertDialog.show();
-                    checkIfConsumerIsOnVacation();
-                }
+            case R.id.nav_producer_map_client_info:
+//                if (mFragmentManager.findFragmentByTag(PRODUCER_DASHBOARD_FRAGMENT_TAG) == null) {
+                this.mProgressDialog.show();
+                checkIfConsumerIsOnVacation();
+//                }
                 break;
             case R.id.nav_producer_map_rides_summery:
-                if (mFragmentManager.findFragmentByTag(SUMMERY_FRAGMENT_TAG) == null) {
-                    ProducerSummeryFragment producerSummeryFragment = ProducerSummeryFragment.newInstance();
-
-
-                    mFragmentManager.beginTransaction()
-                            .replace(R.id.frame_prod_map_fragment_container,
-                                    producerSummeryFragment
-                                    , SUMMERY_FRAGMENT_TAG)
-                            .commit();
-                }
+                showSummeryFragment();
                 break;
             case R.id.nav_producer_my_services:
                 startActivity(new Intent(this, ProducerServicesActivty.class));
@@ -729,29 +738,64 @@ public class ProducerNavMapActivity extends AppCompatActivity
                 startActivity(new Intent(this, PersonalInfoActivity.class));
                 break;
             case R.id.nav_producer_map_settings:
-                FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-                ProducerSettingsDialogFragment producerSettingsDialogFragment = (ProducerSettingsDialogFragment) getSupportFragmentManager().findFragmentByTag(DIALOG_Settings);
-                if (producerSettingsDialogFragment != null) {
-                    fragmentTransaction.remove(producerSettingsDialogFragment);
-                }
-                ProducerSettingsDialogFragment dialogFragment = ProducerSettingsDialogFragment.getInstance();
-//        dialogFragment.setCallback(this);
-                dialogFragment.show(fragmentTransaction, DIALOG_Settings);
+                showSettingsFragment();
                 break;
+
         }
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
-    private void startDashBoardFragment() {
-        ProducerDashBoardFragment producerDashBoardFragment = ProducerDashBoardFragment.geInstance(mConsumerModelArrayList, "");
-        producerDashBoardFragment.setCallBacks(this);
+    private void showClientsFragment() {
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        ProducerClientsFragment producerClientsFragment =
+                (ProducerClientsFragment) getSupportFragmentManager().findFragmentByTag(PRODUCER_CLIENT_REQUEST_FRAGMENT_TAG);
+        if (producerClientsFragment != null) {
+            fragmentTransaction.remove(producerClientsFragment);
+        }
+        ProducerClientsFragment dialogFragment = ProducerClientsFragment.getInstance();
+//        dialogFragment.setCallback(this);
+        dialogFragment.show(fragmentTransaction, PRODUCER_CLIENT_REQUEST_FRAGMENT_TAG);
+    }
 
-        mFragmentManager.beginTransaction()
-                .replace(R.id.frame_prod_map_fragment_container,
-                        producerDashBoardFragment
-                        , PRODUCER_DASHBOARD_FRAGMENT_TAG)
-                .commit();
+    private void showSettingsFragment() {
+
+        FragmentTransaction fragmentTransaction1 = getSupportFragmentManager().beginTransaction();
+        ProducerSettingsFragment producerSettingsFragment = (ProducerSettingsFragment) getSupportFragmentManager().findFragmentByTag(DIALOG_Settings);
+        if (producerSettingsFragment != null) {
+            fragmentTransaction1.remove(producerSettingsFragment);
+        }
+        ProducerSettingsFragment dialogFragment1 = ProducerSettingsFragment.getInstance();
+//        dialogFragment.setCallback(this);
+        dialogFragment1.show(fragmentTransaction1, DIALOG_Settings);
+
+    }
+
+    private void showSummeryFragment() {
+
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        ProducerSummeryFragment producerSummeryFragment = (ProducerSummeryFragment) getSupportFragmentManager().findFragmentByTag(SUMMERY_FRAGMENT_TAG);
+        if (producerSummeryFragment != null) {
+            fragmentTransaction.remove(producerSummeryFragment);
+        }
+        ProducerSummeryFragment dialogFragment = ProducerSummeryFragment.newInstance();
+//        dialogFragment.setCallback(this);
+//        dialogFragment.setProducerSummeryModel(producerSummeryModel);
+        dialogFragment.show(fragmentTransaction, SUMMERY_FRAGMENT_TAG);
+
+    }
+
+    private void startRideInfoFragment() {
+
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        ProducerRideInfoFragment producerRideInfoFragment = (ProducerRideInfoFragment) getSupportFragmentManager().findFragmentByTag(PRODUCER_DASHBOARD_FRAGMENT_TAG);
+        if (producerRideInfoFragment != null) {
+            fragmentTransaction.remove(producerRideInfoFragment);
+        }
+        ProducerRideInfoFragment dialogFragment = ProducerRideInfoFragment.geInstance(mActiveRideArrayList);
+        dialogFragment.setCallBacks(this);
+//        dialogFragment.setCallback(this);
+        dialogFragment.show(fragmentTransaction, PRODUCER_DASHBOARD_FRAGMENT_TAG);
     }
 
     private void showLogoutAlertDialog() {
@@ -808,7 +852,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
         mMap.getUiSettings().setZoomControlsEnabled(true);
         //   mMap.getUiSettings().setCompassEnabled(true);
-        mMap.setPadding(0, 150, 0, 0); //todo this property may be pixed dependednt find a fix later
+        mMap.setPadding(0, 0, 0, 0); //todo this property may be pixed dependednt find a fix later
 
 
         createLocationRequest();
@@ -919,7 +963,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
 //                   // Show the dialog by calling startResolutionForResult(),
 //                   // and check the result in onActivityResult().
 ////                   ResolvableApiException resolvable = (ResolvableApiException) e;
-////                   resolvable.startResolutionForResult(ProducerClientsRequestsFragment.this,
+////                   resolvable.startResolutionForResult(ProducerClientsFragment.this,
 ////                           REQUEST_CHECK_SETTINGS);
 //               } catch (IntentSender.SendIntentException sendEx) {
 //                   // Ignore the error.
@@ -967,9 +1011,9 @@ public class ProducerNavMapActivity extends AppCompatActivity
         }
     }
 
-    private void loadAllConsumers() {
-
-
+    public void loadAllConsumers() {
+        mConsumerModelArrayList.clear();
+        mMap.clear();
         rootRef.child("clients").child(myID)//prodcuer id
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -1007,7 +1051,10 @@ public class ProducerNavMapActivity extends AppCompatActivity
                                                             new GeoCoderAsyncTask(ProducerNavMapActivity.this) {
                                                                 @Override
                                                                 protected void onPostExecute(Address address) {
-                                                                    consumerModel.setLocationName(address.getAddressLine(0));
+                                                                    if (address != null) {
+                                                                        consumerModel.setLocationName(address.getAddressLine(0));
+
+                                                                    }
                                                                     //call notify dataset cahnged if required
                                                                 }
                                                             }.execute(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)));
@@ -1044,18 +1091,32 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
                                 @Override
                                 protected void onPostExecute(Boolean aBoolean) {
+                                    mProgressDialog.dismiss();
                                     if (aBoolean) {
                                         Toast.makeText(getApplicationContext(), "all data is fetched", Toast.LENGTH_SHORT).show();
 
                                     } else {
 
                                     }
-                                    super.onPostExecute(aBoolean);
+
+                                    if (mFragmentManager.findFragmentByTag(PRODUCER_CLIENT_REQUEST_FRAGMENT_TAG) != null) {
+                                        ProducerClientsFragment producerClientsFragment = (ProducerClientsFragment) mFragmentManager.findFragmentByTag(PRODUCER_CLIENT_REQUEST_FRAGMENT_TAG);
+                                        if (producerClientsFragment.consumersAdapter != null) {
+                                            producerClientsFragment.consumersAdapter.notifyDataSetChanged();
+                                        }
+                                    }
                                 }
                             }.execute();
 
 
                         } else {
+                            if (mFragmentManager.findFragmentByTag(PRODUCER_CLIENT_REQUEST_FRAGMENT_TAG) != null) {
+                                ProducerClientsFragment producerClientsFragment = (ProducerClientsFragment) mFragmentManager.findFragmentByTag(PRODUCER_CLIENT_REQUEST_FRAGMENT_TAG);
+                                if (producerClientsFragment.consumersAdapter != null) {
+                                    producerClientsFragment.consumersAdapter.notifyDataSetChanged();
+                                }
+                            }
+                            mProgressDialog.dismiss();
                             Toast.makeText(ProducerNavMapActivity.this, "no clients were added", Toast.LENGTH_SHORT).show();
 
                         }
@@ -1227,33 +1288,54 @@ public class ProducerNavMapActivity extends AppCompatActivity
     @Override
     public void onStopMarkerItemClick(int position) {
         selectedStopPos = position;
-        if (mActiveRideArrayList.get(selectedStopPos).getLatitude() == null) {
+        if (mConsumerModelArrayList.get(selectedStopPos).getLatitude() == null) {
             Toast.makeText(this, "location for this consumer is not set", Toast.LENGTH_SHORT).show();
             return;
         }
 
         // FIXME: 9/10/2019 later change the logic
         mFragmentManager.beginTransaction().remove(mFragmentManager.findFragmentByTag(PRODUCER_DASHBOARD_FRAGMENT_TAG)).commit();
-        getSupportActionBar().setTitle("Map");
+//        getSupportActionBar().setTitle("Map");
         Double lat = Double.parseDouble(mActiveRideArrayList.get(position).getLatitude());
         Double lng = Double.parseDouble(mActiveRideArrayList.get(position).getLongitude());
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 16));
-        mActiveRideArrayList.get(position).getMarker().showInfoWindow();
+        mConsumerModelArrayList.get(position).getMarker().showInfoWindow();
     }
 
     @Override
-    public void onStartRiding() { // TODO: 10/17/2019 show here all the dstuuf needed to be delivered
+    public void onStartRiding(HashMap<String, Object> goodsToCarryHashMap) { // TODO: 10/17/2019 show here all the dstuuf needed to be delivered
         String mTotalMilkDemand = "xyz";
-        mFragmentManager.beginTransaction().remove(mFragmentManager.findFragmentByTag(PRODUCER_DASHBOARD_FRAGMENT_TAG)).commit();
         if (isjournyActive) {
             Snackbar.make(drawer, "you are already riding", Snackbar.LENGTH_LONG).show();
             return;
         }
         //dialog related
-        String message = "Total milk Volume : " + mTotalMilkDemand + "\n are you all set? Press Go to proceed";
+
+        LinearLayout goodsToCarryContainerLinearLayout = new LinearLayout(this);
+        goodsToCarryContainerLinearLayout.setOrientation(LinearLayout.VERTICAL);
+        goodsToCarryContainerLinearLayout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        goodsToCarryContainerLinearLayout.setPadding(16, 16, 16, 16);
+        for (String key : goodsToCarryHashMap.keySet()) {
+            HashMap<String, Object> subMap = (HashMap<String, Object>) goodsToCarryHashMap.get(key);
+            String name = (String) subMap.get("name");
+            String image = (String) subMap.get("image");
+            Integer demand = (Integer) subMap.get("demand");
+            LinearLayout linearLayout = (LinearLayout) getLayoutInflater().inflate(R.layout.li_good_to_carry, null);
+
+            ImageView imageView = linearLayout.findViewById(R.id.iv_li_good_to_carry_image);
+            TextView nameTextView = linearLayout.findViewById(R.id.tv_li_good_to_carry_name);
+            TextView demandTextView = linearLayout.findViewById(R.id.tv_li_good_to_carry_units);
+            Glide.with(this).load(image).into(imageView);
+            nameTextView.setText(name);
+            demandTextView.setText(String.format("%d item(s)", demand));
+            goodsToCarryContainerLinearLayout.addView(linearLayout);
+        }
+//        String message = "Total milk Volume : " + mTotalMilkDemand + "\n are you all set? Press Go to proceed";
+        String message = "Please make sure to check the following Item(s) with your self to avoid any in inconvenience.";
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Start Riding ?")
                 .setMessage(message)
+                .setView(goodsToCarryContainerLinearLayout)
                 .setPositiveButton("Go", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -1677,7 +1759,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
 
 
     private void fetchFrshy() {
-        mAlertDialog.show();
+        mProgressDialog.show();
         mActiveRideArrayList.clear();
         fetchFreshyfor(0);
 
@@ -1689,17 +1771,17 @@ public class ProducerNavMapActivity extends AppCompatActivity
     private void fetchFreshyfor(int position) {
         if (mConsumerModelArrayList.isEmpty()) { //if there are no consumers
             Toast.makeText(this, "you donot have any consumers connected", Toast.LENGTH_SHORT).show();
-            mAlertDialog.dismiss();
+            mProgressDialog.dismiss();
             return;
         }
 
         if (position >= mConsumerModelArrayList.size()) { // if this is the beyond last consumer
-            startDashBoardFragment();
-            mAlertDialog.dismiss();
+            startRideInfoFragment();
+            mProgressDialog.dismiss();
             return;
         }
 //        if (mConsumerModelArrayList.size() == position + 1) { // if this is the last consumer
-//            startDashBoardFragment();
+//            startRideInfoFragment();
 //            return;
 //        }
         ConsumerModel consumerModel = mConsumerModelArrayList.get(position);
@@ -1782,7 +1864,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
                                     protected void onPostExecute(Boolean aBoolean) {
 
 
-                                        fetchFreshyfor(position+1);
+                                        fetchFreshyfor(position + 1);
                                     }
                                 }.execute();
 
@@ -1811,16 +1893,16 @@ public class ProducerNavMapActivity extends AppCompatActivity
 //                                if (!consumerModel.hasDemand()) {
 //                                    mActiveRideArrayList.remove(consumerModel);
 //                                    if ((mConsumerModelArrayList.size() == finalI + 1)) {
-//                                        startDashBoardFragment();
-//                                        mAlertDialog.dismiss();
+//                                        startRideInfoFragment();
+//                                        mProgressDialog.dismiss();
 //                                        Toast.makeText(ProducerNavMapActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
 //                                    }
 //                                }
 ////                                acquiredGoodsAdapter.notifyDataSetChanged();
 //                            } else {
 //                                if ((mConsumerModelArrayList.size() == finalI + 1)) {
-//                                    startDashBoardFragment();
-//                                    mAlertDialog.dismiss();
+//                                    startRideInfoFragment();
+//                                    mProgressDialog.dismiss();
 //                                    Toast.makeText(ProducerNavMapActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
 //                                }
 //
@@ -1856,8 +1938,8 @@ public class ProducerNavMapActivity extends AppCompatActivity
             final ConsumerModel consumerModel = mConsumerModelArrayList.get(i);//this loop will get demand for each consumer
             if (consumerModel.isOnVacation()) {//if this consumer is on vacation then no need to fetch dat for this consumer
                 if (i == mConsumerModelArrayList.size() - 1) {
-                    startDashBoardFragment();
-                    mAlertDialog.dismiss();
+                    startRideInfoFragment();
+                    mProgressDialog.dismiss();
                 }
                 continue;
             }
@@ -1893,16 +1975,16 @@ public class ProducerNavMapActivity extends AppCompatActivity
                                 if (!consumerModel.hasDemand()) {
                                     mActiveRideArrayList.remove(consumerModel);
                                     if ((mConsumerModelArrayList.size() == finalI + 1)) {
-                                        startDashBoardFragment();
-                                        mAlertDialog.dismiss();
+                                        startRideInfoFragment();
+                                        mProgressDialog.dismiss();
                                         Toast.makeText(ProducerNavMapActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
                                     }
                                 }
 //                                acquiredGoodsAdapter.notifyDataSetChanged();
                             } else {
                                 if ((mConsumerModelArrayList.size() == finalI + 1)) {
-                                    startDashBoardFragment();
-                                    mAlertDialog.dismiss();
+                                    startRideInfoFragment();
+                                    mProgressDialog.dismiss();
                                     Toast.makeText(ProducerNavMapActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
                                 }
 
@@ -1913,7 +1995,7 @@ public class ProducerNavMapActivity extends AppCompatActivity
                         @Override
                         public void onCancelled(@NonNull DatabaseError databaseError) {
 //                            Toast.makeText(AcquiredGoodsActivity.this, String.format("fetching Services step for %s was cancelled due to error:%s", producerID, databaseError.getMessage()), Toast.LENGTH_SHORT).show();
-                            mAlertDialog.dismiss();
+                            mProgressDialog.dismiss();
 
                         }
                     });
@@ -1941,8 +2023,8 @@ public class ProducerNavMapActivity extends AppCompatActivity
                             }
 
                             if (isFinalCall) {
-                                startDashBoardFragment();
-                                mAlertDialog.dismiss();
+                                startRideInfoFragment();
+                                mProgressDialog.dismiss();
                                 Toast.makeText(getApplicationContext(), "All data is fetched", Toast.LENGTH_SHORT).show();
                             }
                         }

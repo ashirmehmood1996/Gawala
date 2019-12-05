@@ -4,13 +4,14 @@ import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 
 import java.util.ArrayList;
 
-public class ClientSummery {
+public class ClientSummeryModel {
     private String clientID;
     private String name;
     private float totalCost;
+    private long time_stamp;
     private ArrayList<AcquiredGoodModel> acquiredGoodModelArrayList;
 
-    public ClientSummery(String clientID, String name, ArrayList<AcquiredGoodModel> acquiredGoodModelArrayList) {
+    public ClientSummeryModel(String clientID, String name, ArrayList<AcquiredGoodModel> acquiredGoodModelArrayList) {
         this.clientID = clientID;
         this.name = name;
         this.acquiredGoodModelArrayList = acquiredGoodModelArrayList;
@@ -44,4 +45,11 @@ public class ClientSummery {
         return acquiredGoodModelArrayList;
     }
 
+    public long getTime_stamp() {
+        return time_stamp;
+    }
+
+    public void setTime_stamp(long time_stamp) {
+        this.time_stamp = time_stamp;
+    }
 }

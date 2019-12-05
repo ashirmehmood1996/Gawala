@@ -112,7 +112,7 @@ public class RequestsAdapter extends RecyclerView.Adapter<RequestsAdapter.Reques
             acceptButton.setOnClickListener(v -> requestsAdapterCallbacks.onRequestAccepted(getAdapterPosition()));
             rejectButton.setOnClickListener(v -> requestsAdapterCallbacks.onRequestCancel(getAdapterPosition()));
             requestContainer.setOnClickListener(v -> {
-                requestsAdapterCallbacks.onRequetClientClicked(getAdapterPosition());
+                requestsAdapterCallbacks.onRequestClientClicked(getAdapterPosition());
             });
         }
     }

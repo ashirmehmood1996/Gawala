@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="?attr/selectableItemBackground"
+    android:layout_height="wrap_content">
+    <ImageView
+        android:layout_margin="16dp"
+        android:layout_width="wrap_content"
+      android:background="@drawable/ic_group_black_24dp"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:text="Clients"
+        android:layout_weight="1"
+        android:textColor="#000"
+        android:layout_margin="16dp"
+        android:layout_gravity="center"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:layout_gravity="center"
+        android:id="@+id/tv_producer_nav_menu_icon_counter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="5dp"
+        android:elevation="2dp"
+        android:paddingRight="5dp"
+        android:paddingTop="2dp"
+        android:layout_margin="16dp"
+        android:paddingBottom="2dp"
+        android:background="@drawable/round_circle_red"
+        android:fontFamily="sans-serif-condensed-light"
+        android:foregroundGravity="right"
+        android:gravity="center"
+        android:text="9+"
+        android:textColor="#fff"
+        android:textStyle="bold" />
+
+
+
+
+</LinearLayout>

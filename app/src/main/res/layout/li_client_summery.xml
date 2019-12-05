@@ -1,43 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<TableRow xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/ll_li_pro_summery_container"
+    android:id="@+id/tr_li_client_summery_container"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/selectableItemBackground"
+    android:background="?android:attr/selectableItemBackground"
     android:clickable="true"
-    android:focusable="true"
-    android:orientation="horizontal"
-    android:padding="8dp">
+    android:focusable="true">
 
     <TextView
-        android:id="@+id/tv_li_pro_summery_date"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:gravity="center"
-        tools:text="23,jan 2019" />
-
-    <TextView
-        android:id="@+id/tv_li_pro_summery_clients"
+        android:id="@+id/tv_li_client_summery_date"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:layout_weight="1"
         android:gravity="center"
-        tools:text="3" />
-
-    <!--  <TextView
-          android:id="@+id/tv_li_pro_summery_volume"
-          tools:text="2.0 litre(s)"
-          android:layout_width="0dp"
-          android:layout_height="wrap_content"
-          android:layout_margin="8dp"
-          android:layout_weight="1"
-          android:gravity="center" />-->
+        tools:text="23,jan 2019" />
 
     <TextView
-        android:id="@+id/tv_li_pro_summery_cost"
+        android:id="@+id/tv_li_client_summery_items"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        tools:text="2.0 litre(s)" />
+
+    <TextView
+        android:id="@+id/tv_li_client_summery_cost"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
@@ -52,5 +42,4 @@
         android:background="@drawable/ic_navigate_next_black_24dp"
         android:gravity="center" />
 
-
-</LinearLayout>
+</TableRow>

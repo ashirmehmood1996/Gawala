@@ -4,5 +4,5 @@ public interface RequestsAdapterCallbacks {
     void onRequestCancel(int position);
     void onRequestAccepted(int position);
 
-    void onRequetClientClicked(int position);
+    void onRequestClientClicked(int position);
 }

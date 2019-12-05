@@ -32,7 +32,7 @@
 
                 android:background="@drawable/bg_button_solid_white"
                 android:drawableTop="@drawable/ic_people_black_100dp"
-                android:text="My Providers"
+                android:text="Providers"
                 android:textAllCaps="false" />
 
             <Button
@@ -131,7 +131,7 @@
                 android:paddingLeft="16dp"
                 android:paddingTop="16dp"
                 android:paddingRight="16dp"
-                android:text="My Profile"
+                android:text="Profile"
                 android:textAllCaps="false" />
         </LinearLayout>
 

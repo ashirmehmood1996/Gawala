@@ -8,18 +8,21 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
+import com.android.example.gawala.Generel.Models.ClientSummeryModel;
 import com.android.example.gawala.Producer.Adapters.ProducerSummeryAdapter;
-import com.android.example.gawala.Generel.Models.ClientSummery;
 import com.android.example.gawala.Producer.Models.ProducerSummeryModel;
 import com.android.example.gawala.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -32,7 +35,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-public class ProducerSummeryFragment extends Fragment {
+public class ProducerSummeryFragment extends DialogFragment implements ProducerSummeryAdapter.CallBack {
 
     private Dialog mAlertDialog;
     private String myId;
@@ -40,6 +43,9 @@ public class ProducerSummeryFragment extends Fragment {
     private ArrayList<ProducerSummeryModel> producerSummeryModelArrayList;
     private ProducerSummeryAdapter producerSummeryAdapter;
     private RecyclerView recyclerView;
+    private String DIALOG_PRODUCER_SUMMERY_DETAILS = "SummeryDetailsDialogFagment";
+
+    private TextView monthTextView;
 
     public ProducerSummeryFragment() {
         // Required empty public constructor
@@ -50,15 +56,11 @@ public class ProducerSummeryFragment extends Fragment {
         return fragment;
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Rides Summery");
-    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setStyle(DialogFragment.STYLE_NORMAL, R.style.FullScreendialogTheme);
         myId = FirebaseAuth.getInstance().getCurrentUser().getUid();
     }
 
@@ -76,8 +78,11 @@ public class ProducerSummeryFragment extends Fragment {
     private void initFields(View rootView) {
         recyclerView = rootView.findViewById(R.id.rv_li_prod_summery);
         producerSummeryModelArrayList = new ArrayList<>();
-        producerSummeryAdapter = new ProducerSummeryAdapter(getActivity(), producerSummeryModelArrayList);
+        producerSummeryAdapter = new ProducerSummeryAdapter(getActivity(), producerSummeryModelArrayList, this);
         recyclerView.setAdapter(producerSummeryAdapter);
+        monthTextView = rootView.findViewById(R.id.tv_li_prod_summery_month);
+        rootView.findViewById(R.id.ib_li_prod_summery_back).setOnClickListener(v -> dismiss());
+
 
     }
 
@@ -90,6 +95,7 @@ public class ProducerSummeryFragment extends Fragment {
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.DAY_OF_MONTH, 1);//if we keep day of month to 0 then the last day of previous month is also retrieved because the new day hasnot been startted yet
         //fetch this month data only
+        monthTextView.setText(new SimpleDateFormat("MMMM, yyyy").format(calendar.getTimeInMillis()));
         FirebaseDatabase.getInstance().getReference().child("data")
                 .child(myId)
                 .child("permanent_data")
@@ -106,7 +112,7 @@ public class ProducerSummeryFragment extends Fragment {
                                     String sessionId = data.getKey();
                                     long timeStamp = data.child("time_stamp").getValue(Long.class);
 
-                                    ArrayList<ClientSummery> clientSummeryArrayList = new ArrayList<>();
+                                    ArrayList<ClientSummeryModel> clientSummeryModelArrayList = new ArrayList<>();
                                     for (DataSnapshot clientData : data.child("clients").getChildren()) {
 //                                    float volume = clientData.child("milk_amount").getValue(Float.class);
                                         String clientId = clientData.getKey();
@@ -117,9 +123,9 @@ public class ProducerSummeryFragment extends Fragment {
                                         }
 
 
-                                        clientSummeryArrayList.add(new ClientSummery(clientId, name, acquiredGoodModels));
+                                        clientSummeryModelArrayList.add(new ClientSummeryModel(clientId, name, acquiredGoodModels));
                                     }
-                                    producerSummeryModelArrayList.add(new ProducerSummeryModel(sessionId, timeStamp, clientSummeryArrayList));
+                                    producerSummeryModelArrayList.add(new ProducerSummeryModel(sessionId, timeStamp, clientSummeryModelArrayList));
                                 }
 
                                 producerSummeryAdapter.notifyDataSetChanged();
@@ -127,7 +133,7 @@ public class ProducerSummeryFragment extends Fragment {
                             } else {
                                 mAlertDialog.dismiss();
                                 Toast.makeText(getContext(), "there was no summary for this month", Toast.LENGTH_LONG).show();
-                                getActivity().getSupportFragmentManager().beginTransaction().remove(ProducerSummeryFragment.this).commit();
+                                dismiss();
                             }
                         }
                     }
@@ -146,16 +152,27 @@ public class ProducerSummeryFragment extends Fragment {
         this.mAlertDialog = new AlertDialog.Builder(getActivity()).setView(alertDialog).setCancelable(false).create();
     }
 
-    @Override
-    public void onDetach() {
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Map");
-
-        super.onDetach();
-    }
-
-    private String getFormattedData(long timeInMilliseconds) {
+    private String getFormattedDate(long timeInMilliseconds) {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd, MMM yyyy ");
         return simpleDateFormat.format(timeInMilliseconds);
     }
-}
 
+    @Override
+    public void onRideItemclick(int position) {
+        showRideDetailsDialogFragment(position);
+    }
+
+    private void showRideDetailsDialogFragment(int position) {
+        ProducerSummeryModel producerSummeryModel = producerSummeryModelArrayList.get(position);
+        FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
+        ProducerSummeryItemDetailsFragment producerSummeryItemDetailsFragment = (ProducerSummeryItemDetailsFragment) getActivity().getSupportFragmentManager().findFragmentByTag(DIALOG_PRODUCER_SUMMERY_DETAILS);
+        if (producerSummeryItemDetailsFragment != null) {
+            fragmentTransaction.remove(producerSummeryItemDetailsFragment);
+        }
+        ProducerSummeryItemDetailsFragment dialogFragment = ProducerSummeryItemDetailsFragment.newInstance();
+//        dialogFragment.setCallback(this);
+        dialogFragment.setProducerSummeryModel(producerSummeryModel);
+        dialogFragment.show(fragmentTransaction, DIALOG_PRODUCER_SUMMERY_DETAILS);
+
+    }
+}

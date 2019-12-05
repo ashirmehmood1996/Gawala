@@ -213,7 +213,7 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
                         if (ProducerDetailActivty.this != null) {
                             if (task.isSuccessful()) {
                                 requestButton.setText("cancel Request");
-                                status = ProducerModel.STATUS_NEUTRAL;
+                                status = ProducerModel.REQUEST_SENT;
                                 Toast.makeText(getApplicationContext(), "request sent", Toast.LENGTH_SHORT).show();
                             } else {
                                 Toast.makeText(getApplicationContext(), "failed to send request", Toast.LENGTH_SHORT).show();

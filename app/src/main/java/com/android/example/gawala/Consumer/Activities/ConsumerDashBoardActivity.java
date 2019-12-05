@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentTransaction;
 
 
 import android.Manifest;
@@ -12,7 +13,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -28,7 +28,6 @@ import com.android.example.gawala.Generel.Activities.NotificationsActivity;
 import com.android.example.gawala.Generel.Activities.PersonalInfoActivity;
 import com.android.example.gawala.Generel.Activities.PickLocationMapsActivity;
 import com.android.example.gawala.Generel.Utils.SharedPreferenceUtil;
-import com.android.example.gawala.Producer.Activities.ProducerNavMapActivity;
 import com.android.example.gawala.R;
 import com.android.example.gawala.Consumer.Utils.ConsumerFirebaseHelper;
 import com.android.example.gawala.Generel.Utils.UtilsMessaging;
@@ -47,7 +46,8 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.HashMap;
 
 public class ConsumerDashBoardActivity extends AppCompatActivity implements View.OnClickListener {
-    private Button offdeliveryDaysButton, showSummeryButton, myProvidesButton,
+    private static final String CLIENT_SUMMERY_FRAGMENT_TAG = "ClientsummeryFragment";
+    private Button manageVacationsButton, showSummeryButton, myProvidesButton,
             myServicesButton, /*showMapButton,*/
             myProfilebutton, notificationsButton;
 
@@ -93,7 +93,7 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
 
 
     private void initFilds() {
-        offdeliveryDaysButton = findViewById(R.id.bt_con_dash_off_delivery_days);
+        manageVacationsButton = findViewById(R.id.bt_con_dash_off_delivery_days);
         showSummeryButton = findViewById(R.id.bt_con_dash_show_summery);
         myProvidesButton = findViewById(R.id.bt_con_dash_my_providers);
         myServicesButton = findViewById(R.id.bt_con_dash_my_services);
@@ -109,7 +109,7 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
     }
 
     private void attachListeners() {
-        offdeliveryDaysButton.setOnClickListener(this);
+        manageVacationsButton.setOnClickListener(this);
         showSummeryButton.setOnClickListener(this);
         myProvidesButton.setOnClickListener(this);
         myServicesButton.setOnClickListener(this);
@@ -210,12 +210,12 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
                             }
                             if (!found) {
                                 mAlertDialog.dismiss();
-                                upDateUiForNoProducerConnection();
+//                                upDateUiForNoProducerConnection();
                             }
                             // TODO: 7/14/2019  later change the query along with the change in data
                         } else {
                             mAlertDialog.dismiss();
-                            upDateUiForNoProducerConnection();
+//                            upDateUiForNoProducerConnection();
 
                         }
                     }
@@ -227,9 +227,9 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
                 });
     }
 
-    private void upDateUiForNoProducerConnection() {
-        offdeliveryDaysButton.setEnabled(false);
-    }
+//    private void upDateUiForNoProducerConnection() {
+//        manageVacationsButton.setEnabled(false);
+//    }
 
 //    private void sendUserToRequestActivity() {
 //
@@ -291,8 +291,8 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
 //                                ConsumerFirebaseHelper.atHome(mIsAtHome, producuerKey);
 //                            } else {
 //                                mIsAtHome = dataSnapshot.child("live_data").child("at_home").getValue(Boolean.class);
-//                                if (mIsAtHome) offdeliveryDaysButton.setText("I am not at Home");
-//                                else offdeliveryDaysButton.setText("I am at Home");
+//                                if (mIsAtHome) manageVacationsButton.setText("I am not at Home");
+//                                else manageVacationsButton.setText("I am at Home");
 //
 //                            }
 //
@@ -384,7 +384,7 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 Toast.makeText(ConsumerDashBoardActivity.this, "you will not be able to send request " +
-                        "to Providers unless you set up the delivery Location", Toast.LENGTH_LONG).show();
+                        "to Providers unless you set up fthe delivery Location", Toast.LENGTH_LONG).show();
             }
         });
         builder.create().show();
@@ -442,15 +442,16 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.bt_con_dash_off_delivery_days:
-                startActivity(new Intent(this, DaysOffActivity.class));
+                startActivity(new Intent(this, ManageVacationsActivity.class));
 
 //                showNoMilkRecieveAlert(v);
                 break;
             case R.id.bt_con_dash_show_summery:
-                ClientSummeryFragment clientSummeryFragment = ClientSummeryFragment.newInstance(producerId);
-                getSupportFragmentManager().beginTransaction()
-                        .add(R.id.consumer_dash_board_fragment_container, clientSummeryFragment, SUMMERY_FRAG_TAG)
-                        .commit();
+                if (producerId == null) {
+                    Toast.makeText(this, "please add producers first", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                startSummeryFragment();
                 break;
             case R.id.bt_con_dash_my_providers:
                 startActivity(new Intent(this, ConsumerRequestsActivity.class));
@@ -472,6 +473,19 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
                 break;
 
         }
+    }
+
+    private void startSummeryFragment() {
+
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        ClientSummeryFragment clientSummeryFragment =
+                (ClientSummeryFragment) getSupportFragmentManager().findFragmentByTag(CLIENT_SUMMERY_FRAGMENT_TAG);
+        if (clientSummeryFragment != null) {
+            fragmentTransaction.remove(clientSummeryFragment);
+        }
+        ClientSummeryFragment dialogFragment = ClientSummeryFragment.newInstance(producerId);
+//        dialogFragment.setCallBacks(this);
+        dialogFragment.show(fragmentTransaction, CLIENT_SUMMERY_FRAGMENT_TAG);
     }
 
 
@@ -571,14 +585,5 @@ public class ConsumerDashBoardActivity extends AppCompatActivity implements View
         });
     }
 
-    @Override
-    public void onBackPressed() {
-        if (getSupportFragmentManager().findFragmentByTag(SUMMERY_FRAG_TAG) != null) {
-            getSupportFragmentManager().beginTransaction().remove(getSupportFragmentManager().findFragmentByTag(SUMMERY_FRAG_TAG)).commit();
-        } else {
-            super.onBackPressed();
-        }
-
-    }
 }
 // TODO: 8/6/2019  put a braod cast receiver when GPs is turned on adn off and then trigger the location api

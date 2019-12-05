@@ -81,8 +81,8 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
         acquiredGoodArrayList.clear();
         mAlertDialog.show();
         acquiredGoodsAdapter.notifyDataSetChanged();
-        // TODO: 10/6/2019  change this qury in order toa avoid whole data fatching  or we can change the database schema
-        //lter deal with query
+        // TODO: 10/6/2019  change this query in order toa avoid whole data fetching  or we can change the database schema
+        //later deal with query
         rootRef.child("clients")/*.orderByChild("number").equalTo(FirebaseAuth.getInstance().getCurrentUser().getPhoneNumber())*/
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -101,7 +101,6 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
                             }
                             if (connectedProducersArrayList.size() == 0) {
                                 emptyViewRelativeLayout.setVisibility(View.VISIBLE);
-
                                 mAlertDialog.dismiss();
                             } else {
                                 fetchMyAquiredServices();
@@ -123,6 +122,7 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
     }
 
     private void fetchMyAquiredServices() {
+        final boolean[] hasDemand = {false};
         for (final String producerID : connectedProducersArrayList) {
             rootRef.child("demand")
                     .child(producerID).child(myId)
@@ -132,16 +132,17 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
                             if (dataSnapshot.exists() && AcquiredGoodsActivity.this != null) {
                                 for (DataSnapshot goodSnap : dataSnapshot.getChildren()) {
                                     fetchGoodDetailFromFireabse(goodSnap.getKey(), goodSnap.child("demand").getValue(String.class), producerID);
-
                                 }
-                                acquiredGoodsAdapter.notifyDataSetChanged();
-                            }
-                            if (acquiredGoodArrayList.isEmpty()) {
-                                emptyViewRelativeLayout.setVisibility(View.VISIBLE);
-
+                                hasDemand[0] = true;
+                                if (emptyViewRelativeLayout.getVisibility() == View.VISIBLE) {
+                                    emptyViewRelativeLayout.setVisibility(View.GONE);
+                                }
                             } else {
-                                emptyViewRelativeLayout.setVisibility(View.GONE);
-
+                                if (!hasDemand[0]) {
+                                    emptyViewRelativeLayout.setVisibility(View.VISIBLE);
+                                } else {
+                                    emptyViewRelativeLayout.setVisibility(View.GONE);
+                                }
                             }
                             mAlertDialog.dismiss();
                         }
@@ -184,6 +185,4 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
         intent.putExtra("acquired_goods_model", acquiredGoodArrayList.get(pos));
         startActivity(intent);
     }
-
-
 }

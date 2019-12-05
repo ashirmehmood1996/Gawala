@@ -100,12 +100,7 @@ public class AciveRideStopsAdaper extends RecyclerView.Adapter<AciveRideStopsAda
         }
 
         private void atachListeners() {
-            containerLinearLayout.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Toast.makeText(context, String.format("%d position clicked", getAdapterPosition()), Toast.LENGTH_SHORT).show();
-                }
-            });
+            containerLinearLayout.setOnClickListener(v -> Toast.makeText(context, String.format("%d position clicked", getAdapterPosition()), Toast.LENGTH_SHORT).show());
         }
 
     }

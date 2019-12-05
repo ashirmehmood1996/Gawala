@@ -3,10 +3,12 @@ package com.android.example.gawala.Producer.Models;
 import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 import com.google.android.gms.maps.model.Marker;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class ConsumerModel{ // FIXME: 11/24/2019 there is a  saerialization problem when ever i open another actiivty while the dashboard fragment is open
+public class ConsumerModel implements Serializable { // FIXME: 11/24/2019 there is a  saerialization problem when ever i open another actiivty while the dashboard fragment is open
     // fixme later we will avoid doing it  by directly getting the arraylist from activity with a oublci method
+    // fixme !!!!!fixed it in ride fragment by making the makers null as they were indeed not needed there
     private String id;
     private String name;
     private String number;
@@ -24,24 +26,37 @@ public class ConsumerModel{ // FIXME: 11/24/2019 there is a  saerialization prob
     private boolean hasDemand;
     private boolean isOnVacation;
 
-    public int NOTIFICATION_STATE=0;//this represents that what amount of notifications are sent to a consumer
+    public int NOTIFICATION_STATE = 0;//this represents that what amount of notifications are sent to a consumer
 
 
     private ArrayList<AcquiredGoodModel> demandArray;
 
 
-    public ConsumerModel(String id, String name, String numebr, String time_stamp, String lat, String lng,String imageUrl) {
+    public ConsumerModel(String id, String name, String numeber, String time_stamp, String lat, String lng, String imageUrl) {
         this.id = id;
         this.name = name;
-        this.number = numebr;
+        this.number = numeber;
         this.time_stamp = time_stamp;
         this.lat = lat;
         this.lng = lng;
-        this.isDelivered=false;
-        this.hasDemand=false;
-        this.isOnVacation=false;
-        this.imageUrl=imageUrl;
+        this.isDelivered = false;
+        this.hasDemand = false;
+        this.isOnVacation = false;
+        this.imageUrl = imageUrl;
 
+    }
+
+    /**
+     * @return a model that has all basic fields
+     */
+    public ConsumerModel getConsumerModel() {
+        ConsumerModel consumerModel = new ConsumerModel(this.id, this.name, this.number, this.time_stamp, this.lat, this.lng, this.imageUrl);
+        consumerModel.setDelivered(this.isDelivered);
+        consumerModel.setHasDemand(this.hasDemand);
+        consumerModel.setOnVacation(this.isOnVacation);
+        consumerModel.setLocationName(this.locationName);
+        consumerModel.setDemandArray(this.demandArray);//be noted that this is refering to the original obejct of the demand array
+        return consumerModel;
     }
 
     public ArrayList<AcquiredGoodModel> getDemandArray() {
@@ -92,6 +107,7 @@ public class ConsumerModel{ // FIXME: 11/24/2019 there is a  saerialization prob
     public String getTime_stamp() {
         return time_stamp;
     }
+
     public Marker getMarker() {
         return marker;
     }

@@ -1,5 +1,6 @@
 package com.android.example.gawala.Generel.Activities;
 
+import android.app.usage.UsageEvents;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -12,7 +13,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.telephony.PhoneNumberUtils;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -72,6 +75,22 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private void attachListeners() {
         loginButton.setOnClickListener(this);
         signupButton.setOnClickListener(this);
+
+        numberEditText.setOnEditorActionListener((v, actionId, event) -> {
+            if (/*event != null && */actionId == EditorInfo.IME_ACTION_GO) {
+                if (isInternetAvailable()) {
+                    initializeDialog();
+                    mAlertDialog.show();
+                    proceedToLogin();
+
+                } else {
+                    Toast.makeText(this, "please check your internet connection", Toast.LENGTH_SHORT).show();
+                }
+                return false;//this will shut down the keyboard
+            }
+
+             return false;//this will shut down the keyboard
+        });
     }
 
 

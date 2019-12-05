@@ -43,7 +43,7 @@ public class DistanceViewerMapsFragment extends DialogFragment implements OnMapR
     // TODO: Rename and change types of parameters
     private RequestModel mRequestModel;
 
-//    private OnFragmentInteractionListener mListener;
+//    private CallBack mListener;
 
 
     private GoogleMap mMap;
@@ -129,8 +129,12 @@ public class DistanceViewerMapsFragment extends DialogFragment implements OnMapR
         LatLng myLatLng = new LatLng(lat, lng);
         mMap.addMarker(new MarkerOptions().position(myLatLng).title("Your Location"));
 
-        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds(clientLatlng, myLatLng), 12));
-        showCurvedPolyline(myLatLng, clientLatlng, .25);
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        builder.include(myLatLng).include(clientLatlng);
+
+
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 12));
+        showCurvedPolyline(myLatLng, clientLatlng, .1);
     }
 
     //method taken from the following link

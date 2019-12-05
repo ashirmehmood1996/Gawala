@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -18,11 +19,13 @@ import java.util.ArrayList;
 public class ProducerSummeryAdapter extends RecyclerView.Adapter<ProducerSummeryAdapter.SummeryHolder> {
     private Context context;
     private ArrayList<ProducerSummeryModel> producerSummeryModelArrayList;
+    private CallBack callBack;
 
 
-    public ProducerSummeryAdapter(Context context, ArrayList<ProducerSummeryModel> producerSummeryModelArrayList) {
+    public ProducerSummeryAdapter(Context context, ArrayList<ProducerSummeryModel> producerSummeryModelArrayList, CallBack callBack) {
         this.producerSummeryModelArrayList = producerSummeryModelArrayList;
         this.context = context;
+        this.callBack = callBack;
     }
 
     @NonNull
@@ -37,11 +40,11 @@ public class ProducerSummeryAdapter extends RecyclerView.Adapter<ProducerSummery
         ProducerSummeryModel producerSummeryModel = producerSummeryModelArrayList.get(position);
 //        holder.volumeTV.setText(producerSummeryModel.getTotalMilkVolume() + " litre(s)");
         holder.costTV.setText(producerSummeryModel.getTotalAmount() + " PKR");
-        holder.numberOfClientsTV.setText(producerSummeryModel.getClientSummeryArrayList().size() + "");
+        holder.numberOfClientsTV.setText(producerSummeryModel.getClientSummeryModelArrayList().size() + "");
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd, MMM yyyy");
         simpleDateFormat.format(producerSummeryModel.getTimeStamp());
-        holder.dateTV.setText("Delivered on  "+simpleDateFormat.format(producerSummeryModel.getTimeStamp()));
+        holder.dateTV.setText(simpleDateFormat.format(producerSummeryModel.getTimeStamp()));
 
         // TODO: 9/23/2019 need to send to another fragemt for session details
 
@@ -53,7 +56,9 @@ public class ProducerSummeryAdapter extends RecyclerView.Adapter<ProducerSummery
     }
 
     class SummeryHolder extends RecyclerView.ViewHolder {
-        TextView dateTV, /*volumeTV,*/ costTV, numberOfClientsTV;
+        TextView dateTV, /*volumeTV,*/
+                costTV, numberOfClientsTV;
+        LinearLayout containerLinearLayout;
 
         SummeryHolder(@NonNull View itemView) {
             super(itemView);
@@ -61,6 +66,14 @@ public class ProducerSummeryAdapter extends RecyclerView.Adapter<ProducerSummery
 //            volumeTV = itemView.findViewById(R.id.tv_li_pro_summery_volume);
             costTV = itemView.findViewById(R.id.tv_li_pro_summery_cost);
             numberOfClientsTV = itemView.findViewById(R.id.tv_li_pro_summery_clients);
+            containerLinearLayout = itemView.findViewById(R.id.ll_li_pro_summery_container);
+            containerLinearLayout.setOnClickListener(v -> {
+                callBack.onRideItemclick(getAdapterPosition());
+            });
         }
+    }
+
+    public interface CallBack {
+        void onRideItemclick(int position);
     }
 }

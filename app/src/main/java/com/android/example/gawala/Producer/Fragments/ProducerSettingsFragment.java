@@ -19,19 +19,19 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-public class ProducerSettingsDialogFragment extends DialogFragment {
+public class ProducerSettingsFragment extends DialogFragment {
     //private static String USER_ID = "userIdKey";
 
     private Switch locationSwitch;
 
     private ImageButton backImageButton;
 
-    public static ProducerSettingsDialogFragment getInstance(/*String userId*/) {
+    public static ProducerSettingsFragment getInstance(/*String userId*/) {
 //        Bundle bundle = new Bundle();
 //        bundle.putString(USER_ID, userId);
-        ProducerSettingsDialogFragment producerSettingsDialogFragment = new ProducerSettingsDialogFragment();
-//        producerSettingsDialogFragment.setArguments(bundle);
-        return producerSettingsDialogFragment;
+        ProducerSettingsFragment producerSettingsFragment = new ProducerSettingsFragment();
+//        producerSettingsFragment.setArguments(bundle);
+        return producerSettingsFragment;
     }
 
     @Override
@@ -85,7 +85,7 @@ public class ProducerSettingsDialogFragment extends DialogFragment {
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (ProducerSettingsDialogFragment.this != null) {
+                        if (ProducerSettingsFragment.this != null) {
                             if (dataSnapshot.exists()) {
                                 boolean isShared = dataSnapshot.getValue(Boolean.class);
                                 locationSwitch.setChecked(isShared);

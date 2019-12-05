@@ -5,7 +5,7 @@ import androidx.annotation.Nullable;
 
 import android.os.Bundle;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,7 +36,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
-public class ProducerClientsRequestsFragment extends Fragment implements RequestsAdapterCallbacks/*, ConnectedConsumersAdapter.CallBacks*/ {
+public class ProducerClientsFragment extends DialogFragment implements RequestsAdapterCallbacks/*, ConnectedConsumersAdapter.CallBacks*/ {
 
     private static final String DIALOG_REQUEST_DETAILS = "dialog_request_details";
     //    private static String ARG_CONSUMERS_KEY ="consumersKey";
@@ -46,36 +47,48 @@ public class ProducerClientsRequestsFragment extends Fragment implements Request
 
     private RecyclerView connectedConsumersRecyclerView;
     private ArrayList<ConsumerModel> mConsumersArrayList;
-    private ConnectedConsumersAdapter consumersAdapter;
+    public ConnectedConsumersAdapter consumersAdapter; //making it oubklic so that it can be updated from the activty
 
 
     private DatabaseReference rootRef;
     private String myID;
+    private ValueEventListener mClientsRequestListener;
+    private DatabaseReference mRequestNodeRef;
 
 //    private CallBacks callBacks;
 
-    public static ProducerClientsRequestsFragment geInstance() {
+    public static ProducerClientsFragment getInstance() {
 
-        ProducerClientsRequestsFragment fragment = new ProducerClientsRequestsFragment();
+        ProducerClientsFragment fragment = new ProducerClientsFragment();
         return fragment;
     }
 
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setStyle(DialogFragment.STYLE_NORMAL, R.style.FullScreendialogTheme);
+
+    }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Clients");
+//        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Clients");
         View rootView = inflater.inflate(R.layout.fragment_producer_requests, container, false);
         initfields(rootView);
+        attachListeners();
         loadRequests();
         return rootView;
     }
+
 
     private void initfields(View rootView) {
         //dataBase related
         rootRef = FirebaseDatabase.getInstance().getReference();
         myID = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        mRequestNodeRef = rootRef.child("requests").child(myID);
 
         //requests related
         newRequestsTitleTextView = rootView.findViewById(R.id.tv_pro_new_requests);
@@ -93,41 +106,49 @@ public class ProducerClientsRequestsFragment extends Fragment implements Request
         connectedConsumersRecyclerView.setAdapter(consumersAdapter);
 
 
+        rootView.findViewById(R.id.tv_pro_requests_back).setOnClickListener(v -> dismiss());
+    }
+
+    private void attachListeners() {
+
+        mClientsRequestListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                requestModelArrayList.clear();
+                if (dataSnapshot.exists() & ProducerClientsFragment.this != null) {//then there are a number of requests
+                    for (DataSnapshot requestSnap : dataSnapshot.getChildren()) {
+                        String senderID = requestSnap.getKey();
+                        String name = requestSnap.child("name").getValue(String.class);
+                        String number = requestSnap.child("number").getValue(String.class);
+                        String timeStamp = requestSnap.child("time_stamp").getValue(String.class);
+                        String imageUrl = "";
+                        if (requestSnap.hasChild("profile_image_uri")) {
+                            imageUrl = requestSnap.child("profile_image_uri").getValue(String.class);
+                        }
+                        // TODO: 11/23/2019  get the user image uri either in request or may be from storage refereecne directly using the id
+                        String lat = requestSnap.child("lat").getValue(String.class);
+                        String lng = requestSnap.child("lng").getValue(String.class);
+                        requestModelArrayList.add(new RequestModel(senderID, name, number, timeStamp, lat, lng, imageUrl));
+                    }
+                    newRequestsTitleTextView.setVisibility(View.VISIBLE);
+                } else {
+                    newRequestsTitleTextView.setVisibility(View.GONE);
+                }
+                requestsAdapter.notifyDataSetChanged();
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
     }
 
 
     private void loadRequests() {
         requestModelArrayList.clear();
-        rootRef.child("requests").child(myID)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists() & ProducerClientsRequestsFragment.this != null) {//then there are a number of requests
-                            for (DataSnapshot requestSnap : dataSnapshot.getChildren()) {
-                                String senderID = requestSnap.getKey();
-                                String name = requestSnap.child("name").getValue(String.class);
-                                String number = requestSnap.child("number").getValue(String.class);
-                                String timeStamp = requestSnap.child("time_stamp").getValue(String.class);
-                                String imageUrl = "";
-                                if (requestSnap.hasChild("profile_image_uri")) {
-                                    imageUrl = requestSnap.child("profile_image_uri").getValue(String.class);
-                                }
-                                // TODO: 11/23/2019  get the user image uri either in request or may be from storage refereecne directly using the id
-                                String lat = requestSnap.child("lat").getValue(String.class);
-                                String lng = requestSnap.child("lng").getValue(String.class);
-                                requestModelArrayList.add(new RequestModel(senderID, name, number, timeStamp, lat, lng, imageUrl));
-                            }
-                            requestsAdapter.notifyDataSetChanged();
-                        } else {
-                            newRequestsTitleTextView.setVisibility(View.GONE);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
-                });
+        mRequestNodeRef.addValueEventListener(mClientsRequestListener);
 
     }
 
@@ -165,6 +186,9 @@ public class ProducerClientsRequestsFragment extends Fragment implements Request
                     if (task.isSuccessful()) {
                         addConenctedProducerNodeToDatabase(requestModel.getSender_id());
                         removeRequestNode(requestModel.getSender_id(), true, position);
+                        //update the clients  list
+                        ((ProducerNavMapActivity) getActivity()).loadAllConsumers();
+
 
                     } else {
                         Toast.makeText(getContext(), "something went wrong try later", Toast.LENGTH_SHORT).show();
@@ -173,17 +197,17 @@ public class ProducerClientsRequestsFragment extends Fragment implements Request
     }
 
     @Override
-    public void onRequetClientClicked(int position) {
-        showRequestDeltails(requestModelArrayList.get(position));
+    public void onRequestClientClicked(int position) {
+        showRequestDetails(requestModelArrayList.get(position));
     }
 
-    private void showRequestDeltails(RequestModel requestModel) {
+    private void showRequestDetails(RequestModel requestModel) {
         FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
-        ClientInfoFullScreenDialogFragment clientInfoFullScreenDialogFragment = (ClientInfoFullScreenDialogFragment) getActivity().getSupportFragmentManager().findFragmentByTag(DIALOG_REQUEST_DETAILS);
-        if (clientInfoFullScreenDialogFragment != null) {
-            fragmentTransaction.remove(clientInfoFullScreenDialogFragment);
+        ClientInfoFragment clientInfoFragment = (ClientInfoFragment) getActivity().getSupportFragmentManager().findFragmentByTag(DIALOG_REQUEST_DETAILS);
+        if (clientInfoFragment != null) {
+            fragmentTransaction.remove(clientInfoFragment);
         }
-        ClientInfoFullScreenDialogFragment dialogFragment = ClientInfoFullScreenDialogFragment.getInstance(requestModel);
+        ClientInfoFragment dialogFragment = ClientInfoFragment.getInstance(requestModel);
 //        dialogFragment.setCallback(this);
         dialogFragment.show(fragmentTransaction, DIALOG_REQUEST_DETAILS);
 
@@ -203,10 +227,10 @@ public class ProducerClientsRequestsFragment extends Fragment implements Request
                 .child("requests")
                 .child(myID)
                 .child(sender_id).removeValue().addOnCompleteListener(task -> {
-            if (ProducerClientsRequestsFragment.this != null) {
+            if (ProducerClientsFragment.this != null) {
                 if (task.isSuccessful()) {
                     if (isAccepted) {
-                        Toast.makeText(getContext(), "ClientSummery added successfully", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "ClientSummeryModel added successfully", Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(getContext(), "request removed successfully", Toast.LENGTH_SHORT).show();
 
@@ -214,18 +238,26 @@ public class ProducerClientsRequestsFragment extends Fragment implements Request
                 } else {
                     Toast.makeText(getContext(), "something went wrong try later", Toast.LENGTH_SHORT).show();
                 }
-                requestModelArrayList.remove(position);
-                requestsAdapter.notifyItemRemoved(position);
-                requestsAdapter.notifyItemRemoved(position);
-                requestsAdapter.notifyItemRangeChanged(position, requestModelArrayList.size());
-                if (requestModelArrayList.isEmpty()) {
-                    newRequestsTitleTextView.setVisibility(View.GONE);
-                }
+//                requestModelArrayList.remove(position);
+//                requestsAdapter.notifyItemRemoved(position);
+//                requestsAdapter.notifyItemRemoved(position);
+//                requestsAdapter.notifyItemRangeChanged(position, requestModelArrayList.size());
+//                if (requestModelArrayList.isEmpty()) {
+//                    newRequestsTitleTextView.setVisibility(View.GONE);
+//                }
             }
         });
 
     }
-/*
+
+    @Override
+    public void onDestroy() {
+        if (mClientsRequestListener != null) {
+            mRequestNodeRef.removeEventListener(mClientsRequestListener);
+        }
+        super.onDestroy();
+    }
+    /*
     @Override
     public void onEditLocation(int position) {
 

@@ -26,7 +26,7 @@
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-        <activity android:name=".Consumer.Activities.DaysOffActivity">
+        <activity android:name=".Consumer.Activities.ManageVacationsActivity">
         </activity>
         <activity android:name=".Generel.Activities.NotificationsActivity" />
         <activity android:name=".Generel.Activities.PersonalInfoActivity" />

@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 
-public class FullScreenEditCitiesFragment extends DialogFragment implements View.OnClickListener, SelectedCitiesAdapter.Callback {
+public class EditCitiesFragment extends DialogFragment implements View.OnClickListener, SelectedCitiesAdapter.Callback {
 
     private ImageButton cancelImageButton;
     private Button doneButton;
@@ -56,8 +56,8 @@ public class FullScreenEditCitiesFragment extends DialogFragment implements View
     private DatabaseReference citiesNodeRef;
 
 
-    public static FullScreenEditCitiesFragment getInmstance() {
-        return new FullScreenEditCitiesFragment();
+    public static EditCitiesFragment getInmstance() {
+        return new EditCitiesFragment();
     }
 
     public void setCallback(Callback callback) {

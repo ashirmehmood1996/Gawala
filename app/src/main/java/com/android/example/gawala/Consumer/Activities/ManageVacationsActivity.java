@@ -31,7 +31,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
-public class DaysOffActivity extends AppCompatActivity implements View.OnClickListener {
+public class ManageVacationsActivity extends AppCompatActivity implements View.OnClickListener {
     /*library usage https://github.com/Applandeo/Material-Calendar-View*/
     private CalendarView calendarView;
     private DatabaseReference rootRef;
@@ -47,6 +47,7 @@ public class DaysOffActivity extends AppCompatActivity implements View.OnClickLi
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_days_off);
+        getSupportActionBar().setTitle("Manage Vacations");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         initFields();
         attachListeners();
@@ -139,7 +140,7 @@ public class DaysOffActivity extends AppCompatActivity implements View.OnClickLi
                 // TODO: 11/5/2019  get a list of selected dates here
                 daysOffList = calendars;
                 calendarView.setSelectedDates(calendars);
-//                Drawable drawable = CalendarUtils.getDrawableText(DaysOffActivity.this, "No Delivery", Typeface.DEFAULT, R.color.colorAccent, 10);
+//                Drawable drawable = CalendarUtils.getDrawableText(ManageVacationsActivity.this, "No Delivery", Typeface.DEFAULT, R.color.colorAccent, 10);
                 List<EventDay> eevents = new ArrayList<>();
                 for (Calendar calendar : calendars) {
                     eevents.add(new EventDay(calendar, R.drawable.ic_do_not_disturb_red_24dp));
@@ -147,7 +148,7 @@ public class DaysOffActivity extends AppCompatActivity implements View.OnClickLi
 
                 setDaysOffToFirebase(calendars);
                 calendarView.setEvents(eevents);
-                Toast.makeText(DaysOffActivity.this, String.format("%d number of dates selected ", calendars.size()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(ManageVacationsActivity.this, String.format("%d number of dates selected ", calendars.size()), Toast.LENGTH_SHORT).show();
             }
         };
         new DatePickerBuilder(this, listener)
@@ -220,7 +221,7 @@ public class DaysOffActivity extends AppCompatActivity implements View.OnClickLi
         rootRef.child("days_off").child(myId).child("days").removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                if (DaysOffActivity.this != null) {
+                if (ManageVacationsActivity.this != null) {
                     if (task.isSuccessful()) {
                         Toast.makeText(getApplicationContext(), "Successfully updated the off delivery days", Toast.LENGTH_SHORT).show();
                         daysOffList.clear();

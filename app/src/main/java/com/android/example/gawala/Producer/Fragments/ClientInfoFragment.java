@@ -24,7 +24,7 @@ import com.android.example.gawala.Producer.Utils.UrlGenrator;
 import com.android.example.gawala.R;
 import com.google.android.gms.maps.model.LatLng;
 
-public class ClientInfoFullScreenDialogFragment extends DialogFragment implements View.OnClickListener {
+public class ClientInfoFragment extends DialogFragment implements View.OnClickListener {
 
     private static final String REQUEST_MODEL = "requestModel";
     private static final String TAG = "ClientDialogFragment";
@@ -38,8 +38,8 @@ public class ClientInfoFullScreenDialogFragment extends DialogFragment implement
     private Button showLocationOnMapButton;
 
 
-    public static ClientInfoFullScreenDialogFragment getInstance(RequestModel requestModel) {
-        ClientInfoFullScreenDialogFragment fragment = new ClientInfoFullScreenDialogFragment();
+    public static ClientInfoFragment getInstance(RequestModel requestModel) {
+        ClientInfoFragment fragment = new ClientInfoFragment();
         Bundle bundle = new Bundle();
         bundle.putSerializable(REQUEST_MODEL, requestModel);
         fragment.setArguments(bundle);
