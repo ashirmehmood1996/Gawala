@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -40,10 +41,22 @@ public class NotificationsActivity extends AppCompatActivity implements Notifica
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notifications);
         getSupportActionBar().setTitle("Notifications");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
 
         initFields();
         loadNotifications();
 
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
     }
 
 

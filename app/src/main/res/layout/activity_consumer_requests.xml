@@ -1,70 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:animateLayoutChanges="true"
-    android:orientation="vertical"
+    android:background="#fff"
     tools:context=".Consumer.Activities.ConsumerRequestsActivity">
 
     <LinearLayout
-        android:id="@+id/ll_con_req_connected_producer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
+        android:layout_height="match_parent"
+        android:animateLayoutChanges="true"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tv_con_my_consumers"
+        <LinearLayout
+            android:id="@+id/ll_con_req_connected_producer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/colorPrimary"
-            android:elevation="4dp"
-            android:paddingLeft="16dp"
-            android:paddingTop="16dp"
-            android:paddingRight="16dp"
-            android:paddingBottom="4dp"
-            android:text="My Producer(s)"
-            android:textColor="#ffffff"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_con_req_conected_consumers"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            android:orientation="vertical"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/colorPrimary"
-            android:elevation="4dp"
-            android:paddingLeft="16dp"
-            android:paddingTop="16dp"
-            android:paddingRight="16dp"
-            android:paddingBottom="4dp"
-            android:text="Near By Producers"
-            android:textColor="#ffffff"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_con_all_producers"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
             android:orientation="vertical"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tv_con_my_consumers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:elevation="4dp"
+                android:padding="16dp"
+                android:text="Connected"
+                android:textColor="#000"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_con_req_conected_consumers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:layout_margin="16dp"
+                android:background="@color/text_light" />
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:elevation="4dp"
+                android:padding="16dp"
+                android:text="Near By Providers"
+                android:textColor="#000"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_con_all_producers"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+        </LinearLayout>
+
+
     </LinearLayout>
-
-
-</LinearLayout>
+</androidx.core.widget.NestedScrollView>

@@ -20,15 +20,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/contacts_list_item_background"
-        android:clickable="true"
-        android:padding="16dp">
+        android:clickable="true">
 
         <com.mikhaellopez.circularimageview.CircularImageView
             android:id="@+id/civ_li_conected_con_picture"
             android:layout_width="56dp"
             android:layout_height="56dp"
             android:layout_gravity="center"
-            android:layout_margin="8dp"
+            android:layout_margin="16dp"
             android:clickable="true"
             android:elevation="4dp"
             android:focusable="true"
@@ -40,9 +39,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="top"
-            android:layout_marginStart="16dp"
-            android:layout_marginLeft="16dp"
-            android:layout_marginTop="8dp"
+            android:layout_margin="16dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -70,20 +67,20 @@
                 android:textSize="14sp"
                 tools:text="location" />
         </LinearLayout>
-      <!--  <Button
-            android:id="@+id/bt_li_conected_con_edit_location"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_button_solid"
-            android:textColor="#fff"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp"
-            android:fontFamily="sans-serif-condensed"
-            android:textSize="12sp"
-            android:textAllCaps="false"
-            android:drawablePadding="5dp"
-            android:drawableLeft="@drawable/ic_mode_edit_black_24dp"
-            android:text="Edit Location"/>-->
+        <!--  <Button
+              android:id="@+id/bt_li_conected_con_edit_location"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:background="@drawable/bg_button_solid"
+              android:textColor="#fff"
+              android:paddingLeft="10dp"
+              android:paddingRight="10dp"
+              android:fontFamily="sans-serif-condensed"
+              android:textSize="12sp"
+              android:textAllCaps="false"
+              android:drawablePadding="5dp"
+              android:drawableLeft="@drawable/ic_mode_edit_black_24dp"
+              android:text="Edit Location"/>-->
     </LinearLayout>
 
     <!-- todo later add delete option-->

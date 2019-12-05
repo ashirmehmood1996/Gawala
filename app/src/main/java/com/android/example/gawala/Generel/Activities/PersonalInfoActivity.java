@@ -14,6 +14,7 @@ import android.location.Address;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -71,11 +72,14 @@ public class PersonalInfoActivity extends AppCompatActivity implements EditCitie
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_personal_info);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         initFields();
         attachListeners();
         loadDataFromFriebase();
     }
+
+
 
     private void initFields() {
         rootRef = FirebaseDatabase.getInstance().getReference();
@@ -196,6 +200,16 @@ public class PersonalInfoActivity extends AppCompatActivity implements EditCitie
                     }
                 }
             });
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
         }
     }
 

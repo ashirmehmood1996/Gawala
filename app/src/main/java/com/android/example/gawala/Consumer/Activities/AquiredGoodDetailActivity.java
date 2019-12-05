@@ -1,11 +1,13 @@
 package com.android.example.gawala.Consumer.Activities;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -38,12 +40,24 @@ public class AquiredGoodDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_aquired_good_detail);
 
         getSupportActionBar().setTitle("Service Details");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
 
         initFields();
         setData();
         attachListeners();
 
 
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
     }
 
     private void initFields() {
@@ -168,6 +182,6 @@ public class AquiredGoodDetailActivity extends AppCompatActivity {
 
 
     }
-
+// TODO: 12/5/2019  later change the details activty to a dialog fragment in order to avoid the refrshment of records since one array list will be uodated using  callback
 
 }
