@@ -7,7 +7,7 @@
     android:clickable="true"
     android:focusable="true"
     android:orientation="vertical"
-    tools:context=".Producer.Fragments.ProducerSummeryFragment">
+    tools:context=".Transporter.Fragments.ProducerSummeryFragment">
 
     <LinearLayout
         android:layout_width="match_parent"

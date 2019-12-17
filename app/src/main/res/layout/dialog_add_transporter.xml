@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:animateLayoutChanges="true"
+    android:background="@drawable/bg_containers"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tv_dialog_add_transporter_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        android:fontFamily="sans-serif-condensed"
+        android:gravity="center"
+        android:padding="16dp"
+        android:text="Add Transporter"
+        android:textColor="#ffffff"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:gravity="center"
+        android:layout_weight="1"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="24dp"
+        android:layout_height="wrap_content">
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/ll_dialog_add_transporter_search_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <EditText
+                android:id="@+id/et_dialog_add_transporter_edit_field"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:background="@drawable/bg_info_edit_text"
+                android:padding="16dp"
+                android:hint="enter Id e.g. jasdh893nd8eh2doi2noidh3n"
+                android:textAlignment="center" />
+
+            <ImageButton
+                android:id="@+id/ib_dialog_add_transporter_search"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:layout_marginStart="16dp"
+                android:layout_gravity="center"
+                android:layout_marginLeft="16dp"
+                android:layout_marginTop="6dp"
+                android:layout_marginEnd="6dp"
+                android:layout_marginRight="6dp"
+                android:layout_marginBottom="6dp"
+                android:background="@drawable/bg_bt_round"
+                android:elevation="2dp"
+                android:padding="10dp"
+                android:src="@drawable/ic_search_black_24dp" />
+
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/pb_dialog_add_transporter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:visibility="gone" />
+
+
+        <LinearLayout
+            android:id="@+id/ll_dialog_add_transporter_transporter_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:background="@drawable/contacts_list_item_background"
+            android:clickable="true"
+            android:elevation="4dp"
+            android:visibility="gone">
+
+            <com.mikhaellopez.circularimageview.CircularImageView
+                android:id="@+id/civ_dialog_add_transporter_image"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_gravity="center"
+                android:layout_margin="16dp"
+                android:clickable="true"
+                android:elevation="4dp"
+                android:focusable="true"
+                android:src="@drawable/ic_person_black_24dp"
+                app:civ_border="false" />
+
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:layout_margin="16dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_dialog_add_transporter_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:padding="2dp"
+                    android:textColor="#000000"
+                    android:textSize="16sp"
+                    tools:text="name " />
+
+
+                <TextView
+                    android:id="@+id/tv_dialog_add_transporter_number"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:padding="2dp"
+                    android:textColor="@color/text_light"
+                    android:textSize="14sp"
+                    tools:text="number" />
+
+
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/bt_dialog_add_transporter_add"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="16dp"
+                android:background="@drawable/bg_button_solid_accent"
+                android:text="Add"
+                android:textColor="#fff" />
+
+        </LinearLayout>
+
+
+    </RelativeLayout>
+</LinearLayout>

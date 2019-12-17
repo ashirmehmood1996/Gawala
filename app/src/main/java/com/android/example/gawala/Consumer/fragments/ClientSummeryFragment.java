@@ -1,13 +1,13 @@
 package com.android.example.gawala.Consumer.fragments;
 
-import android.content.Context;
+
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
+
 import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
+
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
@@ -27,12 +27,13 @@ import com.android.example.gawala.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+
+import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
 
 
 public class ClientSummeryFragment extends DialogFragment implements ClientSummeryAdapter.Callback {
@@ -123,7 +124,7 @@ public class ClientSummeryFragment extends DialogFragment implements ClientSumme
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.DAY_OF_MONTH, 1);//if we keep day of month to 0 then the last day of previous month is also retrieved because the new day hasnot been startted yet
         //fixme fetching  all data which is bad practice later shift to a better solution
-        FirebaseDatabase.getInstance().getReference().child("data")
+        rootRef.child("data")
                 .child(producerID)
                 .child("permanent_data")
                 .orderByChild("time_stamp")

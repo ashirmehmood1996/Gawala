@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    tools:context=".Producer.Activities.ProducerAddServiceActivity">
+    tools:context=".Provider.Activities.ProducerAddServiceActivity">
 
 add the image on list later will be replaced by thumbnails and alos all pictures ion consumer side also
 

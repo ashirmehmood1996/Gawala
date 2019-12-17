@@ -33,8 +33,9 @@
     <string name="service_details_title">Item Details</string>
     <string name="producer_details_activity_label">Producer Details</string>
     <string-array name="user_type">
-        <item>producer</item>
-        <item>consumer</item>
+        <item>@string/provider</item>
+        <item>@string/consumer</item>
+        <item>@string/transporter</item>
     </string-array>
     <string name="title_activity_testmap">Map</string>
     <string name="title_activity_maps">Map</string>
@@ -45,6 +46,10 @@
     <string name="places_api_key">AIzaSyDoDEsuwoTeQO4SfjqCiJJ3vlHHKi3G_2o</string>
     <string name="from_consumer_dash_board">consumerDashBoard</string>
     <string name="from_which_activty">from</string>
-
+    <string name="provider">provider</string>
+    <string name="consumer">consumer</string>
+    <string name="transporter">transporter</string>
+    <string name="type_key">typeKey</string>
+    <string name="transporter_id_key" translatable="false">transporter_id</string>
 
 </resources>

@@ -149,6 +149,18 @@
 
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/tv_con_prod_goods_detail_warning"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:text="Please connect to this provider to obtain this item"
+        android:textColor="#FF0000"
+        android:textSize="14sp"
+        android:textStyle="italic"
+        android:visibility="gone" />
+
     <Button
         android:id="@+id/bt_con_prod_goods_edit"
         android:layout_width="wrap_content"

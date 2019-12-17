@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Producer.Activities.ProducerServicesActivty">
+    tools:context=".Provider.Activities.ProducerServicesActivty">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_prod_service"
@@ -22,5 +22,29 @@
         android:layout_alignParentBottom="true"
         android:layout_margin="16dp"
         android:src="@drawable/ic_add_white_24dp" />
+    <RelativeLayout
+        android:id="@+id/rl_pro_services_empty_view_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/iv_pro_services_empty_image_view"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_centerInParent="true"
+            android:src="@drawable/whitebox_large" />
+
+        <TextView
+            android:id="@+id/tv_pro_services_empty_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/iv_pro_services_empty_image_view"
+            android:layout_centerHorizontal="true"
+            android:text="No Services"
+            android:textAppearance="?android:textAppearanceMedium" />
+
+    </RelativeLayout>
 
 </RelativeLayout>

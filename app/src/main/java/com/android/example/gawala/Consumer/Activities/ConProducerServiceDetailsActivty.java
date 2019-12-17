@@ -18,9 +18,10 @@ import com.android.example.gawala.Generel.Models.GoodModel;
 import com.android.example.gawala.R;
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.HashMap;
+
+import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
 
 public class ConProducerServiceDetailsActivty extends AppCompatActivity {
     private GoodModel goodModel;
@@ -29,6 +30,7 @@ public class ConProducerServiceDetailsActivty extends AppCompatActivity {
     private Button addItemToDemandButton;
     private String producerID;
     private ImageView servicePictureImageView;
+    private TextView warningView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +56,7 @@ public class ConProducerServiceDetailsActivty extends AppCompatActivity {
         typeTextView = findViewById(R.id.tv_con_prod_goods_detail_type);
         addItemToDemandButton = findViewById(R.id.bt_con_prod_goods_edit);
         servicePictureImageView = findViewById(R.id.iv_con_prod_goods_detail_picture);
+        warningView= findViewById(R.id.tv_con_prod_goods_detail_warning);
 
     }
 
@@ -71,6 +74,12 @@ public class ConProducerServiceDetailsActivty extends AppCompatActivity {
         if (goodModel.getImage_uri() != null && !goodModel.getImage_uri().isEmpty()) {
             Glide.with(this).load(goodModel.getImage_uri()).into(servicePictureImageView);
         }
+        if (!getIntent().getBooleanExtra("is_connected", false)) {//no connected
+            addItemToDemandButton.setEnabled(false);
+            warningView.setVisibility(View.VISIBLE);
+        }
+
+
     }
 
 
@@ -108,7 +117,7 @@ public class ConProducerServiceDetailsActivty extends AppCompatActivity {
         HashMap<String, Object> goodsMap = new HashMap<>();
         goodsMap.put("demand", "1"); //setting initial demand to 1 unit late rthe consumer will edit according to the need
 
-        FirebaseDatabase.getInstance().getReference()
+        rootRef
                 .child("demand")
                 .child(producerID)
                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid())//consumerID

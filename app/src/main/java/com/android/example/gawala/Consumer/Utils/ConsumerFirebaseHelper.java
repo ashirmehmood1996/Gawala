@@ -2,12 +2,11 @@ package com.android.example.gawala.Consumer.Utils;
 
 import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+
+import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
 
 public final class ConsumerFirebaseHelper {
 
-    private static DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
     private static String myId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
 

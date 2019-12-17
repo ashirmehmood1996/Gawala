@@ -24,10 +24,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+
+import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
 
 
 public class ConsumerRequestsActivity extends AppCompatActivity implements ProducersAdapter.CallBack, ConnectedProducersAdapter.Callback {
@@ -44,7 +45,6 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
     private RecyclerView allProdcuersrecyclerView;
 
 
-    private DatabaseReference rootRef;
     private String myId;
 
     private boolean shouldCall = true;
@@ -85,7 +85,6 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
         connectedProducersRecyclerView.setAdapter(connectedProducersAdapter);
 
         //database related
-        rootRef = FirebaseDatabase.getInstance().getReference();
         myId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         mConnectedProducerNodeRef = rootRef.child("connected_producers").child(myId);
 
@@ -108,8 +107,9 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
                                 }
                             }
                         }
-
-                        ProducerModel producerModel = new ProducerModel(key, name, number, imageUri);
+                        String lat = producerSnap.child("location").child("lat").getValue(String.class);
+                        String lng = producerSnap.child("location").child("lng").getValue(String.class);
+                        ProducerModel producerModel = new ProducerModel(key, name, number, imageUri, lat, lng);
                         producerModel.setStatus(ProducerModel.REQUEST_ACCEPTED);
                         connectedProducerArrayList.add(producerModel);
                     }
@@ -121,7 +121,7 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
                 if (shouldCall) {
                     fetchCityAndCountryName();
                     shouldCall = false;
-                }else {
+                } else {
 
                 }
             }
@@ -137,6 +137,7 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
         LinearLayout alertDialog = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_progress, null);
         this.mAlertDialog = new AlertDialog.Builder(this).setView(alertDialog).setCancelable(false).create();
     }
+
     private void attachListeners() {
     }
 
@@ -180,8 +181,8 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
 
         //not changing database schema for now and qurying all the data whihc is a bad practice later we can find better apoproaches if time
         //for now  loading all producers later that can be changed when the system expands
-        FirebaseDatabase.getInstance().getReference()
-                .child("users").orderByChild("type").equalTo("producer")
+        rootRef
+                .child("users").orderByChild("type").equalTo(getResources().getString(R.string.provider))
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) { // TODO: 11/16/2019  test by adding more producers
@@ -202,7 +203,9 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
                                                 if (producerSnap.hasChild("profile_image_uri")) {
                                                     imageUri = producerSnap.child("profile_image_uri").getValue(String.class);
                                                 }
-                                                ProducerModel producerModel = new ProducerModel(id, name, number, imageUri);
+                                                String lat = producerSnap.child("location").child("lat").getValue(String.class);
+                                                String lng = producerSnap.child("location").child("lng").getValue(String.class);
+                                                ProducerModel producerModel = new ProducerModel(id, name, number, imageUri, lat, lng);
                                                 //// FIXME: 11/19/2019 bad practice
                                                 for (ProducerModel connectedProducer : connectedProducerArrayList) {
                                                     if (connectedProducer.getId().equals(producerModel.getId())) {
@@ -249,6 +252,9 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
         intent.putExtra("number", producerModel.getNumber());
         intent.putExtra("status", producerModel.getStatus());
         intent.putExtra("profile_image_uri", producerModel.getImageUri());
+        intent.putExtra("lat", producerModel.getLat());
+        intent.putExtra("lng", producerModel.getLng());
+
 
         startActivity(intent);
 
@@ -264,6 +270,9 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
         intent.putExtra("number", producerModel.getNumber());
         intent.putExtra("status", producerModel.getStatus());
         intent.putExtra("profile_image_uri", producerModel.getImageUri());
+        intent.putExtra("lat", producerModel.getLat());
+        intent.putExtra("lng", producerModel.getLng());
+        intent.putExtra("is_connected", true);
 
         startActivity(intent);
     }

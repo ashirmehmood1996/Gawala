@@ -22,7 +22,7 @@ import android.util.Property;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.android.example.gawala.Producer.Interfaces.LatLngInterpolator;
+import com.android.example.gawala.Transporter.Interfaces.LatLngInterpolator;
 import com.android.example.gawala.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -34,8 +34,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
 
 public class ConsumerMapActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -72,7 +73,7 @@ public class ConsumerMapActivity extends AppCompatActivity implements OnMapReady
 
     private void initfields() {
         producerId = getIntent().getStringExtra("producer_id");
-        mLocationUpdateNodeRef = FirebaseDatabase.getInstance().getReference().child("locationUpdates")
+        mLocationUpdateNodeRef = rootRef.child("locationUpdates")
                 .child(producerId);
         mLocationListener = new ValueEventListener() {
             @Override

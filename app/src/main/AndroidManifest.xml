@@ -12,6 +12,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <application
         android:name=".Generel.App"
@@ -21,15 +22,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
+        <activity android:name=".Provider.Activities.ProviderTransportersActivity"></activity>
+        <activity android:name=".Provider.Activities.ProviderMainActivity" />
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-        <activity android:name=".Consumer.Activities.ManageVacationsActivity">
-        </activity>
+        <activity android:name=".Consumer.Activities.ManageVacationsActivity" />
         <activity android:name=".Generel.Activities.NotificationsActivity" />
-        <activity android:name=".Generel.Activities.PersonalInfoActivity" />
+        <activity android:name=".Generel.Activities.ProfileActivity" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -45,9 +46,7 @@
         <activity
             android:name=".Generel.Activities.PickLocationMapsActivity"
             android:label="@string/title_activity_pick_location_maps" />
-        <activity
-            android:name=".Consumer.Activities.ConsumerMapActivity"
-            />
+        <activity android:name=".Consumer.Activities.ConsumerMapActivity" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -72,13 +71,13 @@ todo   this detail activty is neing used in more than one palces and
                 parent activty does not cause any bad affect may be later or in other andorid versions it will do
         -->
         <activity
-            android:name=".Producer.Activities.ProducerServiceDetailsActivity"
+            android:name=".Provider.Activities.ProducerServiceDetailsActivity"
             android:label="@string/service_details_title" />
         <activity
-            android:name=".Producer.Activities.ProducerAddServiceActivity"
+            android:name=".Provider.Activities.ProducerAddServiceActivity"
             android:label="@string/add_service_activity_name" />
         <activity
-            android:name=".Producer.Activities.ProducerServicesActivty"
+            android:name=".Provider.Activities.ProducerServicesActivty"
             android:label="@string/my_services_activity_name" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
@@ -88,9 +87,9 @@ todo   this detail activty is neing used in more than one palces and
              sign the APK for publishing.
              You can define the keys for the debug and release targets in src/debug/ and src/release/.
         -->
-        <activity android:name=".Consumer.Activities.ConsumerDashBoardActivity" />
+        <activity android:name=".Consumer.Activities.ConsumerMainActivity" />
         <activity
-            android:name=".Producer.Activities.ProducerNavMapActivity"
+            android:name=".Transporter.Activities.TransporterRideActivity"
             android:label="@string/title_activity_nav_producer_map"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
@@ -99,7 +98,8 @@ todo   this detail activty is neing used in more than one palces and
         <activity
             android:name=".Generel.Activities.SignupActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-        <activity android:name=".Generel.Activities.LoginActivity"
+        <activity
+            android:name=".Generel.Activities.LoginActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity android:name=".Generel.Activities.MainActivity">
             <intent-filter>

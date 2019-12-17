@@ -12,7 +12,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.view.KeyEvent;
-import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -22,24 +21,25 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.example.gawala.Consumer.Activities.ConsumerDashBoardActivity;
-import com.android.example.gawala.Producer.Activities.ProducerNavMapActivity;
+import com.android.example.gawala.Consumer.Activities.ConsumerMainActivity;
+import com.android.example.gawala.Generel.Utils.SharedPreferenceUtil;
+import com.android.example.gawala.Provider.Activities.ProviderMainActivity;
 import com.android.example.gawala.R;
+import com.android.example.gawala.Transporter.Activities.TransporterRideActivity;
 import com.firebase.ui.auth.AuthUI;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.rilixtech.CountryCodePicker;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+
+import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
 
 public class SignupActivity extends AppCompatActivity {
 
@@ -56,13 +56,13 @@ public class SignupActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
-
         initFields();
         attachListeners();
     }
 
 
     private void initFields() {
+
         nameEditText = findViewById(R.id.et_register_name);
         countryCodePicker = findViewById(R.id.ccp_register);
         numberEditText = findViewById(R.id.et_register_number);
@@ -123,7 +123,7 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     private void checkAvailabilityOfNumber(final String number) {
-        FirebaseDatabase.getInstance().getReference().child("users")
+        rootRef.child("users")
                 .orderByChild("number").equalTo(number).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -173,9 +173,8 @@ public class SignupActivity extends AppCompatActivity {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         UserProfileChangeRequest userProfileChangeRequest = new UserProfileChangeRequest.Builder()
                 .setDisplayName(nameEditText.getText().toString()).build();
-        currentUser.updateProfile(userProfileChangeRequest).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
+        currentUser.updateProfile(userProfileChangeRequest).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
                 if (SignupActivity.this != null) {
                     if (mAlertDialog != null && mAlertDialog.isShowing())//null senario can only accur here because this code can run even when the acivity is dead
                         mAlertDialog.dismiss();
@@ -185,50 +184,55 @@ public class SignupActivity extends AppCompatActivity {
                         Toast.makeText(getApplicationContext(), "profile updated failed", Toast.LENGTH_SHORT).show();
                     }
                 }
+                addClientToDatabase();
+
+            } else {
+                Toast.makeText(this, "problkem in updating profile ", Toast.LENGTH_SHORT).show();
             }
         });
+    }
 
-
+    private void addClientToDatabase() {
         HashMap<String, Object> userMap = new HashMap<>();
 
-        final String type;
-        if (typeSpinner.getSelectedItemPosition() == 0) {
-            type = "producer";
-        } else {
-            type = "consumer";
-        }
+        final String type = (String) typeSpinner.getSelectedItem();
+//        if (typeSpinner.getSelectedItemPosition() == 0) {
+//            type = "producer";
+//        } else {
+//            type = "consumer";
+//        }
         userMap.put("number", mNumber);
         userMap.put("name", nameEditText.getText().toString().trim());
         userMap.put("type", type);
 
 
-        FirebaseDatabase.getInstance().getReference().child("users")
+        rootRef.child("users")
                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                .setValue(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    sendToRelevantActivity(type);
-                } else {
-                    Toast.makeText(SignupActivity.this, "unable to register please try again", Toast.LENGTH_SHORT).show();
-                }
+                .setValue(userMap).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                sendToRelevantActivity(type);
+            } else {
+                Toast.makeText(SignupActivity.this, "unable to register please try again", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void sendToRelevantActivity(String userType) {
 
-        if (userType != null && userType.equals("producer")) {
-            //            showProgressBar(false);
-            startActivity(new Intent(this, ProducerNavMapActivity.class));
+        if (userType != null && userType.equals(getResources().getString(R.string.provider))) {
+            SharedPreferenceUtil.storeValue(getApplicationContext(), getResources().getString(R.string.type_key), (String) typeSpinner.getSelectedItem());
+            startActivity(new Intent(this, ProviderMainActivity.class));
             finish();
-        } else if (userType != null && userType.equals("consumer")) {
-            //          showProgressBar(false);
-            startActivity(new Intent(this, ConsumerDashBoardActivity.class));
+        } else if (userType != null && userType.equals(getResources().getString(R.string.consumer))) {
+            SharedPreferenceUtil.storeValue(getApplicationContext(), getResources().getString(R.string.type_key), (String) typeSpinner.getSelectedItem());
+            startActivity(new Intent(this, ConsumerMainActivity.class));
+            finish();
+        } else if (userType != null && userType.equals(getResources().getString(R.string.transporter))) {
+            SharedPreferenceUtil.storeValue(getApplicationContext(), getResources().getString(R.string.type_key), (String) typeSpinner.getSelectedItem());
+            startActivity(new Intent(this, TransporterRideActivity.class));
             finish();
         } else {
             Toast.makeText(this, "some error accured please restart the application", Toast.LENGTH_SHORT).show();
-
         }
     }
 
@@ -238,7 +242,6 @@ public class SignupActivity extends AppCompatActivity {
         return networkInfo != null && networkInfo.isConnected();
     }
 
-
     @Override
     public void onBackPressed() {
         super.onBackPressed();
@@ -246,3 +249,4 @@ public class SignupActivity extends AppCompatActivity {
         finish();
     }
 }
+//copy paste stuff to relevan places plus ad the user all basic info in the shared pre at the first login in order to avoin any in convinience

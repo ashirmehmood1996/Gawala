@@ -21,7 +21,9 @@ import com.android.example.gawala.Consumer.Utils.ConsumerFirebaseHelper;
 import com.android.example.gawala.R;
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.FirebaseDatabase;
+
+import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
+
 
 public class AquiredGoodDetailActivity extends AppCompatActivity {
     private AcquiredGoodModel acquiredGoodModel;
@@ -125,7 +127,7 @@ public class AquiredGoodDetailActivity extends AppCompatActivity {
     }
 
     private void removeDemandItemFromFirebase() {
-        FirebaseDatabase.getInstance().getReference()
+        rootRef
                 .child("demand").child(acquiredGoodModel.getProducerId())
                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                 .child(acquiredGoodModel.getGoodModel().getId())

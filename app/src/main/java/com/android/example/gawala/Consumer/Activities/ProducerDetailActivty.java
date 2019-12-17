@@ -2,20 +2,20 @@ package com.android.example.gawala.Consumer.Activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.example.gawala.Consumer.Models.ProducerModel;
 import com.android.example.gawala.Generel.Adapters.GoodsAdapter;
+import com.android.example.gawala.Generel.Fraagments.DistanceViewerMapsFragment;
 import com.android.example.gawala.Generel.Models.GoodModel;
 import com.android.example.gawala.Generel.Utils.SharedPreferenceUtil;
 import com.android.example.gawala.R;
@@ -26,13 +26,14 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.mikhaellopez.circularimageview.CircularImageView;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+
+import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
 
 public class ProducerDetailActivty extends AppCompatActivity implements GoodsAdapter.CallBack {
 
@@ -50,6 +51,9 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
     private String number;
     private String imageUri;
     private CircularImageView profileCircularImageView;
+    private String MAP_TAG = "mapTAG";
+    private String lat, lng;
+    private boolean isConneted =false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,19 +71,22 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
 
 
     private void initFields() {
-        Intent intent=getIntent();
+        Intent intent = getIntent();
+        lat = getIntent().getStringExtra("lat");
+        lng = getIntent().getStringExtra("lng");
+        isConneted =getIntent().getBooleanExtra("is_connected",false);
         producerID = getIntent().getStringExtra("producer_id");
         nameTextView = findViewById(R.id.tv_prod_detail_name);
         numberTextView = findViewById(R.id.tv_prod_detail_number);
-        profileCircularImageView=findViewById(R.id.civ_prod_detail_picture);
+        profileCircularImageView = findViewById(R.id.civ_prod_detail_picture);
         name = intent.getStringExtra("name");
         nameTextView.setText(name);
         number = intent.getStringExtra("number");
         numberTextView.setText(number);
-        imageUri=intent.getStringExtra("profile_image_uri");
+        imageUri = intent.getStringExtra("profile_image_uri");
 
 
-        if (!imageUri.isEmpty()){
+        if (!imageUri.isEmpty()) {
             Glide.with(getApplicationContext()).load(imageUri).into(profileCircularImageView);
         }
         status = getIntent().getIntExtra("status", ProducerModel.STATUS_NEUTRAL);
@@ -96,8 +103,7 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
     }
 
     private void loadThisProducerGoods() {
-        FirebaseDatabase.getInstance().getReference()
-                .child("goods").child(producerID).addListenerForSingleValueEvent(new ValueEventListener() {
+        rootRef.child("goods").child(producerID).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists() && ProducerDetailActivty.this != null) {
@@ -119,61 +125,71 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
     }
 
     private void attachListeners() {
+
         requestButton.setOnClickListener(v -> {
 
             if (status == ProducerModel.REQUEST_ACCEPTED) { // then this producer is already in the list
                 removeProducer();
-
             } else if (status == ProducerModel.REQUEST_SENT) { // then this producer is in request list
                 cancelRequest();
-
-
             } else if (status == ProducerModel.STATUS_NEUTRAL) {// then this producer is new guy to which we can send requests
                 sendRequest();
-
             }
 
         });
         seeOnMapButton.setOnClickListener(v -> {
-            checkIfProvideIsSharingInfo();
-
+            showOnMap();
+//            checkIfProvideIsSharingInfo();
         });
     }
 
-    private void checkIfProvideIsSharingInfo() {
-        FirebaseDatabase.getInstance().getReference()
-                .child("share_location")
-                .child(producerID)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists() && ProducerDetailActivty.this != null) {
+//    private void checkIfProvideIsSharingInfo() {
+//        rootRef
+//                .child("share_location")
+//                .child(producerID)
+//                .addListenerForSingleValueEvent(new ValueEventListener() {
+//                    @Override
+//                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                        if (dataSnapshot.exists() && ProducerDetailActivty.this != null) {
+//
+//                            boolean isShared = dataSnapshot.getValue(Boolean.class);
+//                            if (isShared) {
+//                                showOnMap();
+//                            } else {
+//                                Toast.makeText(getApplicationContext(), "this producer is not sharing location at that time", Toast.LENGTH_SHORT).show();
+//                            }
+//
+//                        } else {
+//                            Toast.makeText(ProducerDetailActivty.this, "this producer is not sharing location at that time", Toast.LENGTH_SHORT).show();
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//                    }
+//                });
+//
+//
+//    }
 
-                            boolean isShared = dataSnapshot.getValue(Boolean.class);
-                            if (isShared) {
-                                showOnMap();
-                            } else {
-                                Toast.makeText(getApplicationContext(), "this producer is not sharing location at that time", Toast.LENGTH_SHORT).show();
-                            }
-
-                        } else {
-                            Toast.makeText(ProducerDetailActivty.this, "this producer is not sharing location at that time", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
-                });
-
-
-    }
-
+    //    private void showOnMap() {
+//        Intent intent = new Intent(this, ConsumerMapActivity.class);
+//        intent.putExtra("producer_id", producerID);
+//        startActivity(intent);
+//    }
     private void showOnMap() {
-        Intent intent = new Intent(this, ConsumerMapActivity.class);
-        intent.putExtra("producer_id", producerID);
-        startActivity(intent);
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        DistanceViewerMapsFragment clientInfoFullScreenDialogFragment =
+                (DistanceViewerMapsFragment) getSupportFragmentManager().findFragmentByTag(MAP_TAG);
+        if (clientInfoFullScreenDialogFragment != null) {
+            fragmentTransaction.remove(clientInfoFullScreenDialogFragment).commit();
+        }
+        DistanceViewerMapsFragment dialogFragment =
+                DistanceViewerMapsFragment.newInstance(Double.parseDouble(lat),
+                        Double.parseDouble(lng),"Provider");
+//        dialogFragment.setCallback(this);
+        dialogFragment.show(fragmentTransaction, MAP_TAG);
     }
 
     private void removeProducer() {
@@ -203,8 +219,7 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
             return;
         }
 
-        FirebaseDatabase.getInstance().getReference()
-                .child("requests")
+        rootRef.child("requests")
                 .child(producerID).child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                 .setValue(requestMap)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -225,7 +240,7 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
     }
 
     private void cancelRequest() {
-        FirebaseDatabase.getInstance().getReference()
+        rootRef
                 .child("requests")
                 .child(producerID).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
@@ -247,8 +262,7 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
             return;
         }
         //listen if the request is already sent
-        FirebaseDatabase.getInstance().getReference()
-                .child("requests")
+        rootRef.child("requests")
                 .child(producerID).child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -281,6 +295,7 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
         Intent intent = new Intent(this, ConProducerServiceDetailsActivty.class);
         intent.putExtra("goods_model", currentModel);
         intent.putExtra("producer_id", producerID);
+        intent.putExtra("is_connected", isConneted);
         startActivity(intent);
     }
 

@@ -12,6 +12,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 
+import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
+
 public final class UtilsMessaging {
     private UtilsMessaging() {
     }
@@ -36,8 +38,8 @@ public final class UtilsMessaging {
 
     public static void sendRegistrationToServer(String token) {
         //Log.d(TAG, "sendRegistrationToServer: sending token to server: " + token);
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
-        DatabaseReference userIDNodeRef = reference.child("users")
+
+        DatabaseReference userIDNodeRef =rootRef.child("users")
                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
         userIDNodeRef.child("messaging_token").setValue(token);//adding device token to user data
 
@@ -47,7 +49,7 @@ public final class UtilsMessaging {
 
     public static void deleteRegistrationFromServer() {
         //Log.d(TAG, "sendRegistrationToServer: sending token to server: " + token);
-        FirebaseDatabase.getInstance().getReference()
+        rootRef
                 .child("users")
                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                 .child("messaging_token").removeValue();

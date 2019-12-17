@@ -24,13 +24,14 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
+import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
+
 public class NotificationsActivity extends AppCompatActivity implements NotificationsAdapter.Callback {
 
     private RecyclerView recyclerView;
     private NotificationsAdapter notificationsAdapter;
     private ArrayList<NotificationModel> notificationModelArrayList;
 
-    private DatabaseReference rootRef;
     private String myId;
     private AlertDialog mAlertDialog;
 
@@ -66,7 +67,6 @@ public class NotificationsActivity extends AppCompatActivity implements Notifica
         notificationsAdapter = new NotificationsAdapter(notificationModelArrayList, this);
         recyclerView.setAdapter(notificationsAdapter);
         myId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        rootRef = FirebaseDatabase.getInstance().getReference();
         emptyViewcontainer = findViewById(R.id.rl_notification_empty_view_container);
 
         initializeDialog();

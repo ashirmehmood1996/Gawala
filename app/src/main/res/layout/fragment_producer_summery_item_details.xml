@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".Producer.Fragments.ProducerSummeryItemDetailsFragment">
+    tools:context=".Transporter.Fragments.ProducerSummeryItemDetailsFragment">
 
     <LinearLayout
         android:layout_width="match_parent"

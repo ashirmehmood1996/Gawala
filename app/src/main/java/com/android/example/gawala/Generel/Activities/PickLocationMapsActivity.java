@@ -204,12 +204,7 @@ public class PickLocationMapsActivity extends FragmentActivity implements OnMapR
             } else if (/*grantResults.length > 0 &&*/ grantResults[0] == PackageManager.PERMISSION_DENIED) {
                 Toast.makeText(this, "Permissions denied the app will shut down shortly", Toast.LENGTH_LONG).show();
                 final Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        finish();
-                    }
-                }, 2000);
+                handler.postDelayed(() -> finish(), 2000);
             }
         }
 
@@ -334,26 +329,23 @@ public class PickLocationMapsActivity extends FragmentActivity implements OnMapR
 
             }
         });
-        mMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
-            @Override
-            public void onCameraIdle() {
-                mPosition = mMap.getCameraPosition();
-                mcurrentLocation = mPosition.target;
-                mGeocoderAsyncTask = new GeoCoderAsyncTask(PickLocationMapsActivity.this) {
-                    @Override
-                    protected void onPostExecute(Address address) {
-                        if (placesFragment != null) {
-                            placesFragment.setText(address.getAddressLine(0));
-                        }
+        mMap.setOnCameraIdleListener(() -> {
+            mPosition = mMap.getCameraPosition();
+            mcurrentLocation = mPosition.target;
+            mGeocoderAsyncTask = new GeoCoderAsyncTask(PickLocationMapsActivity.this) {
+                @Override
+                protected void onPostExecute(Address address) {
+                    if (placesFragment != null && address!=null) {
+                        placesFragment.setText(address.getAddressLine(0));
                     }
-                };
-                mGeocoderAsyncTask.execute(mcurrentLocation);
+                }
+            };
+            mGeocoderAsyncTask.execute(mcurrentLocation);
 
-                dotImageView.setVisibility(View.INVISIBLE);
-                markerImageView.startAnimation(AnimationUtils.loadAnimation(PickLocationMapsActivity.this, R.anim.scale_zoom_in));
-                markerImageView.setVisibility(View.VISIBLE);
+            dotImageView.setVisibility(View.INVISIBLE);
+            markerImageView.startAnimation(AnimationUtils.loadAnimation(PickLocationMapsActivity.this, R.anim.scale_zoom_in));
+            markerImageView.setVisibility(View.VISIBLE);
 //                mMap.addMarker(new MarkerOptions().title("new marker").position(mPosition.target));
-            }
         });
 
 
@@ -368,7 +360,8 @@ public class PickLocationMapsActivity extends FragmentActivity implements OnMapR
 
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setCompassEnabled(false);
-//        mMap.setPadding(0, 250, 0, 0); //todo this property may be pixed dependednt find a fix later
+        mMap.setMyLocationEnabled(true);
+        mMap.setPadding(0, 250, 0, 0); //todo this property may be pixed dependednt find a fix later
 
     }
 

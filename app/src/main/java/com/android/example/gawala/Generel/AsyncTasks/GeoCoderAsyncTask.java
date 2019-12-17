@@ -33,6 +33,7 @@ public class GeoCoderAsyncTask extends AsyncTask<LatLng, Void, Address> {
             double longitude = latLngs[0].longitude;
 
             System.out.println("lat : " + latitude + "lon : " + longitude);
+            assert context != null;
             Geocoder geo = new Geocoder(context, Locale.getDefault());
             List<Address> addresses = geo.getFromLocation(latitude, longitude, 1);
             if (addresses.isEmpty()) {

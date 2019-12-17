@@ -8,7 +8,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height=".3dp"
-        android:layout_below="@id/ll_li_requests_container"
+        android:layout_below="@id/ll_li_conected_con_container"
         android:layout_marginStart="82dp"
         android:layout_marginLeft="82dp"
         android:layout_marginEnd="16dp"
@@ -16,7 +16,7 @@
         android:background="@color/text_light" />
 
     <LinearLayout
-        android:id="@+id/ll_li_requests_container"
+        android:id="@+id/ll_li_conected_con_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/contacts_list_item_background"

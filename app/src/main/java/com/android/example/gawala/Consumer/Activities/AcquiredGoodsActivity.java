@@ -19,16 +19,15 @@ import com.android.example.gawala.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
+import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
+
 public class AcquiredGoodsActivity extends AppCompatActivity implements AcquiredGoodsAdapter.Callback {
 
     private String myId;
-    private DatabaseReference rootRef;
     private ArrayList<String> connectedProducersArrayList;
 
     private ArrayList<AcquiredGoodModel> acquiredGoodArrayList;
@@ -51,7 +50,6 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
 
     private void initFields() {
         myId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        rootRef = FirebaseDatabase.getInstance().getReference();
         connectedProducersArrayList = new ArrayList<>();
 
         acquiredGoodArrayList = new ArrayList<>();
@@ -158,8 +156,7 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
     }
 
     private void fetchGoodDetailFromFireabse(String goodID, final String demand, final String producerID) {
-        FirebaseDatabase.getInstance().getReference()
-                .child("goods").child(producerID).child(goodID)
+        rootRef.child("goods").child(producerID).child(goodID)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {

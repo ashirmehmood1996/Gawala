@@ -23,7 +23,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -31,10 +30,11 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
+import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
+
 public class ManageVacationsActivity extends AppCompatActivity implements View.OnClickListener {
     /*library usage https://github.com/Applandeo/Material-Calendar-View*/
     private CalendarView calendarView;
-    private DatabaseReference rootRef;
     private String myId;
     private List<Calendar> daysOffList;
     private List<EventDay> eventDayArrayList;
@@ -65,7 +65,6 @@ public class ManageVacationsActivity extends AppCompatActivity implements View.O
     }
 
     private void initFields() {
-        rootRef = FirebaseDatabase.getInstance().getReference();
         myId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         daysOffList = new ArrayList<>();
         eventDayArrayList = new ArrayList<>();

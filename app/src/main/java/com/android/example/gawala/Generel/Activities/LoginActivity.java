@@ -1,6 +1,5 @@
 package com.android.example.gawala.Generel.Activities;
 
-import android.app.usage.UsageEvents;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -13,7 +12,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.telephony.PhoneNumberUtils;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
@@ -22,21 +20,24 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.example.gawala.Consumer.Activities.ConsumerDashBoardActivity;
-import com.android.example.gawala.Producer.Activities.ProducerNavMapActivity;
+import com.android.example.gawala.Consumer.Activities.ConsumerMainActivity;
+import com.android.example.gawala.Generel.Utils.SharedPreferenceUtil;
+import com.android.example.gawala.Provider.Activities.ProviderMainActivity;
 
 import com.android.example.gawala.R;
+import com.android.example.gawala.Transporter.Activities.TransporterRideActivity;
 import com.firebase.ui.auth.AuthUI;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.rilixtech.CountryCodePicker;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
     private static final int RC_LOGIN = 1001;
@@ -48,20 +49,17 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
 
     private String mPhoneNumber = "";
-    private AlertDialog mAlertDialog;
+    private AlertDialog mProgressDialog;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
 //        getSupportActionBar().setTitle("Login..");
         initFields();
         attachListeners();
-
     }
-
 
     private void initFields() {
         countryCodePicker = findViewById(R.id.ccp_login);
@@ -69,6 +67,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         wrongInputAlertTextView = findViewById(R.id.tv_login_wrong_input);
         loginButton = findViewById(R.id.bt_login_login);
         signupButton = findViewById(R.id.bt_login_signup);
+
 
     }
 
@@ -80,7 +79,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             if (/*event != null && */actionId == EditorInfo.IME_ACTION_GO) {
                 if (isInternetAvailable()) {
                     initializeDialog();
-                    mAlertDialog.show();
+                    mProgressDialog.show();
                     proceedToLogin();
 
                 } else {
@@ -88,8 +87,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 }
                 return false;//this will shut down the keyboard
             }
-
-             return false;//this will shut down the keyboard
+            return false;//this will shut down the keyboard
         });
     }
 
@@ -100,7 +98,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             case R.id.bt_login_login:
                 if (isInternetAvailable()) {
                     initializeDialog();
-                    mAlertDialog.show();
+                    mProgressDialog.show();
                     proceedToLogin();
                 } else {
                     Toast.makeText(this, "please check your internet connection", Toast.LENGTH_SHORT).show();
@@ -117,21 +115,21 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private void initializeDialog() {
         LinearLayout alertDialog = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_progress, null);
-        this.mAlertDialog = new AlertDialog.Builder(this).setView(alertDialog).setCancelable(false).create();
+        this.mProgressDialog = new AlertDialog.Builder(this).setView(alertDialog).setCancelable(false).create();
     }
 
     private void proceedToLogin() {
         mPhoneNumber = "+" + countryCodePicker.getSelectedCountryCode() + numberEditText.getText().toString().trim();
         if (numberEditText.getText().toString().trim().isEmpty()) {
             Toast.makeText(this, "plaese provide the number", Toast.LENGTH_SHORT).show();
-            mAlertDialog.dismiss();
+            mProgressDialog.dismiss();
             return;
         }
         if (!PhoneNumberUtils.isGlobalPhoneNumber(mPhoneNumber)) {
             Toast.makeText(LoginActivity.this, "please eneter a valid  phone number in specified format", Toast.LENGTH_SHORT).show();
             wrongInputAlertTextView.setText("please eneter a valid  phone number in specified format");
             wrongInputAlertTextView.setVisibility(View.VISIBLE);
-            mAlertDialog.dismiss();
+            mProgressDialog.dismiss();
             return;
         }
         if (wrongInputAlertTextView.isShown()) {
@@ -145,7 +143,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void checkValidityAndAuthenticate(final String number) {
-        FirebaseDatabase.getInstance().getReference().child("users")
+        rootRef.child("users")
                 .orderByChild("number").equalTo(number).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -156,7 +154,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     } else {
                         wrongInputAlertTextView.setText("the number provided is not registered please tap register to create an account");
                         wrongInputAlertTextView.setVisibility(View.VISIBLE);
-                        mAlertDialog.dismiss();
+                        mProgressDialog.dismiss();
 
                     }
                     loginButton.setEnabled(true);
@@ -167,7 +165,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 if (LoginActivity.this != null)
-                    mAlertDialog.dismiss();
+                    mProgressDialog.dismiss();
             }
         });
     }
@@ -205,25 +203,33 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         FirebaseUser curuntUser = FirebaseAuth.getInstance().getCurrentUser();
         if (curuntUser != null) {//now user is logged in
             //we check that user type and send the user to its respective activity
-            FirebaseDatabase.getInstance().getReference().child("users").child("" + FirebaseAuth.getInstance().getCurrentUser().getUid())
+            rootRef.child("users").child("" + FirebaseAuth.getInstance().getCurrentUser().getUid())
                     .child("type").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     if (LoginActivity.this != null) {
                         String userType = dataSnapshot.getValue(String.class);
-                        if (userType != null && userType.equals("producer")) {
-                            //            showProgressBar(false);
-                            startActivity(new Intent(LoginActivity.this, ProducerNavMapActivity.class));
-                            mAlertDialog.dismiss();
-                            finish();
-                        } else if (userType != null && userType.equals("consumer")) {
-                            //          showProgressBar(false);
-                            startActivity(new Intent(LoginActivity.this, ConsumerDashBoardActivity.class));
 
-                            mAlertDialog.dismiss();
+                        if (userType != null && userType.equals(getResources().getString(R.string.provider))) {
+                            //            showProgressBar(false);
+                            startActivity(new Intent(LoginActivity.this, ProviderMainActivity.class));
+                            SharedPreferenceUtil.storeValue(getApplicationContext(), getResources().getString(R.string.type_key), userType);
+                            mProgressDialog.dismiss();
+                            finish();
+                        } else if (userType != null && userType.equals(getResources().getString(R.string.consumer))) {
+                            //          showProgressBar(false);
+                            startActivity(new Intent(LoginActivity.this, ConsumerMainActivity.class));
+                            SharedPreferenceUtil.storeValue(getApplicationContext(), getResources().getString(R.string.type_key), userType);
+                            mProgressDialog.dismiss();
+                            finish();
+                        } else if (userType != null && userType.equals(getResources().getString(R.string.transporter))) {
+                            //          showProgressBar(false);
+                            startActivity(new Intent(LoginActivity.this, TransporterRideActivity.class));
+                            SharedPreferenceUtil.storeValue(getApplicationContext(), getResources().getString(R.string.type_key), userType);
+                            mProgressDialog.dismiss();
                             finish();
                         } else {
-                            mAlertDialog.dismiss();
+                            mProgressDialog.dismiss();
                             Toast.makeText(LoginActivity.this, "some error accured please restart the application", Toast.LENGTH_SHORT).show();
 
                         }
@@ -233,7 +239,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
                     //    showProgressBar(false);
-                    mAlertDialog.dismiss();
+                    mProgressDialog.dismiss();
                     Toast.makeText(LoginActivity.this, "some error accured please restart the application", Toast.LENGTH_SHORT).show();
                 }
             });
