@@ -12,7 +12,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:name=".Generel.App"
@@ -89,7 +89,7 @@ todo   this detail activty is neing used in more than one palces and
         -->
         <activity android:name=".Consumer.Activities.ConsumerMainActivity" />
         <activity
-            android:name=".Transporter.Activities.TransporterRideActivity"
+            android:name=".Transporter.Activities.TransporterMainActivity"
             android:label="@string/title_activity_nav_producer_map"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
@@ -116,6 +116,8 @@ todo   this detail activty is neing used in more than one palces and
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+        <service android:name=".Transporter.Services.RideService"
+            android:exported="false"/>
     </application>
 
 </manifest>

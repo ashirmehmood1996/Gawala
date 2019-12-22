@@ -145,7 +145,7 @@ public class ProviderClientsFragment extends DialogFragment implements RequestsA
         //connected consumers related
         connectedConsumersRecyclerView = rootView.findViewById(R.id.rv_pro_consumers);
         connectedConsumersRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-//        mConsumersArrayList = ((TransporterRideActivity) getActivity()).getConsumersArrayList();
+//        mConsumersArrayList = ((TransporterMainActivity) getActivity()).getConsumersArrayList();
         mConsumersArrayList = new ArrayList<>();
         consumersAdapter = new ConnectedConsumersAdapter(mConsumersArrayList, getActivity(), this);
         connectedConsumersRecyclerView.setAdapter(consumersAdapter);
@@ -335,7 +335,7 @@ public class ProviderClientsFragment extends DialogFragment implements RequestsA
                         addConenctedProducerNodeToDatabase(requestModel.getSender_id());
                         removeRequestNode(requestModel.getSender_id(), true, currentActiveRequestPosition);
                         //update the clients  list
-//                        ((TransporterRideActivity) getActivity()).loadAllConsumers();
+//                        ((TransporterMainActivity) getActivity()).loadAllConsumers();
                     } else {
                         Toast.makeText(getContext(), "something went wrong try later", Toast.LENGTH_SHORT).show();
                     }

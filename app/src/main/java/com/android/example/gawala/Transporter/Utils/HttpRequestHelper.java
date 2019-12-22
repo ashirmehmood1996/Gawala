@@ -154,6 +154,4 @@ public final class HttpRequestHelper {
 
         return distanceMatrixModel;
     }
-
-
 }

@@ -1,6 +1,5 @@
 package com.android.example.gawala.Transporter.directionhelpers;
 
-import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -18,11 +17,11 @@ import java.net.URL;
  */
 
 public class FetchURL extends AsyncTask<String, Void, String> {
-    private Context mContext;
+    private TaskLoadedCallback taskLoadedCallback;
     private String directionMode = "driving";
     private boolean isFullRoute=false;
-    public FetchURL(Context mContext,boolean isFullRoute) {
-        this.mContext = mContext;
+    public FetchURL(TaskLoadedCallback taskLoadedCallback,boolean isFullRoute) {
+        this.taskLoadedCallback = taskLoadedCallback;
         this.isFullRoute=isFullRoute;
     }
 
@@ -34,7 +33,7 @@ public class FetchURL extends AsyncTask<String, Void, String> {
         try {
             // Fetching the data from web service
             data = downloadUrl(strings[0]);
-            Log.d("mylog", "Background task data " + data.toString());
+            Log.d("mylog", "Background task data " + data);
         } catch (Exception e) {
             Log.d("Background Task", e.toString());
         }
@@ -44,7 +43,7 @@ public class FetchURL extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String s) {
         super.onPostExecute(s);
-        PointsParser parserTask = new PointsParser(mContext, directionMode,isFullRoute);
+        PointsParser parserTask = new PointsParser(taskLoadedCallback, directionMode,isFullRoute);
         // Invokes the thread for parsing the JSON data
         parserTask.execute(s);
     }
@@ -68,7 +67,7 @@ public class FetchURL extends AsyncTask<String, Void, String> {
                 sb.append(line);
             }
             data = sb.toString();
-            Log.d("mylog", "Downloaded URL: " + data.toString());
+            Log.d("mylog", "Downloaded URL: " + data);
             br.close();
         } catch (Exception e) {
             Log.d("mylog", "Exception downloading URL: " + e.toString());

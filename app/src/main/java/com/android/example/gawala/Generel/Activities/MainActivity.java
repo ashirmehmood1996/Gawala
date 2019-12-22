@@ -18,7 +18,7 @@ import com.android.example.gawala.Consumer.Activities.ConsumerMainActivity;
 import com.android.example.gawala.Generel.Utils.SharedPreferenceUtil;
 import com.android.example.gawala.Provider.Activities.ProviderMainActivity;
 import com.android.example.gawala.R;
-import com.android.example.gawala.Transporter.Activities.TransporterRideActivity;
+import com.android.example.gawala.Transporter.Activities.TransporterMainActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
             finish();
         } else if (userType != null && userType.equals(getResources().getString(R.string.transporter))) {
             //          showProgressBar(false);
-            startActivity(new Intent(MainActivity.this, TransporterRideActivity.class));
+            startActivity(new Intent(MainActivity.this, TransporterMainActivity.class));
             finish();
         } else {
             Toast.makeText(MainActivity.this, "some error accured please restart the application", Toast.LENGTH_SHORT).show();
@@ -190,24 +190,12 @@ public class MainActivity extends AppCompatActivity {
 // when the stuff is delivered we need to make a boolaen that delivered is true and deriver recieves an acknowledgement (required)
 // data for this delivery is saved (required)
 // todo   now   so first we think for the required features in service
-//  1) we fetch the active rides models as we do already and get all the necessary data regarding deiveries
+//  1) !!already done we fetch the active rides models as we do already and get all the necessary data regarding deiveries
 //  2) we make this data passed to the service or to the fire base where it resides as an active session
 //  3) the is delivered option should be as a button in foreground notification  and in the ride activity which it is already there
 //  4) the at the time of delivery what we do is simply make the set delivered to true for each consumer goods delivered
 //  5) when activity is restarted we simple fetch the session data from service or firebase where ever the list resides base on check that there is a session already running and we make the ride active accordingly
 //  6) when the ride is completed we fetch the data from session node and replace it to the data history node which in our case is summery node
-//
-
-
-
-
-
-
-
-
-
-
-
 
 //  fixme should make a separate activty or class for permissions asking  and send the user there each time a pemission is needed
 //  fixme allow the provider in real time that client locvation has changes

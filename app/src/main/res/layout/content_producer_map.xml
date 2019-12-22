@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context=".Transporter.Activities.TransporterRideActivity"
+    tools:context=".Transporter.Activities.TransporterMainActivity"
     tools:showIn="@layout/app_bar_producer">
 <!--map:cameraBearing="112.5"
     map:cameraTilt="65"

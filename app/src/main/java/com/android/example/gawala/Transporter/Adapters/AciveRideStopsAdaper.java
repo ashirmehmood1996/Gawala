@@ -14,8 +14,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 
 import com.android.example.gawala.Provider.Models.ConsumerModel;
-import com.android.example.gawala.Transporter.Activities.TransporterRideActivity;
 import com.android.example.gawala.R;
+import com.android.example.gawala.Transporter.Services.RideService;
 
 import java.util.ArrayList;
 
@@ -63,7 +63,7 @@ public class AciveRideStopsAdaper extends RecyclerView.Adapter<AciveRideStopsAda
         holder.locationTextView.setText(location);
 
         boolean status = consumerModel.isDelivered();
-        if (TransporterRideActivity.activeStopPosition != position) {
+        if (RideService.activeStopPosition != position) {
             if (status) {
                 holder.statusTextView.setText(String.format("%.1f litre(s)\nDelivered",milkAmount));
                 holder.statusTextView.setTextColor(Color.BLUE);

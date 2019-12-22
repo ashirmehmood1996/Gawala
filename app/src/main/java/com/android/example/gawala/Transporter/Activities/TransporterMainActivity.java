@@ -4,13 +4,13 @@ import android.Manifest;
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.animation.TypeEvaluator;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -25,11 +25,8 @@ import android.os.Build;
 import android.os.Bundle;
 
 import com.android.example.gawala.Generel.Activities.LoginActivity;
-import com.android.example.gawala.Generel.Activities.MainActivity;
 import com.android.example.gawala.Generel.Activities.NotificationsActivity;
-import com.android.example.gawala.Generel.Activities.PickLocationMapsActivity;
 import com.android.example.gawala.Generel.Activities.ProfileActivity;
-import com.android.example.gawala.Generel.App;
 import com.android.example.gawala.Generel.AsyncTasks.GeoCoderAsyncTask;
 import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 import com.android.example.gawala.Generel.Models.GoodModel;
@@ -40,14 +37,9 @@ import com.android.example.gawala.Provider.Models.ConsumerModel;
 import com.android.example.gawala.Transporter.Fragments.ProducerSettingsFragment;
 import com.android.example.gawala.Transporter.Fragments.TransporterClientsFragment;
 import com.android.example.gawala.Transporter.Interfaces.LatLngInterpolator;
-import com.android.example.gawala.Transporter.Models.DistanceMatrixModel;
-import com.android.example.gawala.Transporter.Utils.DistanceMatrixAsyncTask;
-import com.android.example.gawala.Transporter.Utils.ProducerFirebaseHelper;
-import com.android.example.gawala.Transporter.Utils.HttpRequestHelper;
-import com.android.example.gawala.Transporter.Utils.UrlGenrator;
+import com.android.example.gawala.Transporter.Services.RideService;
+
 import com.android.example.gawala.Generel.Utils.UtilsMessaging;
-import com.android.example.gawala.Transporter.directionhelpers.FetchURL;
-import com.android.example.gawala.Transporter.directionhelpers.TaskLoadedCallback;
 import com.android.example.gawala.Transporter.Fragments.ProducerSummeryFragment;
 import com.android.example.gawala.R;
 import com.bumptech.glide.Glide;
@@ -79,11 +71,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 
 import android.os.Handler;
+import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.util.Property;
@@ -129,12 +121,15 @@ import static androidx.annotation.Dimension.SP;
 import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
 
 
-public class TransporterRideActivity extends AppCompatActivity
+public class TransporterMainActivity extends AppCompatActivity
         implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener,
-        ProducerRideInfoFragment.Callbacks, TaskLoadedCallback/*,
-        ProviderClientsFragment.CallBacks */ {
+        ProducerRideInfoFragment.Callbacks/*, TaskLoadedCallback*/, RideService.Callbacks
+        /*,ProviderClientsFragment.CallBacks */ {
 
-    public static final String PROVIDER_ID = "providerId";
+
+    private RideService mRideService;
+    private boolean mIsBound = false;
+
     private static final String TAG_FRAG_RIDE_INFO = "FragRideInfo";
     private static final String CLIENTS_FRAG_TAG = "FragClients";
     private String providerId;
@@ -160,7 +155,7 @@ public class TransporterRideActivity extends AppCompatActivity
 
     private FragmentManager mFragmentManager;
     private Marker myCurrentLocationMarker;
-    private boolean isjournyActive;
+    public static boolean isjournyActive;
 
 
     private Polyline mCurrentPolyline;
@@ -183,7 +178,7 @@ public class TransporterRideActivity extends AppCompatActivity
     private BottomSheetBehavior bottomSheetBehavior;
     private RecyclerView mActiveRideStopsRecyclerView;
     //    private ArrayList<ActiveRideStopsModel> mActiveRideStopsModelArrayList;
-    private AciveRideStopsAdaper mAciveRideStopsAdapter;
+    private AciveRideStopsAdaper mActiveRideStopsAdapter;
 
     private ImageButton toggleImageButton;
     private int mMilkPrice;
@@ -236,7 +231,7 @@ public class TransporterRideActivity extends AppCompatActivity
                         public void onClick(DialogInterface dialog, int which) {
 
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                ActivityCompat.requestPermissions(TransporterRideActivity.this, PERMISSIONS,
+                                ActivityCompat.requestPermissions(TransporterMainActivity.this, PERMISSIONS,
                                         RC_PERMISSION_ALL);
                             }
                         }
@@ -264,7 +259,7 @@ public class TransporterRideActivity extends AppCompatActivity
                 .setNegativeButton("Exit", new DialogInterface.OnClickListener() {
                     public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
                         dialog.cancel();
-                        Toast.makeText(TransporterRideActivity.this, "location is not enabled app will shut down shortly", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(TransporterMainActivity.this, "location is not enabled app will shut down shortly", Toast.LENGTH_SHORT).show();
                         final Handler handler = new Handler();
                         handler.postDelayed(new Runnable() {
                             @Override
@@ -320,10 +315,10 @@ public class TransporterRideActivity extends AppCompatActivity
                                 providerId = dataSnapshot1.getKey();
                                 loadAllConsumers();
                             } else {
-                                Toast.makeText(TransporterRideActivity.this, "Ops ! Something went wrong", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(TransporterMainActivity.this, "Ops ! Something went wrong", Toast.LENGTH_SHORT).show();
                             }
                         } else {
-                            Toast.makeText(TransporterRideActivity.this, "No Provider was connected to you", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(TransporterMainActivity.this, "No Provider was connected to you", Toast.LENGTH_SHORT).show();
                         }
                         mProgressDialog.dismiss();
 
@@ -424,10 +419,10 @@ public class TransporterRideActivity extends AppCompatActivity
         mActiveRideStopsRecyclerView = findViewById(R.id.rv_bottom_sheet_active_riding);
         mActiveRideArrayList = new ArrayList<>();
 //        mActiveRideStopsModelArrayList=new ArrayList<>();
-        mAciveRideStopsAdapter = new AciveRideStopsAdaper(this, mActiveRideArrayList);
-        mActiveRideStopsRecyclerView.setAdapter(mAciveRideStopsAdapter);
+        mActiveRideStopsAdapter = new AciveRideStopsAdaper(this, mActiveRideArrayList);
+        mActiveRideStopsRecyclerView.setAdapter(mActiveRideStopsAdapter);
 
-//        mAciveRideStopsAdapter
+//        mActiveRideStopsAdapter
 
 
         toggleImageButton = findViewById(R.id.bt_bottom_sheet_toggle);
@@ -500,40 +495,38 @@ public class TransporterRideActivity extends AppCompatActivity
             drawer.openDrawer(Gravity.LEFT);
         });
 
-        deliveredToCurrentStopButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mConsumerModelArrayList.get(activeStopPosition).setDelivered(true);
-                // TODO: 10/15/2019  send notification to relevent
+        deliveredToCurrentStopButton.setOnClickListener(v -> {
+            mRideService.deliveredToCurrentStop();
+            mActiveRideStopsAdapter.notifyDataSetChanged();
 
-                sendMessageToConsumer(mConsumerModelArrayList.get(activeStopPosition).getId());
 
-                if (activeStopPosition >= mActiveRideArrayList.size() - 1) { //this means that all stops are done
-                    abortJourny();
-                    speak("saving record..");
-                    Toast.makeText(TransporterRideActivity.this, "all stops done, Now finishing Ride....", Toast.LENGTH_SHORT).show();
-                } else {
-                    activeStopPosition++;
-                    mAciveRideStopsAdapter.notifyDataSetChanged();
-                    speak("Now heading towards " + mActiveRideArrayList.get(activeStopPosition).getName());
-                    Toast.makeText(TransporterRideActivity.this, "successfully marked as delivered, Now going gor next stop", Toast.LENGTH_SHORT).show();
-                }
-            }
+//                mConsumerModelArrayList.get(RideService.activeStopPosition).setDelivered(true);
+            // TODO: 10/15/2019  send notification to relevent
+
+//            sendMessageToConsumer(mConsumerModelArrayList.get(activeStopPosition).getId());
+
+//            if (activeStopPosition >= mActiveRideArrayList.size() - 1) { //this means that all stops are done
+//                abortJourny();
+//                speak("saving record..");
+//                Toast.makeText(TransporterMainActivity.this, "all stops done, Now finishing Ride....", Toast.LENGTH_SHORT).show();
+//            } else {
+//                activeStopPosition++;
+//                mActiveRideStopsAdapter.notifyDataSetChanged();
+//                speak("Now heading towards " + mActiveRideArrayList.get(activeStopPosition).getName());
+//                Toast.makeText(TransporterMainActivity.this, "successfully marked as delivered, Now going gor next stop", Toast.LENGTH_SHORT).show();
+//            }
         });
-        toggleImageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED)
-                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                else bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        toggleImageButton.setOnClickListener(v -> {
+            if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED)
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            else bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
 
 
-            }
         });
     }
 
-
-    private void sendMessageToConsumer(String consumerId) {
+//journey rekated
+    /*private void sendMessageToConsumer(String consumerId) {
         String title = "Acknowledgement";
         String message = "milk is delivered to you";
         String type = "Acknowledgement";
@@ -596,7 +589,7 @@ public class TransporterRideActivity extends AppCompatActivity
             }
         });
     }
-
+*/
 //    private void initUserDataIfFirstTime() {
 //        rootRef.child("data")
 //                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
@@ -625,7 +618,7 @@ public class TransporterRideActivity extends AppCompatActivity
 //        rootRef.child("users").child(myID).child("location").addListenerForSingleValueEvent(new ValueEventListener() {
 //            @Override
 //            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-//                if (!dataSnapshot.exists() && TransporterRideActivity.this != null) { //location is not set
+//                if (!dataSnapshot.exists() && TransporterMainActivity.this != null) { //location is not set
 //                    showDialogToSendToPickupLocationActivty();
 //                } else {//location was set
 //                    SharedPreferenceUtil.storeValue(getApplicationContext(), "lat", dataSnapshot.child("lat").getValue(String.class));
@@ -656,7 +649,7 @@ public class TransporterRideActivity extends AppCompatActivity
 //        }).setNegativeButton("cancel", new DialogInterface.OnClickListener() {
 //            @Override
 //            public void onClick(DialogInterface dialog, int which) {
-//                Toast.makeText(TransporterRideActivity.this, "you will not be able to proivide Services " +
+//                Toast.makeText(TransporterMainActivity.this, "you will not be able to proivide Services " +
 //                        "to Consumers unless you specify your Business Location", Toast.LENGTH_LONG).show();
 //            }
 //        });
@@ -786,7 +779,7 @@ public class TransporterRideActivity extends AppCompatActivity
 
     private void fetchProviderIdAndShowDetails() {
         if (providerId != null) {
-            Intent intent = new Intent(TransporterRideActivity.this, ProfileActivity.class);
+            Intent intent = new Intent(TransporterMainActivity.this, ProfileActivity.class);
             intent.putExtra(ProfileActivity.USER_ID, providerId);
             intent.putExtra(ProfileActivity.OTHER_USER, true);
             startActivity(intent);
@@ -848,7 +841,7 @@ public class TransporterRideActivity extends AppCompatActivity
 
     private void showSummeryFragment() {
 
-        if (providerId==null){
+        if (providerId == null) {
             Toast.makeText(this, "please connect to a provider first ", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -858,7 +851,7 @@ public class TransporterRideActivity extends AppCompatActivity
         if (producerSummeryFragment != null) {
             fragmentTransaction.remove(producerSummeryFragment);
         }
-        ProducerSummeryFragment dialogFragment = ProducerSummeryFragment.newInstance(providerId,false);
+        ProducerSummeryFragment dialogFragment = ProducerSummeryFragment.newInstance(providerId, false);
 //        dialogFragment.setCallback(this);
 //        dialogFragment.setProducerSummeryModel(producerSummeryModel);
         dialogFragment.show(fragmentTransaction, SUMMERY_FRAGMENT_TAG);
@@ -895,7 +888,7 @@ public class TransporterRideActivity extends AppCompatActivity
 
     private void showLogoutAlertDialog() {
         //logout code
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(TransporterRideActivity.this);
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(TransporterMainActivity.this);
         builder.setTitle("Logout")
                 .setMessage("press logout to continue..")
                 .setPositiveButton("logout", new DialogInterface.OnClickListener() {
@@ -912,17 +905,17 @@ public class TransporterRideActivity extends AppCompatActivity
                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                 .child("messaging_token").setValue("null").addOnCompleteListener(task ->
                 AuthUI.getInstance()
-                        .signOut(TransporterRideActivity.this)
+                        .signOut(TransporterMainActivity.this)
                         .addOnCompleteListener(task1 -> {
                             if (task1.isSuccessful()) {
                                 SharedPreferenceUtil.storeValue(getApplicationContext(), "lat", null);
                                 SharedPreferenceUtil.storeValue(getApplicationContext(), "lng", null);
                                 SharedPreferenceUtil.clearAllPreferences(getApplicationContext());
-                                Toast.makeText(TransporterRideActivity.this, "logout successful", Toast.LENGTH_SHORT).show();
-                                startActivity(new Intent(TransporterRideActivity.this, LoginActivity.class));
+                                Toast.makeText(TransporterMainActivity.this, "logout successful", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(TransporterMainActivity.this, LoginActivity.class));
                                 finish();
                             }
-                        })).addOnFailureListener(e -> Toast.makeText(TransporterRideActivity.this, "logout failed please check your internet connection", Toast.LENGTH_SHORT).show());
+                        })).addOnFailureListener(e -> Toast.makeText(TransporterMainActivity.this, "logout failed please check your internet connection", Toast.LENGTH_SHORT).show());
     }
 
     @Override
@@ -978,7 +971,7 @@ public class TransporterRideActivity extends AppCompatActivity
             } else {
                 // Permissions ok, we get last location
                 LocationServices.getFusedLocationProviderClient(this).getLastLocation().addOnCompleteListener(task -> {
-                    if (TransporterRideActivity.this != null) {
+                    if (TransporterMainActivity.this != null) {
                         Location location = task.getResult();
                         if (location != null) {
                             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 16.0f));
@@ -1041,7 +1034,7 @@ public class TransporterRideActivity extends AppCompatActivity
         task.addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
             @Override
             public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                Toast.makeText(TransporterRideActivity.this, "Success", Toast.LENGTH_SHORT).show();
+                Toast.makeText(TransporterMainActivity.this, "Success", Toast.LENGTH_SHORT).show();
                 requestLocationUpdates();
 
             }
@@ -1050,7 +1043,7 @@ public class TransporterRideActivity extends AppCompatActivity
             @Override
             public void onFailure(@androidx.annotation.NonNull Exception e) {
                 if (e instanceof ResolvableApiException) {
-                    Toast.makeText(TransporterRideActivity.this, "resolvable failure", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(TransporterMainActivity.this, "resolvable failure", Toast.LENGTH_SHORT).show();
                     // FIXME: 9/20/2019 later use this reolution code experimentally to resolve the issue
 //               try {
 //                   // Show the dialog by calling startResolutionForResult(),
@@ -1063,7 +1056,7 @@ public class TransporterRideActivity extends AppCompatActivity
 //               }
 
                 } else {
-                    Toast.makeText(TransporterRideActivity.this, "non resolvable failure", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(TransporterMainActivity.this, "non resolvable failure", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -1092,7 +1085,7 @@ public class TransporterRideActivity extends AppCompatActivity
                             .child(FirebaseAuth.getInstance().getCurrentUser().getUid())// FIXME: 9/8/2019 fix float to string cast exception
                             /*.push()*/.setValue(locationResult).addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            //                                Toast.makeText(TransporterRideActivity.this, "node updated", Toast.LENGTH_SHORT).show();
+                            //                                Toast.makeText(TransporterMainActivity.this, "node updated", Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(getApplicationContext(), "error updating firebase", Toast.LENGTH_SHORT).show();
                         }
@@ -1105,13 +1098,18 @@ public class TransporterRideActivity extends AppCompatActivity
     }
 
     public void loadAllConsumers() {
+        for (ConsumerModel consumerModel : mConsumerModelArrayList) { // doing this to avoid  the removal of polyline along with the markers
+
+            consumerModel.getMarker().remove();
+//            consumerModel.setMarker(null);
+        }
         mConsumerModelArrayList.clear();
-        mMap.clear();
+//        mMap.clear();
         rootRef.child("clients").child(providerId)//prodcuer id
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists() && TransporterRideActivity.this != null) {
+                        if (dataSnapshot.exists() && TransporterMainActivity.this != null) {
 
                             new AsyncTask<Void, Void, Boolean>() {
                                 @Override
@@ -1140,7 +1138,7 @@ public class TransporterRideActivity extends AppCompatActivity
 
                                                         final ConsumerModel consumerModel = new ConsumerModel(id, name, number, timeStamp, lat, lng, imageUri);
                                                         if (lat != null) {
-                                                            new GeoCoderAsyncTask(TransporterRideActivity.this) {
+                                                            new GeoCoderAsyncTask(TransporterMainActivity.this) {
                                                                 @Override
                                                                 protected void onPostExecute(Address address) {
                                                                     if (address != null) {
@@ -1208,7 +1206,7 @@ public class TransporterRideActivity extends AppCompatActivity
 //                                }
 //                            }
                             mProgressDialog.dismiss();
-                            Toast.makeText(TransporterRideActivity.this, "no clients were added", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(TransporterMainActivity.this, "no clients were added", Toast.LENGTH_SHORT).show();
 
                         }
 
@@ -1251,7 +1249,7 @@ public class TransporterRideActivity extends AppCompatActivity
 //
 //
 //                                if (lat != null) {
-//                                    new GeoCoderAsyncTask(TransporterRideActivity.this) {
+//                                    new GeoCoderAsyncTask(TransporterMainActivity.this) {
 //                                        @Override
 //                                        protected void onPostExecute(Address address) {
 //                                            currentModel.setLocationName(address.getAddressLine(0));
@@ -1428,38 +1426,51 @@ public class TransporterRideActivity extends AppCompatActivity
         builder.setTitle("Start Riding ?")
                 .setMessage(message)
                 .setView(goodsToCarryContainerLinearLayout)
-                .setPositiveButton("Go", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        startRiding();
-                    }
-                }).setNegativeButton("cancel", null).show();
+                .setPositiveButton("Go", (dialog, which) -> startRiding()).setNegativeButton("cancel", null).show();
 
 
     }
 
 
     private void startRiding() {
+        if (providerId == null) {
+            Toast.makeText(this, "please connect yourself to a provider", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         isjournyActive = true;
-        startJourney();
-        Snackbar.make(drawer, "processing...", Snackbar.LENGTH_SHORT).show();
-        bottomSheetBehavior.setHideable(false);
-        bottomSheetLinearLayout.setVisibility(View.GONE);
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-        bottomSheetLinearLayout.setVisibility(View.VISIBLE);
-        mAciveRideStopsAdapter.notifyDataSetChanged();
-        //just to show user that the list is active
-        new Handler(getMainLooper()).postDelayed(() -> bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED), 1000);
+//        startJourney();
+//        Snackbar.make(drawer, "processing...", Snackbar.LENGTH_SHORT).show();
+//        bottomSheetBehavior.setHideable(false);
+//        bottomSheetLinearLayout.setVisibility(View.GONE);
+//        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+//        bottomSheetLinearLayout.setVisibility(View.VISIBLE);
+//        mActiveRideStopsAdapter.notifyDataSetChanged();
+//        //just to show user that the list is active
+//        new Handler(getMainLooper()).postDelayed(() -> bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED), 1000);
+
+        // Bind to LocalService
+        Intent intent = new Intent(this, RideService.class);
+
+        //removing the marker because its is not serializable later we find a way to remake the marker
+        for (ConsumerModel consumerModel : mActiveRideArrayList) {
+            consumerModel.setMarker(null);
+        }
+        intent.putExtra(RideService.RIDE_ARRAY_LIST_KEY, mConsumerModelArrayList);
+        intent.putExtra(RideService.PROVIDER_ID, providerId);
+        startService(intent);
+        bindService(intent, serviceConnection, 0);
 
 //        journyInfoContainer.setVisibility(View.VISIBLE);
     }
 
-    private void startJourney() {
+    //journey related
+
+    /*private void startJourney() {
         //  this link will help you tomake a polyline as soon as the start journy is callled https://www.youtube.com/watch?v=wRDLjUK8nyU
         if (mCurrentLocationResult == null) {
             Toast.makeText(this, "cant get your location ", Toast.LENGTH_SHORT).show();
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-
             return;
         }
         if (mActiveRideArrayList.isEmpty()) {
@@ -1485,22 +1496,22 @@ public class TransporterRideActivity extends AppCompatActivity
             //to generate a polyline over the complete route
             drawFullRoutePolyline(currentLocation);
             speak("ride started...");
-
             speak("moving towards " + mActiveRideArrayList.get(0).getName());
+
         }
 
 
         final LatLng stop1Location = new LatLng(Double.parseDouble(mActiveRideArrayList.get(activeStopPosition).getLatitude()),
                 Double.parseDouble(mActiveRideArrayList.get(activeStopPosition).getLongitude()));
         //to generate a polyline for the specific stop
-        new FetchURL(TransporterRideActivity.this, false).execute(getDirectionApiUrl(currentLocation, stop1Location, false), "driving");
+        new FetchURL(TransporterMainActivity.this, false).execute(getDirectionApiUrl(currentLocation, stop1Location, false), "driving");
 
         String url = UrlGenrator.generateDistanceMatrixUrl(currentLocation, stop1Location, getResources().getString(R.string.distance_matrix_api_key));
         DistanceMatrixAsyncTask distanceMatrixAsyncTask = new DistanceMatrixAsyncTask() {
             @Override
             protected void onPostExecute(String s) {
                 if (s == null) {
-                    Toast.makeText(TransporterRideActivity.this, "response was null", Toast.LENGTH_LONG).show();
+                    Toast.makeText(TransporterMainActivity.this, "response was null", Toast.LENGTH_LONG).show();
                 } else {
 
                     System.out.println("response :" + s);
@@ -1511,10 +1522,10 @@ public class TransporterRideActivity extends AppCompatActivity
                     System.out.println("json string :" + s);
                     DistanceMatrixModel distanceMatrixModel = HttpRequestHelper.parseDistanceMatrixJson(s);
 
-                    if (TransporterRideActivity.this != null) {
+                    if (TransporterMainActivity.this != null) {
 
 
-                        distanceTextView.setText(distanceMatrixModel.getDistance()/*distanceArray[0] + " meters"*/);
+                        distanceTextView.setText(distanceMatrixModel.getDistance()*//*distanceArray[0] + " meters"*//*);
                         timeTextView.setText(distanceMatrixModel.getDuration());
                         speedTextView.setText(String.format("%.2f m/sec", mCurrentLocationResult.getLocations().get(0).getSpeed()));
                     }
@@ -1546,7 +1557,7 @@ public class TransporterRideActivity extends AppCompatActivity
                                 }
 
                                 ProducerFirebaseHelper.updateStatus(getResources().getString(R.string.status_producer_inactive));
-                                Toast.makeText(TransporterRideActivity.this, "journey aborted", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(TransporterMainActivity.this, "journey aborted", Toast.LENGTH_SHORT).show();
                                 speak("ride finished");
                             }
                         }
@@ -1562,11 +1573,11 @@ public class TransporterRideActivity extends AppCompatActivity
     private void drawFullRoutePolyline(LatLng currentLocation) {
         LatLng stopLocation = new LatLng(Double.parseDouble(mActiveRideArrayList.get(mActiveRideArrayList.size() - 1).getLatitude()),
                 Double.parseDouble(mActiveRideArrayList.get(mActiveRideArrayList.size() - 1).getLongitude()));
-        new FetchURL(TransporterRideActivity.this, true).execute(getDirectionApiUrl(currentLocation, stopLocation, true), "driving");
+        new FetchURL(TransporterMainActivity.this, true).execute(getDirectionApiUrl(currentLocation, stopLocation, true), "driving");
     }
 
     // TODO: 8/15/2019 create this one on your own and place in httphelper util class and add direction mode later if needed
-    private String getDirectionApiUrl(LatLng origin, LatLng dest, boolean isFullRoute /*, String directionMode*/) {
+    private String getDirectionApiUrl(LatLng origin, LatLng dest, boolean isFullRoute *//*, String directionMode*//*) {
         // Origin of route
         String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
         // Destination of route
@@ -1660,14 +1671,12 @@ public class TransporterRideActivity extends AppCompatActivity
             mCurrentPolyline = mMap.addPolyline(((PolylineOptions) values[0]).geodesic(true)
                     .color(Color.RED)
                     .width(12));
-            /*.pattern(PattrrPATTERN_POLYGON_ALPHA))*/
+            *//*.pattern(PattrrPATTERN_POLYGON_ALPHA))*//*
             ;
 
         }
-
-
     }
-
+*/
     private boolean hasPermissions(Context context, String... permissions) {
         if (context != null && permissions != null) {
             for (String permission : permissions) {
@@ -1765,10 +1774,10 @@ public class TransporterRideActivity extends AppCompatActivity
                 public void onComplete(@NonNull Task<Void> task) {
                     if (task.isSuccessful()) {
                         // TODO: 9/14/2019 later remove this success toast
-                        Toast.makeText(TransporterRideActivity.this, "new Location is set to the database for this client ", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(TransporterMainActivity.this, "new Location is set to the database for this client ", Toast.LENGTH_SHORT).show();
 
                     } else {
-                        Toast.makeText(TransporterRideActivity.this, "error : " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(TransporterMainActivity.this, "error : " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -1832,7 +1841,7 @@ public class TransporterRideActivity extends AppCompatActivity
 
             @Override
             protected void onPostExecute(Boolean success) {
-                if (success && TransporterRideActivity.this != null) {
+                if (success && TransporterMainActivity.this != null) {
 
                     fetchFreshy();
 //                    fetchFreshDataOfUsers();
@@ -1930,7 +1939,7 @@ public class TransporterRideActivity extends AppCompatActivity
                                                             @Override
                                                             public void onCancelled(@NonNull DatabaseError databaseError) {
                                                                 countDownLatch.countDown();
-                                                                Toast.makeText(TransporterRideActivity.this, "datbase error" + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                                                                Toast.makeText(TransporterMainActivity.this, "datbase error" + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                                                             }
                                                         });
                                             }
@@ -1983,7 +1992,7 @@ public class TransporterRideActivity extends AppCompatActivity
 //                                    if ((mConsumerModelArrayList.size() == finalI + 1)) {
 //                                        startRideInfoFragment();
 //                                        mProgressDialog.dismiss();
-//                                        Toast.makeText(TransporterRideActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
+//                                        Toast.makeText(TransporterMainActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
 //                                    }
 //                                }
 ////                                acquiredGoodsAdapter.notifyDataSetChanged();
@@ -1991,7 +2000,7 @@ public class TransporterRideActivity extends AppCompatActivity
 //                                if ((mConsumerModelArrayList.size() == finalI + 1)) {
 //                                    startRideInfoFragment();
 //                                    mProgressDialog.dismiss();
-//                                    Toast.makeText(TransporterRideActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
+//                                    Toast.makeText(TransporterMainActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
 //                                }
 //
 //                            }
@@ -2037,7 +2046,7 @@ public class TransporterRideActivity extends AppCompatActivity
 //                    .addListenerForSingleValueEvent(new ValueEventListener() {
 //                        @Override
 //                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-//                            if (dataSnapshot.exists() && TransporterRideActivity.this != null) {
+//                            if (dataSnapshot.exists() && TransporterMainActivity.this != null) {
 //                                ArrayList<AcquiredGoodModel> demandArray = new ArrayList<>();
 //                                consumerModel.setDemandArray(demandArray);
 //                                mActiveRideArrayList.add(consumerModel); //this is making the 0 values for consumers that are not delivered any stuff
@@ -2064,7 +2073,7 @@ public class TransporterRideActivity extends AppCompatActivity
 //                                    if ((mConsumerModelArrayList.size() == finalI + 1)) {
 //                                        startRideInfoFragment();
 //                                        mProgressDialog.dismiss();
-//                                        Toast.makeText(TransporterRideActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
+//                                        Toast.makeText(TransporterMainActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
 //                                    }
 //                                }
 ////                                acquiredGoodsAdapter.notifyDataSetChanged();
@@ -2072,7 +2081,7 @@ public class TransporterRideActivity extends AppCompatActivity
 //                                if ((mConsumerModelArrayList.size() == finalI + 1)) {
 //                                    startRideInfoFragment();
 //                                    mProgressDialog.dismiss();
-//                                    Toast.makeText(TransporterRideActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
+//                                    Toast.makeText(TransporterMainActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
 //                                }
 //
 //                            }
@@ -2098,7 +2107,7 @@ public class TransporterRideActivity extends AppCompatActivity
 //                .addListenerForSingleValueEvent(new ValueEventListener() {
 //                    @Override
 //                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-//                        if (dataSnapshot.exists() && TransporterRideActivity.this != null) {
+//                        if (dataSnapshot.exists() && TransporterMainActivity.this != null) {
 //                            if (dataSnapshot.exists()) {
 //                                GoodModel goodModel = dataSnapshot.getValue(GoodModel.class);
 //                                demandArray.add(new AcquiredGoodModel(demand, myID, goodModel));
@@ -2234,7 +2243,7 @@ public class TransporterRideActivity extends AppCompatActivity
 //                        @Override
 //                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 //
-//                            if (dataSnapshot.exists() && TransporterRideActivity.this != null) {
+//                            if (dataSnapshot.exists() && TransporterMainActivity.this != null) {
 //
 //                                new AsyncTask<Void, Void, Boolean>() {
 //                                    @Override
@@ -2262,7 +2271,7 @@ public class TransporterRideActivity extends AppCompatActivity
 //                                                        .addListenerForSingleValueEvent(new ValueEventListener() {
 //                                                            @Override
 //                                                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-//                                                                if (dataSnapshot.exists() && TransporterRideActivity.this != null) {
+//                                                                if (dataSnapshot.exists() && TransporterMainActivity.this != null) {
 //                                                                    if (dataSnapshot.exists()) {
 //                                                                        GoodModel goodModel = dataSnapshot.getValue(GoodModel.class);
 //                                                                        demandArray.add(new AcquiredGoodModel(demandUnits, myID, goodModel));
@@ -2330,7 +2339,7 @@ public class TransporterRideActivity extends AppCompatActivity
 ////                                    if ((mConsumerModelArrayList.size() == finalI + 1)) {
 ////                                        startRideInfoFragment();
 ////                                        mProgressDialog.dismiss();
-////                                        Toast.makeText(TransporterRideActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
+////                                        Toast.makeText(TransporterMainActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
 ////                                    }
 ////                                }
 //////                                acquiredGoodsAdapter.notifyDataSetChanged();
@@ -2338,7 +2347,7 @@ public class TransporterRideActivity extends AppCompatActivity
 ////                                if ((mConsumerModelArrayList.size() == finalI + 1)) {
 ////                                    startRideInfoFragment();
 ////                                    mProgressDialog.dismiss();
-////                                    Toast.makeText(TransporterRideActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
+////                                    Toast.makeText(TransporterMainActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
 ////                                }
 ////
 ////                            }
@@ -2384,7 +2393,7 @@ public class TransporterRideActivity extends AppCompatActivity
 //                    .addListenerForSingleValueEvent(new ValueEventListener() {
 //                        @Override
 //                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-//                            if (dataSnapshot.exists() && TransporterRideActivity.this != null) {
+//                            if (dataSnapshot.exists() && TransporterMainActivity.this != null) {
 //                                ArrayList<AcquiredGoodModel> demandArray = new ArrayList<>();
 //                                consumerModel.setDemandArray(demandArray);
 //                                mActiveRideArrayList.add(consumerModel); //this is making the 0 values for consumers that are not delivered any stuff
@@ -2411,7 +2420,7 @@ public class TransporterRideActivity extends AppCompatActivity
 //                                    if ((mConsumerModelArrayList.size() == finalI + 1)) {
 //                                        startRideInfoFragment();
 //                                        mProgressDialog.dismiss();
-//                                        Toast.makeText(TransporterRideActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
+//                                        Toast.makeText(TransporterMainActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
 //                                    }
 //                                }
 ////                                acquiredGoodsAdapter.notifyDataSetChanged();
@@ -2419,7 +2428,7 @@ public class TransporterRideActivity extends AppCompatActivity
 //                                if ((mConsumerModelArrayList.size() == finalI + 1)) {
 //                                    startRideInfoFragment();
 //                                    mProgressDialog.dismiss();
-//                                    Toast.makeText(TransporterRideActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
+//                                    Toast.makeText(TransporterMainActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
 //                                }
 //
 //                            }
@@ -2445,7 +2454,7 @@ public class TransporterRideActivity extends AppCompatActivity
 //                .addListenerForSingleValueEvent(new ValueEventListener() {
 //                    @Override
 //                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-//                        if (dataSnapshot.exists() && TransporterRideActivity.this != null) {
+//                        if (dataSnapshot.exists() && TransporterMainActivity.this != null) {
 //                            if (dataSnapshot.exists()) {
 //                                GoodModel goodModel = dataSnapshot.getValue(GoodModel.class);
 //                                demandArray.add(new AcquiredGoodModel(demand, myID, goodModel));
@@ -2483,6 +2492,10 @@ public class TransporterRideActivity extends AppCompatActivity
                         .load(mPhotoImageUri).into(profileCircularImageView);
             }
         }
+
+        // Bind to LocalService
+        Intent intent = new Intent(this, RideService.class);//on bind service does not provoke onstartCommand() as I read
+        bindService(intent, serviceConnection, 0);
         super.onStart();
     }
 
@@ -2492,8 +2505,11 @@ public class TransporterRideActivity extends AppCompatActivity
             textToSpeech.stop();
             textToSpeech.shutdown();
         }
+        if (mIsBound)
+            unbindService(serviceConnection);
         super.onStop();
     }
+
 
     private void initTextToSpeach() {
         textToSpeech = new TextToSpeech(this, i -> {
@@ -2501,12 +2517,12 @@ public class TransporterRideActivity extends AppCompatActivity
                 int result = textToSpeech.setLanguage(Locale.ENGLISH);
 
                 if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    Toast.makeText(TransporterRideActivity.this, "text to speech not working", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(TransporterMainActivity.this, "text to speech not working", Toast.LENGTH_SHORT).show();
 //                        Log.d("mylog", "onInit: error in TEXT TO SPEECH");
                 }
 
             } else {
-                Toast.makeText(TransporterRideActivity.this, "error in on init of text to speec", Toast.LENGTH_SHORT).show();
+                Toast.makeText(TransporterMainActivity.this, "error in on init of text to speec", Toast.LENGTH_SHORT).show();
 //                    Log.d("mylog", "onInit: error in TEXT TO SPEECH 1");
             }
         });
@@ -2518,5 +2534,145 @@ public class TransporterRideActivity extends AppCompatActivity
         textToSpeech.speak(text, TextToSpeech.QUEUE_ADD, null);
     }
 
+
+    /**
+     * Defines callbacks for service binding, passed to bindService()
+     */
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mIsBound = true;
+            RideService.MyLocalBinder myLocalBinder = (RideService.MyLocalBinder) service;
+            mRideService = myLocalBinder.getService();
+            mRideService.setCallbacks(TransporterMainActivity.this);
+            Toast.makeText(TransporterMainActivity.this, "Service is bound", Toast.LENGTH_SHORT).show();
+            prepareForActiveRide();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mRideService.setCallbacks(null);
+            Toast.makeText(TransporterMainActivity.this, "Service is unBound", Toast.LENGTH_SHORT).show();
+            mIsBound = false;
+        }
+    };
+
+    private void prepareForActiveRide() {
+        // TODO: 12/18/2019 there is more to do now
+        setPolyLine();
+
+        mActiveRideArrayList = mRideService.getActiveRideArrayList();
+        mActiveRideStopsAdapter = new AciveRideStopsAdaper(TransporterMainActivity.this, mActiveRideArrayList);
+        mActiveRideStopsRecyclerView.setAdapter(mActiveRideStopsAdapter);
+
+        isjournyActive = true;
+//        startJourney();
+        Snackbar.make(drawer, "processing...", Snackbar.LENGTH_SHORT).show();
+        bottomSheetBehavior.setHideable(false);
+        bottomSheetLinearLayout.setVisibility(View.GONE);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        bottomSheetLinearLayout.setVisibility(View.VISIBLE);
+        mActiveRideStopsAdapter.notifyDataSetChanged();
+        //just to show user that the list is active
+        new Handler(getMainLooper()).postDelayed(() -> bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED), 1000);
+
+    }
+
+    private void setPolyLine() {
+        if (mRideService.getPolyLineOptions() != null) {
+
+            if (mMap != null) {
+                if (mCurrentPolyline != null)
+                    mCurrentPolyline.remove();
+                mCurrentPolyline = mMap.addPolyline((mRideService.getPolyLineOptions()).geodesic(true)
+                        .color(Color.RED)
+                        .width(12));
+                int a;
+            } else {
+                new Handler(getMainLooper()).postDelayed(() -> setPolyLine(), 1000);// doing this so as to avoid missing polyline if mao was not ready
+            }
+        }
+
+
+    }
+
+    @Override
+    public void updatePolyline(PolylineOptions currentStopPolylineOptions) {
+        if (mMap != null) {
+            if (mCurrentPolyline != null)
+                mCurrentPolyline.remove();
+            mCurrentPolyline = mMap.addPolyline((currentStopPolylineOptions).geodesic(true)
+                    .color(Color.RED)
+                    .width(12));
+        }
+    }
+
+    @Override
+    public void setDistanceTimeSpeed(String distance, String time, String speed) {
+
+        distanceTextView.setText(distance);
+        timeTextView.setText(time);
+        speedTextView.setText(speed);
+//        mActiveRideArrayList.clear();??? why  would I do that
+
+    }
+
+    @Override
+    public void abortJourney() {
+        bottomSheetBehavior.setHideable(true);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        isjournyActive = false;
+        mCurrentPolyline.remove();
+        mCurrentPolyline = null;
+    }
+    //
+//    @Override
+//    public void setBottomSheetState(int state) {
+//        bottomSheetBehavior.setState(state);
+//    }
+//
+//    @Override
+//    public void hideBottomsheet() {
+//        isjournyActive = false;
+//        bottomSheetBehavior.setHideable(true);
+//        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+//    }
+//
+
+//    @Override
+//    public void removePolyLines() {
+//        if (mCurrentPolyline != null) {
+//
+//            mCurrentPolyline.remove();
+//            mCurrentPolyline = null;
+//
+//        }
+//        if (mFullRoutePolyline != null) {
+//            mFullRoutePolyline.remove();
+//            shouldDrawfullRoute = true;//to rstore the full path drawing for future rides
+//        }
+//    }
+//
+//    @Override
+//    public void ontaskdone(Object... values) {
+//        if ((boolean) values[1]) { //this means its a full route
+//            if (mFullRoutePolyline != null) {
+//                mFullRoutePolyline.remove();
+//            }
+//            mFullRoutePolyline = mMap.addPolyline(((PolylineOptions) values[0]).geodesic(true));
+//            shouldDrawfullRoute = false;
+////                    .color(Color.CYAN)
+////                    .width(10))
+//
+//        } else {
+//            if (mCurrentPolyline != null)
+//                mCurrentPolyline.remove();
+//            mCurrentPolyline = mMap.addPolyline(((PolylineOptions) values[0]).geodesic(true)
+//                    .color(Color.RED)
+//                    .width(12));
+//            /*.pattern(PattrrPATTERN_POLYGON_ALPHA))*/
+//            ;
+//        }
+//    }
 }
 //// TODO: 7/27/2019 for the purpose of Gps use a broadcast reciever for making changes as desired

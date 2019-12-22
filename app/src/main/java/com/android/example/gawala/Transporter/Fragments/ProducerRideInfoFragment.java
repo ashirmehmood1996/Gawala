@@ -391,7 +391,7 @@ public class ProducerRideInfoFragment extends DialogFragment implements StopMark
 ////
 ////
 ////                                if (lat != null) {
-////                                    new GeoCoderAsyncTask(TransporterRideActivity.this) {
+////                                    new GeoCoderAsyncTask(TransporterMainActivity.this) {
 ////                                        @Override
 ////                                        protected void onPostExecute(Address address) {
 ////                                            currentModel.setLocationName(address.getAddressLine(0));
@@ -634,7 +634,7 @@ public class ProducerRideInfoFragment extends DialogFragment implements StopMark
 ////                                    if ((mConsumerModelArrayList.size() == finalI + 1)) {
 ////                                        startRideInfoFragment();
 ////                                        mProgressDialog.dismiss();
-////                                        Toast.makeText(TransporterRideActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
+////                                        Toast.makeText(TransporterMainActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
 ////                                    }
 ////                                }
 //////                                acquiredGoodsAdapter.notifyDataSetChanged();
@@ -642,7 +642,7 @@ public class ProducerRideInfoFragment extends DialogFragment implements StopMark
 ////                                if ((mConsumerModelArrayList.size() == finalI + 1)) {
 ////                                    startRideInfoFragment();
 ////                                    mProgressDialog.dismiss();
-////                                    Toast.makeText(TransporterRideActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
+////                                    Toast.makeText(TransporterMainActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
 ////                                }
 ////
 ////                            }
@@ -688,7 +688,7 @@ public class ProducerRideInfoFragment extends DialogFragment implements StopMark
 ////                    .addListenerForSingleValueEvent(new ValueEventListener() {
 ////                        @Override
 ////                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-////                            if (dataSnapshot.exists() && TransporterRideActivity.this != null) {
+////                            if (dataSnapshot.exists() && TransporterMainActivity.this != null) {
 ////                                ArrayList<AcquiredGoodModel> demandArray = new ArrayList<>();
 ////                                consumerModel.setDemandArray(demandArray);
 ////                                mActiveRideArrayList.add(consumerModel); //this is making the 0 values for consumers that are not delivered any stuff
@@ -715,7 +715,7 @@ public class ProducerRideInfoFragment extends DialogFragment implements StopMark
 ////                                    if ((mConsumerModelArrayList.size() == finalI + 1)) {
 ////                                        startRideInfoFragment();
 ////                                        mProgressDialog.dismiss();
-////                                        Toast.makeText(TransporterRideActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
+////                                        Toast.makeText(TransporterMainActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
 ////                                    }
 ////                                }
 //////                                acquiredGoodsAdapter.notifyDataSetChanged();
@@ -723,7 +723,7 @@ public class ProducerRideInfoFragment extends DialogFragment implements StopMark
 ////                                if ((mConsumerModelArrayList.size() == finalI + 1)) {
 ////                                    startRideInfoFragment();
 ////                                    mProgressDialog.dismiss();
-////                                    Toast.makeText(TransporterRideActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
+////                                    Toast.makeText(TransporterMainActivity.this, "All data is fetched", Toast.LENGTH_SHORT).show();
 ////                                }
 ////
 ////                            }
@@ -749,7 +749,7 @@ public class ProducerRideInfoFragment extends DialogFragment implements StopMark
 ////                .addListenerForSingleValueEvent(new ValueEventListener() {
 ////                    @Override
 ////                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-////                        if (dataSnapshot.exists() && TransporterRideActivity.this != null) {
+////                        if (dataSnapshot.exists() && TransporterMainActivity.this != null) {
 ////                            if (dataSnapshot.exists()) {
 ////                                GoodModel goodModel = dataSnapshot.getValue(GoodModel.class);
 ////                                demandArray.add(new AcquiredGoodModel(demand, myID, goodModel));

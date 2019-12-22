@@ -25,8 +25,8 @@ public class PointsParser extends AsyncTask<String, Integer, List<List<HashMap<S
     String directionMode = "driving";
     private boolean isfullRoute = false;
 
-    public PointsParser(Context mContext, String directionMode, boolean isfullRoute) {
-        this.taskCallback = (TaskLoadedCallback) mContext;
+    public PointsParser(TaskLoadedCallback taskLoadedCallback, String directionMode, boolean isfullRoute) {
+        this.taskCallback = taskLoadedCallback;
         this.directionMode = directionMode;
         this.isfullRoute = isfullRoute;
     }

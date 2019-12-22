@@ -25,7 +25,7 @@ import com.android.example.gawala.Generel.Utils.SharedPreferenceUtil;
 import com.android.example.gawala.Provider.Activities.ProviderMainActivity;
 
 import com.android.example.gawala.R;
-import com.android.example.gawala.Transporter.Activities.TransporterRideActivity;
+import com.android.example.gawala.Transporter.Activities.TransporterMainActivity;
 import com.firebase.ui.auth.AuthUI;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -224,7 +224,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             finish();
                         } else if (userType != null && userType.equals(getResources().getString(R.string.transporter))) {
                             //          showProgressBar(false);
-                            startActivity(new Intent(LoginActivity.this, TransporterRideActivity.class));
+                            startActivity(new Intent(LoginActivity.this, TransporterMainActivity.class));
                             SharedPreferenceUtil.storeValue(getApplicationContext(), getResources().getString(R.string.type_key), userType);
                             mProgressDialog.dismiss();
                             finish();

@@ -25,7 +25,7 @@ import com.android.example.gawala.Consumer.Activities.ConsumerMainActivity;
 import com.android.example.gawala.Generel.Utils.SharedPreferenceUtil;
 import com.android.example.gawala.Provider.Activities.ProviderMainActivity;
 import com.android.example.gawala.R;
-import com.android.example.gawala.Transporter.Activities.TransporterRideActivity;
+import com.android.example.gawala.Transporter.Activities.TransporterMainActivity;
 import com.firebase.ui.auth.AuthUI;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -229,7 +229,7 @@ public class SignupActivity extends AppCompatActivity {
             finish();
         } else if (userType != null && userType.equals(getResources().getString(R.string.transporter))) {
             SharedPreferenceUtil.storeValue(getApplicationContext(), getResources().getString(R.string.type_key), (String) typeSpinner.getSelectedItem());
-            startActivity(new Intent(this, TransporterRideActivity.class));
+            startActivity(new Intent(this, TransporterMainActivity.class));
             finish();
         } else {
             Toast.makeText(this, "some error accured please restart the application", Toast.LENGTH_SHORT).show();

@@ -335,7 +335,7 @@ public class PickLocationMapsActivity extends FragmentActivity implements OnMapR
             mGeocoderAsyncTask = new GeoCoderAsyncTask(PickLocationMapsActivity.this) {
                 @Override
                 protected void onPostExecute(Address address) {
-                    if (placesFragment != null && address!=null) {
+                    if (placesFragment != null && address != null) {
                         placesFragment.setText(address.getAddressLine(0));
                     }
                 }
@@ -398,7 +398,7 @@ public class PickLocationMapsActivity extends FragmentActivity implements OnMapR
                                 new GeoCoderAsyncTask(PickLocationMapsActivity.this) {
                                     @Override
                                     protected void onPostExecute(Address address) {
-                                        if (PickLocationMapsActivity.this != null)
+                                        if (PickLocationMapsActivity.this != null && address != null)
                                             placesFragment.setText(address.getAddressLine(0));
                                     }
                                 }.execute(mcurrentLocation);
