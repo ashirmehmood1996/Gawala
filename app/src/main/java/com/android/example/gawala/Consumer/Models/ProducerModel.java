@@ -4,7 +4,10 @@ public class ProducerModel {
     private String id, name, number;
     private String imageUri;
     private int status;
+
+
     private String lat;
+
     private String lng;
     public static final int REQUEST_SENT = 0;
     public static final int REQUEST_ACCEPTED = 1;
@@ -21,6 +24,15 @@ public class ProducerModel {
         this.imageUri = imageUri;
 
     }
+
+    public void setLat(String lat) {
+        this.lat = lat;
+    }
+
+    public void setLng(String lng) {
+        this.lng = lng;
+    }
+
 
     public String getId() {
         return id;

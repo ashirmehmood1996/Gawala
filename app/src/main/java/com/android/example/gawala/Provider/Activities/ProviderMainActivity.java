@@ -2,14 +2,13 @@ package com.android.example.gawala.Provider.Activities;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.Manifest;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -20,6 +19,9 @@ import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
+import android.view.animation.Interpolator;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -31,6 +33,7 @@ import com.android.example.gawala.Generel.Utils.SharedPreferenceUtil;
 import com.android.example.gawala.Generel.Utils.UtilsMessaging;
 import com.android.example.gawala.Provider.Fragments.ProviderClientsFragment;
 import com.android.example.gawala.R;
+import com.android.example.gawala.Transporter.Activities.TransporterMainActivity;
 import com.android.example.gawala.Transporter.Fragments.ProducerSummeryFragment;
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -42,6 +45,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
+import java.util.Random;
 
 import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
 
@@ -75,7 +79,9 @@ public class ProviderMainActivity extends AppCompatActivity implements View.OnCl
             checkIfDeliveryLocationIsProvided();
         }
         UtilsMessaging.initFCM();
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            animateViewsIn();
+        }
     }
 
 
@@ -275,14 +281,29 @@ public class ProviderMainActivity extends AppCompatActivity implements View.OnCl
                     Toast.makeText(this, "ops ! something went wrong, you were too quick", Toast.LENGTH_SHORT).show();
                 }
                 return true;
+            case R.id.nav_provider_switch_to_transporter:
+                sendToTransporterActivity();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
+    private void sendToTransporterActivity() {
+
+
+//        but we also need other thing in transporter activty and also make a shared pre here also make the main activty aware the the provider left in which mode
+        SharedPreferenceUtil.storeValue(this, getResources().getString(R.string.mode_key), getResources().getString(R.string.transporter));
+        Intent intent = new Intent(this, TransporterMainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.putExtra(TransporterMainActivity.IS_PROVIDER_TOO, true);
+        startActivity(intent);
+        finish();
+    }
+
     private void showLogoutDialogue() {
         //logout code
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Logout")
                 .setMessage("press logout to continue..")
                 .setPositiveButton("logout", new DialogInterface.OnClickListener() {
@@ -371,6 +392,46 @@ public class ProviderMainActivity extends AppCompatActivity implements View.OnCl
         }
         ProviderClientsFragment dialogFragment = ProviderClientsFragment.getInstance();
 //        dialogFragment.setCallback(this);
+//        fragmentTransaction.setCustomAnimations(R.anim.enter, R.anim.exit);
+        fragmentTransaction.addToBackStack(null);
+
         dialogFragment.show(fragmentTransaction, PROVIDER_CLIENT_REQUEST_FRAGMENT_TAG);
+    }
+
+    //code borrowed from google must make understanding of it later
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private void animateViewsIn() {
+        // setup random initial state
+        ViewGroup root = findViewById(R.id.ll_provider_main_container);
+        float maxWidthOffset = 2f * getResources().getDisplayMetrics().widthPixels;
+        float maxHeightOffset = 2f * getResources().getDisplayMetrics().heightPixels;
+        Interpolator interpolator =
+                AnimationUtils.loadInterpolator(this, android.R.interpolator.linear_out_slow_in);
+        Random random = new Random();
+        int count = root.getChildCount();
+        for (int i = 0; i < count; i++) {
+            View view = root.getChildAt(i);
+            view.setVisibility(View.VISIBLE);
+            view.setAlpha(0.85f);
+            float xOffset = random.nextFloat() * maxWidthOffset;
+            if (random.nextBoolean()) {
+                xOffset *= -1;
+            }
+            view.setTranslationX(xOffset);
+            float yOffset = random.nextFloat() * maxHeightOffset;
+            if (random.nextBoolean()) {
+                yOffset *= -1;
+            }
+            view.setTranslationY(yOffset);
+
+            // now animate them back into their natural position
+            view.animate()
+                    .translationY(0f)
+                    .translationX(0f)
+                    .alpha(1f)
+                    .setInterpolator(interpolator)
+                    .setDuration(1000)
+                    .start();
+        }
     }
 }

@@ -3,17 +3,19 @@ package com.android.example.gawala.Generel.Models;
 import java.io.Serializable;
 
 public class GoodModel implements Serializable {
-    private String name,description,price,type, image_uri;//more fields will be added later according to the need
+    private String name, description, price, type, image_uri, unit;//more fields will be added later according to the need
     private String id;
 
-    public GoodModel(){}
+    public GoodModel() {
+    }
 
-    public GoodModel(String name, String description, String price, String type,String image_uri) {
+    public GoodModel(String name, String description, String price, String type, String image_uri, String unit) {
         this.name = name;
         this.description = description;
         this.price = price;
         this.type = type;
         this.image_uri = image_uri;
+        this.unit = unit;
     }
 
     public void setName(String name) {
@@ -62,5 +64,13 @@ public class GoodModel implements Serializable {
 
     public void setImage_uri(String image_uri) {
         this.image_uri = image_uri;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
     }
 }

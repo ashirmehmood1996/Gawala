@@ -1,9 +1,10 @@
 package com.android.example.gawala.Provider.Activities;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.app.AlertDialog;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.MenuItem;
@@ -16,6 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.example.gawala.Consumer.Activities.ProducerDetailActivty;
 import com.android.example.gawala.Generel.Models.GoodModel;
 import com.android.example.gawala.R;
 import com.bumptech.glide.Glide;
@@ -25,9 +27,9 @@ import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef
 
 public class ProducerServiceDetailsActivity extends AppCompatActivity implements View.OnClickListener {
     private GoodModel goodModel;
-    private TextView nameTextView, descTextView, priceTextView, typeTextView;
+    private TextView nameTextView, descTextView, priceTextView, typeTextView, unitTextView;
     private Button deleteItemButton;
-    private ImageButton editNameImageButton, editDetailImageButton, editPriceImageButton, editTypeImageButton;
+    private ImageButton editNameImageButton, editDetailImageButton, editPriceImageButton, editTypeImageButton, ediotUnitImageButton;
 
 
     private ImageView serviceImageVew;
@@ -36,9 +38,18 @@ public class ProducerServiceDetailsActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_producer_service_details);
+        supportPostponeEnterTransition();//for trasition animation
+        initFields();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Bundle extras = getIntent().getExtras();
+            String imageTransitionName = extras.getString(ProducerDetailActivty.EXTRA_ANIMAL_IMAGE_TRANSITION_NAME);
+            serviceImageVew.setTransitionName(imageTransitionName);
+        }
+
+
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        initFields();
+
         setData();
         attachListeners();
 
@@ -52,6 +63,7 @@ public class ProducerServiceDetailsActivity extends AppCompatActivity implements
         descTextView = findViewById(R.id.tv_prod_goods_detail_desc);
         priceTextView = findViewById(R.id.tv_prod_goods_detail_price);
         typeTextView = findViewById(R.id.tv_prod_goods_detail_type);
+        unitTextView = findViewById(R.id.tv_prod_goods_detail_unit);
         deleteItemButton = findViewById(R.id.bt_prod_goods_details_delete);
         serviceImageVew = findViewById(R.id.iv_prod_goods_detail_picture);
 
@@ -59,6 +71,7 @@ public class ProducerServiceDetailsActivity extends AppCompatActivity implements
         editDetailImageButton = findViewById(R.id.ib_prod_goods_detail_edit_detail);
         editPriceImageButton = findViewById(R.id.ib_prod_goods_detail_edit_price);
         editTypeImageButton = findViewById(R.id.ib_prod_goods_detail_edit_type);
+        ediotUnitImageButton = findViewById(R.id.ib_prod_goods_detail_edit_unit);
 
     }
 
@@ -67,10 +80,12 @@ public class ProducerServiceDetailsActivity extends AppCompatActivity implements
         descTextView.setText(goodModel.getDescription());
         priceTextView.setText(String.format("%s PKR", goodModel.getPrice()));
         typeTextView.setText(goodModel.getType());
+        unitTextView.setText(goodModel.getUnit());
 
         if (goodModel.getImage_uri() != null && !goodModel.getImage_uri().isEmpty()) {
             Glide.with(this).load(goodModel.getImage_uri()).into(serviceImageVew);
         }
+        supportStartPostponedEnterTransition();
     }
 
     private void attachListeners() {
@@ -79,7 +94,7 @@ public class ProducerServiceDetailsActivity extends AppCompatActivity implements
         editNameImageButton.setOnClickListener(this);
         editPriceImageButton.setOnClickListener(this);
         editTypeImageButton.setOnClickListener(this);
-
+        ediotUnitImageButton.setOnClickListener(this);
 
         deleteItemButton.setOnClickListener(this);
 
@@ -109,11 +124,13 @@ public class ProducerServiceDetailsActivity extends AppCompatActivity implements
                 showEditFieldDialog(descTextView, v, goodModel.getDescription());
                 break;
             case R.id.ib_prod_goods_detail_edit_price:
-                String price = goodModel.getPrice();
                 showEditFieldDialog(priceTextView, v, goodModel.getPrice());
                 break;
             case R.id.ib_prod_goods_detail_edit_type:
-                showEditFieldDialog(typeTextView, v, goodModel.getType());
+                showTypeEditDialog(goodModel.getType());
+                break;
+            case R.id.ib_prod_goods_detail_edit_unit:
+                showUnitsEditDialog(goodModel.getUnit());
                 break;
             case R.id.bt_prod_goods_details_delete:
                 deleteItem();
@@ -136,47 +153,38 @@ public class ProducerServiceDetailsActivity extends AppCompatActivity implements
                 .setView(editFieldLinearLayout).create();
 
 
-        editFieldLinearLayout.findViewById(R.id.bt_dialog_prod_goods_detail_cancel).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                dialog.cancel();
+        editFieldLinearLayout.findViewById(R.id.bt_dialog_prod_goods_detail_cancel).setOnClickListener(v12 -> dialog.cancel());
+        editFieldLinearLayout.findViewById(R.id.bt_dialog_prod_goods_detail_confirm).setOnClickListener(v1 -> {
+            String newValue = editText.getText().toString().trim();
+            if (newValue.isEmpty()) {
+                Toast.makeText(ProducerServiceDetailsActivity.this, "field cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
             }
-        });
-        editFieldLinearLayout.findViewById(R.id.bt_dialog_prod_goods_detail_confirm).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String newValue = editText.getText().toString().trim();
-                if (newValue.isEmpty()) {
-                    Toast.makeText(ProducerServiceDetailsActivity.this, "field cannot be empty", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                textView.setText(newValue);
-                switch (textView.getId()) {
-                    case R.id.tv_prod_goods_detail_name:
-                        addToFirebase("name", newValue);
-                        goodModel.setName(newValue);
-                        break;
-                    case R.id.tv_prod_goods_detail_desc:
-                        addToFirebase("description", newValue);
-                        goodModel.setDescription(newValue);
+            textView.setText(newValue);
+            switch (textView.getId()) {
+                case R.id.tv_prod_goods_detail_name:
+                    addToFirebase("name", newValue);
+                    goodModel.setName(newValue);
+                    break;
+                case R.id.tv_prod_goods_detail_desc:
+                    addToFirebase("description", newValue);
+                    goodModel.setDescription(newValue);
 
-                        break;
-                    case R.id.tv_prod_goods_detail_type:
-                        addToFirebase("type", newValue);
-                        goodModel.setType(newValue);
+                    break;
+//                    case R.id.tv_prod_goods_detail_type:
+//                        addToFirebase("type", newValue);
+//                        goodModel.setType(newValue);
+//
+//                        break;
+                case R.id.tv_prod_goods_detail_price:
+                    addToFirebase("price", newValue);
+                    goodModel.setPrice(newValue);
 
-                        break;
-                    case R.id.tv_prod_goods_detail_price:
-                        addToFirebase("price", newValue);
-                        goodModel.setPrice(newValue);
-
-                        break;
-                }
-
-                dialog.cancel();
-
+                    break;
             }
+
+            dialog.cancel();
+
         });
         dialog.show();
         if (textView.getId() == R.id.tv_prod_goods_detail_price) {
@@ -199,6 +207,67 @@ public class ProducerServiceDetailsActivity extends AppCompatActivity implements
             }
         });
 
+    }
+
+
+    private void showTypeEditDialog(String type) {
+        // setup the alert builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Choose a Category");
+// add a radio button list
+        String[] typeArray = getResources().getStringArray(R.array.categories);
+
+        final String[] newValue = {type};
+        int checkedItem = 0; // cow
+        for (int i = 0; i < typeArray.length; i++) {
+            if (typeArray[i].equals(type)) {
+                checkedItem = i;
+                break;
+            }
+        }
+        builder.setSingleChoiceItems(typeArray, checkedItem, (dialog, which) -> {
+            // user checked an item
+            newValue[0] = typeArray[which];
+        });
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            addToFirebase("type", newValue[0]);
+            goodModel.setType(newValue[0]);
+            typeTextView.setText(goodModel.getType());
+            // user clicked OK
+        });
+        builder.setNegativeButton("Cancel", null);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    private void showUnitsEditDialog(String unit) {
+        // setup the alert builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Choose a Unit");
+// add a radio button list
+        String[] unitArray = getResources().getStringArray(R.array.item_units);
+
+        final String[] newValue = {unit};
+        int checkedItem = 0; // cow
+        for (int i = 0; i < unitArray.length; i++) {
+            if (unitArray[i].equals(unit)) {
+                checkedItem = i;
+                break;
+            }
+        }
+        builder.setSingleChoiceItems(unitArray, checkedItem, (dialog, which) -> {
+            // user checked an item
+            newValue[0] = unitArray[which];
+        });
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            addToFirebase("unit", newValue[0]);
+            goodModel.setUnit(newValue[0]);
+            unitTextView.setText(goodModel.getUnit());
+            // user clicked OK
+        });
+        builder.setNegativeButton("Cancel", null);
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     private void deleteItem() {

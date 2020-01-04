@@ -25,6 +25,7 @@ public class ConsumerModel implements Serializable { // FIXME: 11/24/2019 there 
     private boolean isDelivered;
     private boolean hasDemand;
     private boolean isOnVacation;
+    private long alertNotificationTime;// in seconds
 
     public int NOTIFICATION_STATE = 0;//this represents that what amount of notifications are sent to a consumer
 
@@ -32,7 +33,7 @@ public class ConsumerModel implements Serializable { // FIXME: 11/24/2019 there 
     private ArrayList<AcquiredGoodModel> demandArray;
 
 
-    public ConsumerModel(String id, String name, String numeber, String time_stamp, String lat, String lng, String imageUrl) {
+    public ConsumerModel(String id, String name, String numeber, String time_stamp, String lat, String lng, String imageUrl, long alertNotificationTime) {
         this.id = id;
         this.name = name;
         this.number = numeber;
@@ -43,6 +44,7 @@ public class ConsumerModel implements Serializable { // FIXME: 11/24/2019 there 
         this.hasDemand = false;
         this.isOnVacation = false;
         this.imageUrl = imageUrl;
+        this.alertNotificationTime = alertNotificationTime;
 
     }
 
@@ -50,7 +52,7 @@ public class ConsumerModel implements Serializable { // FIXME: 11/24/2019 there 
      * @return a model that has all basic fields
      */
     public ConsumerModel getConsumerModel() {
-        ConsumerModel consumerModel = new ConsumerModel(this.id, this.name, this.number, this.time_stamp, this.lat, this.lng, this.imageUrl);
+        ConsumerModel consumerModel = new ConsumerModel(this.id, this.name, this.number, this.time_stamp, this.lat, this.lng, this.imageUrl, this.alertNotificationTime);
         consumerModel.setDelivered(this.isDelivered);
         consumerModel.setHasDemand(this.hasDemand);
         consumerModel.setOnVacation(this.isOnVacation);
@@ -154,5 +156,13 @@ public class ConsumerModel implements Serializable { // FIXME: 11/24/2019 there 
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public long getAlertNotificationTime() {
+        return alertNotificationTime;
+    }
+
+    public void setAlertNotificationTime(long alertNotificationTime) {
+        this.alertNotificationTime = alertNotificationTime;
     }
 }

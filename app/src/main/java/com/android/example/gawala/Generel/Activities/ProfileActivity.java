@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.ViewCompat;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.content.Intent;
@@ -12,21 +13,33 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Address;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.example.gawala.Generel.AsyncTasks.GeoCoderAsyncTask;
+import com.android.example.gawala.Generel.Fraagments.ImageViewerFragment;
+import com.android.example.gawala.Generel.Fraagments.RatingFragment;
+import com.android.example.gawala.Provider.Activities.ProviderTransportersActivity;
 import com.android.example.gawala.Provider.Fragments.EditCitiesFragment;
-import com.android.example.gawala.Transporter.Models.CityModel;
+import com.android.example.gawala.Provider.Models.CityModel;
 import com.android.example.gawala.R;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipDrawable;
+import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
@@ -44,22 +57,37 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 
 import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
 
-public class ProfileActivity extends AppCompatActivity implements EditCitiesFragment.Callback {
+public class ProfileActivity extends AppCompatActivity implements EditCitiesFragment.Callback, RatingFragment.Callbacks {
+    public static final String PROVIDER_ID = "provider_id";
     private static final int RC_SET_DELIVERY_LOCATION = 121;
     private static final String DIALOG_EDIT_CITIES = "dialogFragment";
     public static final String USER_ID = "user_id";
+    public static final String REQUEST_USER_TYPE = "user_type";
     public static final String OTHER_USER = "otherUser";
+    private static final int RC_SELECT_TRANSPORTER = 1111;
+    private static final String TAG_RATING_FRAG = "ratingFragment";
+    private static final String FRAG_IMAGE_VIEWER = "imageViewerFragment";
     private TextView nameTextView, numberTextView, locationTextView, typeTextView;
     private ImageButton editLocationImageButton;
+    private FrameLayout ratingBarConatiner;
+    private RatingBar ratingBar;
     private String userId;
+
 
     private LinearLayout deliveryAreasContainerLinearLayout, locationContainerLinearLayout;
     private TextView deliveryAreasTextView;
+    private ChipGroup deliveryAreasChipGroup;
     private ImageButton editDeliverAreasImageButtons;
     private CircularImageView profileCircularImageView;
+    private ImageButton editPictureImageButton;
+
+    private LinearLayout transporterInfoLinearLayout;
+    private ImageButton editTransporterImageButton;
+    private TextView transporterNameTextView, transporterNumberTextView;
 
 
     //data
@@ -69,6 +97,11 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
 
     private ArrayList<CityModel> cityModelArrayList;
     private int RC_PICK_FROM_GALLERY = 12121;
+    private boolean isOtherUser;
+    private String transporterID, transporterName, transporterNumber;
+    private String providerID;
+    private String otherUserType;
+    private float averageRatings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,9 +110,14 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         initFields();
-        if (getIntent().getBooleanExtra(OTHER_USER, false)) {
+        isOtherUser = getIntent().getBooleanExtra(OTHER_USER, false);
+        if (isOtherUser) {
             makeEditableFalse();
             userId = getIntent().getStringExtra(USER_ID);
+            otherUserType = getIntent().getStringExtra(REQUEST_USER_TYPE);
+//            if (otherUserType != null && otherUserType.equals(getResources().getString(R.string.provider))) {
+//                providerID = getIntent().getStringExtra(PROVIDER_ID);
+//            }
         } else {
             userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         }
@@ -95,15 +133,25 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
         locationTextView = findViewById(R.id.tv_personal_info_location_name);
         typeTextView = findViewById(R.id.tv_personal_info_user_type);
         editLocationImageButton = findViewById(R.id.ib_personal_info_edit_location);
+        ratingBarConatiner = findViewById(R.id.frame_personal_info_rb_conatiner);
+        ratingBar = findViewById(R.id.rb_personal_info);
 
         deliveryAreasContainerLinearLayout = findViewById(R.id.ll_personal_info_delivery_areas_container);
         locationContainerLinearLayout = findViewById(R.id.ll_personal_info_location_container);
         deliveryAreasTextView = findViewById(R.id.tv_personal_info_delivery_areas);
+        deliveryAreasChipGroup = findViewById(R.id.cg_personal_info_delivery_areas);
         editDeliverAreasImageButtons = findViewById(R.id.ib_personal_info_edit_delivery_areas);
+
+        //transporter related for consumers
+        transporterInfoLinearLayout = findViewById(R.id.ll_personal_info_transporter_container);
+        transporterNameTextView = findViewById(R.id.tv_personal_info_transporter_name);
+        transporterNumberTextView = findViewById(R.id.tv_personal_info_transporter_number);
+        editTransporterImageButton = findViewById(R.id.ib_profile_edit_transporter);
 
         cityModelArrayList = new ArrayList<>();
 
         profileCircularImageView = findViewById(R.id.iv_personal_info_image);
+        editPictureImageButton = findViewById(R.id.ib_personal_info_edit_image);
 
     }
 
@@ -114,27 +162,80 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
             showEditDeliveryAreasDialog();
         });
 
-        profileCircularImageView.setOnClickListener(view -> {
-            Intent galleryIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.INTERNAL_CONTENT_URI);
-            galleryIntent.setType("image/*");
+        if (!isOtherUser) {
+            editPictureImageButton.setOnClickListener(view -> {
+                Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
+                galleryIntent.setType("image/*");
 
-            //                //We pass an extra array with the accepted mime types. This will ensure only components with these MIME types as targeted.
-            //                String[] mimeTypes = {"image/jpeg", "image/png"};
-            //                galleryIntent.putExtra(Intent.EXTRA_MIME_TYPES,mimeTypes);
+                //                //We pass an extra array with the accepted mime types. This will ensure only components with these MIME types as targeted.
+                //                String[] mimeTypes = {"image/jpeg", "image/png"};
+                //                galleryIntent.putExtra(Intent.EXTRA_MIME_TYPES,mimeTypes);
 
-            startActivityForResult(galleryIntent
-                    , RC_PICK_FROM_GALLERY);
-            mProgressDialog.show();
+                startActivityForResult(galleryIntent
+                        , RC_PICK_FROM_GALLERY);
+                mProgressDialog.show();
+
+            });
+        }
+        profileCircularImageView.setOnClickListener(v -> {
+            // TODO: 1/3/2020  show image in a new activity jsing shared elemnet transition
+            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            ImageViewerFragment imageViewerFragment = (ImageViewerFragment) getSupportFragmentManager().findFragmentByTag(FRAG_IMAGE_VIEWER);
+            if (imageViewerFragment != null) {
+                fragmentTransaction.remove(imageViewerFragment);
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                String transitionName = ViewCompat.getTransitionName(profileCircularImageView);
+                if (transitionName == null || transitionName.isEmpty()) {
+                    profileCircularImageView.setTransitionName(userId);
+                }
+                fragmentTransaction.addSharedElement(profileCircularImageView, ViewCompat.getTransitionName(profileCircularImageView));
+            }
+            imageViewerFragment = ImageViewerFragment.newInstance(profileImageUri, ViewCompat.getTransitionName(profileCircularImageView));
+            imageViewerFragment.show(fragmentTransaction, FRAG_IMAGE_VIEWER);
 
         });
 
+        if (isOtherUser) {
+            ratingBarConatiner.setOnClickListener(v -> {
+                FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+                RatingFragment ratingFragment = (RatingFragment) getSupportFragmentManager().findFragmentByTag(TAG_RATING_FRAG);
+                if (ratingFragment != null) {
+                    fragmentTransaction.remove(ratingFragment);
+                }
+                ratingFragment = RatingFragment.newInstance(userId);
+                ratingFragment.setCallbacks(this);
+                ratingFragment.show(fragmentTransaction, TAG_RATING_FRAG);
+            });
+        }
+        editTransporterImageButton.setOnClickListener(this::showPopup);
+    }
+
+    private void showPopup(View v) {
+
+        PopupMenu popup = new PopupMenu(this, v);
+        MenuInflater inflater = popup.getMenuInflater();
+        inflater.inflate(R.menu.edit_transporter_menu, popup.getMenu());
+        popup.show();
+        popup.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.popup_personal_info_change_transporter) {
+
+                Intent intent = new Intent(this, ProviderTransportersActivity.class);
+                intent.putExtra(ProviderTransportersActivity.IS_FOR_SELECTION, true);
+                startActivityForResult(intent, RC_SELECT_TRANSPORTER);
+                return true;
+            } else {
+                return false;
+            }
+
+        });
     }
 
 
     private void uploadImageInFirebaseCloudStorage(Bitmap bitmap) {
 
         StorageReference rootStorageReference = FirebaseStorage.getInstance().getReference();
-        //String fileType = getContentResolver().getType(profileImageUri);
+//String fileType = getContentResolver().getType(profileImageUri);
         final StorageReference profilePicRef = rootStorageReference.child("profilePictures/" + FirebaseAuth.getInstance().getCurrentUser().getUid()/*+ fileType*/);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -299,8 +400,7 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
                 Toast.makeText(this, "Upload Cancelled", Toast.LENGTH_SHORT).show();
 
             }
-        }
-        if (requestCode == UCrop.REQUEST_CROP) {
+        } else if (requestCode == UCrop.REQUEST_CROP) {
             if (resultCode == RESULT_OK) {
                 final Uri resultUri = UCrop.getOutput(data);
 
@@ -317,8 +417,35 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
                 Toast.makeText(this, "operation unsuccessfull" + cropError.getMessage(), Toast.LENGTH_SHORT).show();
                 System.out.println("errorCrop: " + cropError.getMessage());
             }
+        } else if (requestCode == RC_SELECT_TRANSPORTER) {
+            if (resultCode == RESULT_OK) {
+                String transporterId = data.getStringExtra(getResources().getString(R.string.transporter_id_key));
+                String name = data.getStringExtra(getResources().getString(R.string.transporter_name_key));
+                String number = data.getStringExtra(getResources().getString(R.string.transporter_number_key));
+                updateTransporter(transporterId, name, number);
+            }
         } else
             super.onActivityResult(requestCode, resultCode, data);
+    }
+
+
+    private void updateTransporter(String id, String name, String number) {
+        HashMap<String, Object> transporterMap = new HashMap<>();
+        transporterMap.put("transporter_id", id);
+        transporterMap.put("transporter_name", name);
+        transporterMap.put("transporter_number", number);
+        rootRef.child("clients").child(providerID)
+                .child(userId)
+                .updateChildren(transporterMap)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        transporterID = id;
+                        transporterName = name;
+                        transporterNumber = number;
+                        transporterNameTextView.setText(transporterName);
+                        transporterNumberTextView.setText(transporterNumber);
+                    }
+                });
     }
 
     private void sendDataToFirebase(double lat, double lng) {
@@ -362,33 +489,58 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
                         type = dataSnapshot.child("type").getValue(String.class);
                         typeTextView.setText(type);
 
+                        if (dataSnapshot.hasChild("rating")) {
+                            float overAllRating = dataSnapshot.child("rating").child("over_all").getValue(Float.class);
+                            float numberOfRating = dataSnapshot.child("rating").child("total_number").getValue(Float.class);
+                            averageRatings = overAllRating / numberOfRating;
+                            ratingBar.setRating(averageRatings);
+                        }
+
+
                         if (type.equals(getResources().getString(R.string.provider))) {
                             deliveryAreasContainerLinearLayout.setVisibility(View.VISIBLE);
                             if (dataSnapshot.hasChild("cities")) {
+                                if (deliveryAreasTextView.getVisibility() == View.VISIBLE) {
+                                    deliveryAreasTextView.setVisibility(View.GONE);
+                                    deliveryAreasChipGroup.setVisibility(View.VISIBLE);
+                                }
                                 for (DataSnapshot countrySnap : dataSnapshot.child("cities").getChildren()) {
                                     String countryName = countrySnap.getKey();
                                     for (DataSnapshot citySnap : countrySnap.getChildren()) {
-                                        String cityName = citySnap.getValue(String.class);
-                                        String id = citySnap.getKey();
-                                        CityModel cityModel = new CityModel(id, countryName, cityName);
+                                        String cityName = citySnap.getKey();
+                                        CityModel cityModel = new CityModel(countryName, cityName);
                                         cityModelArrayList.add(cityModel);
                                     }
                                 }
 
-                                deliveryAreasTextView.setText("");
-                                deliveryAreasTextView.setTextColor(Color.DKGRAY);
+                                deliveryAreasChipGroup.removeAllViews();
 
                                 for (CityModel cityModel : cityModelArrayList) {
-                                    deliveryAreasTextView.append(String.format("%s, %s\n", cityModel.getCity(), cityModel.getCountry()));
-                                }
+                                    Chip chip = new Chip(ProfileActivity.this);
+                                    ChipDrawable chipDrawable = ChipDrawable.createFromAttributes(ProfileActivity.this,
+                                            null,
+                                            0,
+                                            R.style.Widget_MaterialComponents_Chip_Action);
+                                    chip.setChipDrawable(chipDrawable);
 
+                                    chip.setText(String.format("%s, %s", cityModel.getCity(), cityModel.getCountry()));
+                                    deliveryAreasChipGroup.addView(chip);
+                                }
                             } else {
+                                deliveryAreasTextView.setVisibility(View.VISIBLE);
+                                deliveryAreasChipGroup.setVisibility(View.GONE);
                                 deliveryAreasTextView.setText("Please Specify the delivery Areas else you will not be able to receive any requests. Tap on Edit button");
                                 deliveryAreasTextView.setTextColor(Color.RED);
                             }
 
                         } else if (type.equals(getResources().getString(R.string.transporter))) {
                             locationContainerLinearLayout.setVisibility(View.GONE);
+
+                        } else if (type.equals(getResources().getString(R.string.consumer))) {
+                            providerID = getIntent().getStringExtra(PROVIDER_ID);//assuming that only provider and consumer can see the clients details
+                            transporterInfoLinearLayout.setVisibility(View.VISIBLE);
+                            transporterNameTextView.setText("fetching data...");
+                            fetchTransporterData();
                         }
                         if (dataSnapshot.hasChild("location")) {
                             double lat = Double.parseDouble(dataSnapshot.child("location").child("lat").getValue(String.class));
@@ -436,9 +588,42 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
         });
     }
 
+    private void fetchTransporterData() {
+
+        if (providerID == null) {
+            transporterInfoLinearLayout.setVisibility(View.GONE);
+            Toast.makeText(this, "something went wrong,Provider id was null", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        rootRef.child("clients").child(providerID)
+                .child(userId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            transporterID = dataSnapshot.child("transporter_id").getValue(String.class);
+                            transporterName = dataSnapshot.child("transporter_name").getValue(String.class);
+                            transporterNumber = dataSnapshot.child("transporter_number").getValue(String.class);
+                            transporterNameTextView.setText(transporterName);
+                            transporterNumberTextView.setText(transporterNumber);
+                            if (isOtherUser && otherUserType.equals(getResources().getString(R.string.provider))) {
+                                editTransporterImageButton.setVisibility(View.VISIBLE);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+    }
+
     private void makeEditableFalse() {
         editDeliverAreasImageButtons.setVisibility(View.GONE);
         editLocationImageButton.setVisibility(View.GONE);
+        editPictureImageButton.setVisibility(View.GONE);
+
     }
 
 
@@ -450,10 +635,30 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
     @Override
     public void onArrayListUpdated(ArrayList<CityModel> arrayList) {
         this.cityModelArrayList = arrayList;
-        deliveryAreasTextView.setText("");
-        for (CityModel cityModel : cityModelArrayList) {
-            deliveryAreasTextView.append(String.format("%s, %s\n", cityModel.getCity(), cityModel.getCountry()));
-            deliveryAreasTextView.setTextColor(Color.DKGRAY);
+        if (deliveryAreasTextView.getVisibility() == View.VISIBLE) {
+            deliveryAreasTextView.setVisibility(View.GONE);
+            deliveryAreasChipGroup.setVisibility(View.VISIBLE);
         }
+        deliveryAreasTextView.setVisibility(View.GONE);
+
+        deliveryAreasChipGroup.removeAllViews();
+
+        for (CityModel cityModel : cityModelArrayList) {
+            Chip chip = new Chip(ProfileActivity.this);
+            ChipDrawable chipDrawable = ChipDrawable.createFromAttributes(ProfileActivity.this,
+                    null,
+                    0,
+                    R.style.Widget_MaterialComponents_Chip_Action);
+            chip.setChipDrawable(chipDrawable);
+
+            chip.setText(String.format("%s, %s", cityModel.getCity(), cityModel.getCountry()));
+            deliveryAreasChipGroup.addView(chip);
+        }
+    }
+
+    @Override
+    public void onRatingChanged(float averageRating) {
+        this.averageRatings = averageRating;
+        ratingBar.setRating(averageRating);
     }
 }

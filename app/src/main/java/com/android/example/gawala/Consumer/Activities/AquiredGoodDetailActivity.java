@@ -127,8 +127,7 @@ public class AquiredGoodDetailActivity extends AppCompatActivity {
     }
 
     private void removeDemandItemFromFirebase() {
-        rootRef
-                .child("demand").child(acquiredGoodModel.getProducerId())
+        rootRef.child("demand").child(acquiredGoodModel.getProducerId())
                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                 .child(acquiredGoodModel.getGoodModel().getId())
                 .removeValue().addOnCompleteListener(task -> {
@@ -145,10 +144,10 @@ public class AquiredGoodDetailActivity extends AppCompatActivity {
 
     private void openEditDialog() {
 
-        final LinearLayout linearLayout = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_set_litres, null);
-        final TextView amountLitresTextView = linearLayout.findViewById(R.id.tv_dialog_set_litres_litres);
+        final LinearLayout linearLayout = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_edit_units, null);
+        final TextView amountLitresTextView = linearLayout.findViewById(R.id.tv_dialog_edit_unit);
         amountLitresTextView.setText(mDemand + " Unit(s) ");
-        ImageButton addImageButton = linearLayout.findViewById(R.id.ib_dialog_set_litres_add);
+        ImageButton addImageButton = linearLayout.findViewById(R.id.ib_dialog_edit_units_add);
         addImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -156,7 +155,7 @@ public class AquiredGoodDetailActivity extends AppCompatActivity {
                 amountLitresTextView.setText(mDemand + " Unit(s) ");
             }
         });
-        ImageButton removeImageButton = linearLayout.findViewById(R.id.ib_dialog_set_litres_remove);
+        ImageButton removeImageButton = linearLayout.findViewById(R.id.ib_dialog_edit_units_remove);
         removeImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -170,15 +169,12 @@ public class AquiredGoodDetailActivity extends AppCompatActivity {
 
         new AlertDialog.Builder(this)
                 .setView(linearLayout)
-                .setPositiveButton("ok", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        demandTextView.setText(mDemand + " Unit(s) ");
-                        ConsumerFirebaseHelper.updateDemand(mDemand + "", acquiredGoodModel);
+                .setPositiveButton("ok", (dialog, which) -> {
+                    demandTextView.setText(mDemand + " Unit(s) ");
+                    ConsumerFirebaseHelper.updateDemand(mDemand + "", acquiredGoodModel);
 //                        ConsumerFirebaseHelper.updateMilkDemand(mDemand + "", producerId);
-                        dialog.dismiss();
-                        Toast.makeText(AquiredGoodDetailActivity.this, "Demand Updated", Toast.LENGTH_SHORT).show();//// TODO: 10/10/2019  this is a best case consideration later do some callback stuff because we dont know weather the data is upadted or not
-                    }
+                    dialog.dismiss();
+                    Toast.makeText(AquiredGoodDetailActivity.this, "Demand Updated", Toast.LENGTH_SHORT).show();//// TODO: 10/10/2019  this is a best case consideration later do some callback stuff because we dont know weather the data is upadted or not
                 })
                 .show();
 

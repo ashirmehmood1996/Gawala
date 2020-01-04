@@ -39,8 +39,9 @@ public class AcquiredGoodsAdapter extends RecyclerView.Adapter<AcquiredGoodsAdap
     public void onBindViewHolder(@NonNull AquiredgoodsHolder holder, int position) {
         AcquiredGoodModel acquiredGoodModel = aquiredGoodsArrayList.get(position);
         holder.nameTextvew.setText(acquiredGoodModel.getGoodModel().getName());
-        holder.typeTextView.setText(acquiredGoodModel.getGoodModel().getType());
+//        holder.typeTextView.setText(acquiredGoodModel.getGoodModel().getType());
         holder.priceTextView.setText(String.format("%s PKR", acquiredGoodModel.getGoodModel().getPrice()));
+        holder.descTextView.setText(acquiredGoodModel.getGoodModel().getDescription());
         if (acquiredGoodModel.getGoodModel().getImage_uri() != null
                 && !acquiredGoodModel.getGoodModel().getImage_uri().isEmpty()) {
             Glide.with(context).load(acquiredGoodModel.getGoodModel().getImage_uri()).into(holder.imageView);
@@ -58,7 +59,8 @@ public class AcquiredGoodsAdapter extends RecyclerView.Adapter<AcquiredGoodsAdap
 
     class AquiredgoodsHolder extends RecyclerView.ViewHolder {
         LinearLayout containerLayout;
-        TextView nameTextvew, priceTextView, typeTextView, producerNameTextView;
+        TextView nameTextvew, priceTextView, /*typeTextView, producerNameTextView,*/
+                descTextView;
         ImageView imageView;
 
         public AquiredgoodsHolder(@NonNull View itemView) {
@@ -66,16 +68,12 @@ public class AcquiredGoodsAdapter extends RecyclerView.Adapter<AcquiredGoodsAdap
             containerLayout = itemView.findViewById(R.id.ll_li_acquired_goods_container);
             nameTextvew = itemView.findViewById(R.id.tv_li_acquired_goods_name);
             priceTextView = itemView.findViewById(R.id.tv_li_acquired_goods_price);
-            typeTextView = itemView.findViewById(R.id.tv_li_acquired_goods_type);
-            producerNameTextView = itemView.findViewById(R.id.tv_li_acquired_goods_producer_name);
+            descTextView = itemView.findViewById(R.id.tv_li_acquired_goods_desc);
+//            typeTextView = itemView.findViewById(R.id.tv_li_acquired_goods_type);
+//            producerNameTextView = itemView.findViewById(R.id.tv_li_acquired_goods_producer_name);
             imageView = itemView.findViewById(R.id.iv_li_acquired_goods_picture);
 
-            containerLayout.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    callback.onAcquiredGoodClicked(getAdapterPosition());
-                }
-            });
+            containerLayout.setOnClickListener(v -> callback.onAcquiredGoodClicked(getAdapterPosition()));
 
         }
     }

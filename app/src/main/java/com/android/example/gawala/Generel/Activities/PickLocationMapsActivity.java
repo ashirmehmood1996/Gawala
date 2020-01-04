@@ -73,7 +73,6 @@ public class PickLocationMapsActivity extends FragmentActivity implements OnMapR
         setContentView(R.layout.activity_pick_location_maps);
 
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        ;
         if (!hasPermissions(this, PERMISSIONS)) {
             requestAllPermissions();
         } else if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {

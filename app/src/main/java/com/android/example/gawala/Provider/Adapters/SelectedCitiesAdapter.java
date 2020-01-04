@@ -11,7 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.android.example.gawala.Transporter.Models.CityModel;
+import com.android.example.gawala.Provider.Models.CityModel;
 import com.android.example.gawala.R;
 
 import java.util.ArrayList;

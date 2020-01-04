@@ -27,26 +27,23 @@
             android:gravity="center"
             android:orientation="horizontal">
 
-            <Button
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/bt_days_off_reset_calendar"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:text="Clear Calender" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/bt_days_off_edit_days"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="16dp"
+                app:icon="@drawable/ic_mode_edit_black_24dp"
                 android:background="@drawable/bg_button_solid"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
-                android:text="Edit no Delivery days"
-                android:textColor="#fff" />
-
-            <Button
-                android:id="@+id/bt_days_off_reset_calendar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                android:background="@drawable/bg_button_solid"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
-                android:text="Reset Calendar"
+                android:text="Edit Days Off"
                 android:textColor="#fff" />
 
         </LinearLayout>

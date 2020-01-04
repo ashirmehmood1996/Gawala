@@ -1,5 +1,6 @@
 package com.android.example.gawala.Generel.Activities;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 
@@ -185,6 +186,8 @@ public class SignupActivity extends AppCompatActivity {
                     }
                 }
                 addClientToDatabase();
+                addTransporterToFirebase(FirebaseAuth.getInstance().getUid());//adding as provider as a default transporter as well
+
 
             } else {
                 Toast.makeText(this, "problkem in updating profile ", Toast.LENGTH_SHORT).show();
@@ -247,6 +250,12 @@ public class SignupActivity extends AppCompatActivity {
         super.onBackPressed();
         startActivity(new Intent(this, LoginActivity.class));
         finish();
+    }
+    private void addTransporterToFirebase(String myId) {
+        rootRef.child(getResources().getString(R.string.transporter))
+                .child(myId)//provider id
+                .child(myId) //transporter id
+                .setValue(myId);//transporter id
     }
 }
 //copy paste stuff to relevan places plus ad the user all basic info in the shared pre at the first login in order to avoin any in convinience

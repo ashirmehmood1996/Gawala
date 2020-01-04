@@ -1,25 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/ll_bottom_sheet_active_riding_info_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/background_bottom_sheet"
-    android:elevation="16dp"
     android:clickable="true"
+    android:elevation="16dp"
     android:focusable="true"
     android:orientation="vertical"
-    android:theme="@style/Theme.Design.BottomSheetDialog"
+    android:theme="@style/Theme.MaterialComponents.BottomSheetDialog"
     app:behavior_peekHeight="150dp"
-    app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+    app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+    tools:ignore="UnusedAttribute">
 
-    <include layout="@layout/speed_time_distance_layout"/>
+    <include layout="@layout/speed_time_distance_layout" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_bottom_sheet_active_riding"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        android:orientation="vertical"/>
+        android:orientation="vertical"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
 </LinearLayout>

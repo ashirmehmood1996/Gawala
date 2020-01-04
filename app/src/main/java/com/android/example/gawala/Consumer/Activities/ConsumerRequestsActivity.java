@@ -5,8 +5,10 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.ActivityOptions;
 import android.content.Intent;
 import android.location.Address;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,6 +27,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
+import com.mikhaellopez.circularimageview.CircularImageView;
 
 import java.util.ArrayList;
 
@@ -179,10 +182,70 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
     private void loadAllProducers(String city, String country) {
         mAlertDialog.show();
 
+//        //not changing database schema for now and qurying all the data whihc is a bad practice later we can find better apoproaches if time
+//        //for now  loading all producers later that can be changed when the system expands
+//        rootRef.child("users").orderByChild("type").equalTo(getResources().getString(R.string.provider))
+//                .addListenerForSingleValueEvent(new ValueEventListener() {
+//                    @Override
+//                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) { // TODO: 11/16/2019  test by adding more producers
+//                        if (dataSnapshot.exists() && ConsumerRequestsActivity.this != null) {
+//                            for (DataSnapshot producerSnap : dataSnapshot.getChildren()) {
+//                                if (!producerSnap.hasChild("cities")) {
+//                                    continue;
+//                                }
+//                                for (DataSnapshot countrySnap : producerSnap.child("cities").getChildren()) {
+//                                    if (countrySnap.getKey().equals(country)) {
+//                                        for (DataSnapshot citySnap : countrySnap.getChildren()) {
+//                                            if (citySnap.getValue(String.class) != null
+//                                                    && citySnap.getValue(String.class).equals(city)) {
+//                                                String id = producerSnap.getKey();
+//                                                String name = producerSnap.child("name").getValue(String.class);
+//                                                String number = producerSnap.child("number").getValue(String.class);
+//                                                String imageUri = "";
+//                                                if (producerSnap.hasChild("profile_image_uri")) {
+//                                                    imageUri = producerSnap.child("profile_image_uri").getValue(String.class);
+//                                                }
+//                                                String lat = producerSnap.child("location").child("lat").getValue(String.class);
+//                                                String lng = producerSnap.child("location").child("lng").getValue(String.class);
+//                                                ProducerModel producerModel = new ProducerModel(id, name, number, imageUri, lat, lng);
+//                                                //// FIXME: 11/19/2019 bad practice
+//                                                for (ProducerModel connectedProducer : connectedProducerArrayList) {
+//                                                    if (connectedProducer.getId().equals(producerModel.getId())) {
+//                                                        if (!producerModel.getImageUri().isEmpty()) {//if this producer has image then feed this iamge to the connected one too
+//                                                            connectedProducer.setImageUri(producerModel.getImageUri());
+//                                                            connectedProducersAdapter.notifyDataSetChanged();
+//                                                        }
+//                                                        connectedProducer.setLat(lat);
+//                                                        connectedProducer.setLng(lng);
+//                                                        producerModel.setStatus(ProducerModel.REQUEST_ACCEPTED);
+//                                                    }
+//                                                }
+//
+//
+//                                                producerModelArrayList.add(producerModel);
+//
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//
+//                            }
+//                            producersAdapter.notifyDataSetChanged();
+//                        } else {
+//                            Toast.makeText(getApplicationContext(), "No Producer Found.. Sorry", Toast.LENGTH_SHORT).show();
+//                        }
+//                        mAlertDialog.dismiss();//fixme error
+//                    }
+//
+//                    @Override
+//                    public void onCancelled(@NonNull DatabaseError databaseError) {
+//                        mAlertDialog.dismiss();
+//                        Toast.makeText(getApplicationContext(), "database error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+//                    }
+//                });
         //not changing database schema for now and qurying all the data whihc is a bad practice later we can find better apoproaches if time
         //for now  loading all producers later that can be changed when the system expands
-        rootRef
-                .child("users").orderByChild("type").equalTo(getResources().getString(R.string.provider))
+        rootRef.child("users").orderByChild("type").equalTo(getResources().getString(R.string.provider))
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) { // TODO: 11/16/2019  test by adding more producers
@@ -194,8 +257,7 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
                                 for (DataSnapshot countrySnap : producerSnap.child("cities").getChildren()) {
                                     if (countrySnap.getKey().equals(country)) {
                                         for (DataSnapshot citySnap : countrySnap.getChildren()) {
-                                            if (citySnap.getValue(String.class) != null
-                                                    && citySnap.getValue(String.class).equals(city)) {
+                                            if (citySnap.getKey().equals(city)) {
                                                 String id = producerSnap.getKey();
                                                 String name = producerSnap.child("name").getValue(String.class);
                                                 String number = producerSnap.child("number").getValue(String.class);
@@ -213,6 +275,8 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
                                                             connectedProducer.setImageUri(producerModel.getImageUri());
                                                             connectedProducersAdapter.notifyDataSetChanged();
                                                         }
+                                                        connectedProducer.setLat(lat);
+                                                        connectedProducer.setLng(lng);
                                                         producerModel.setStatus(ProducerModel.REQUEST_ACCEPTED);
                                                     }
                                                 }
@@ -230,7 +294,7 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
                         } else {
                             Toast.makeText(getApplicationContext(), "No Producer Found.. Sorry", Toast.LENGTH_SHORT).show();
                         }
-                        mAlertDialog.dismiss();
+                        mAlertDialog.dismiss();//fixme error
                     }
 
                     @Override
@@ -243,7 +307,7 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
     }
 
     @Override
-    public void onProducerItemClcik(int pos) {
+    public void onProducerItemClcik(int pos, CircularImageView circularImageView) {
         ProducerModel producerModel = producerModelArrayList.get(pos);
 
         Intent intent = new Intent(this, ProducerDetailActivty.class);
@@ -256,12 +320,19 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
         intent.putExtra("lng", producerModel.getLng());
 
 
-        startActivity(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            intent.putExtra("transitionName", producerModel.getId());
+
+            startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(
+                    this, circularImageView, circularImageView.getTransitionName()).toBundle());
+        } else {
+            startActivity(intent);
+        }
 
     }
 
     @Override
-    public void onconnectedProducerClick(int pos) {
+    public void onconnectedProducerClick(int pos, CircularImageView circularImageView) {
 
         ProducerModel producerModel = connectedProducerArrayList.get(pos);
         Intent intent = new Intent(ConsumerRequestsActivity.this, ProducerDetailActivty.class);
@@ -272,9 +343,15 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
         intent.putExtra("profile_image_uri", producerModel.getImageUri());
         intent.putExtra("lat", producerModel.getLat());
         intent.putExtra("lng", producerModel.getLng());
-        intent.putExtra("is_connected", true);
 
-        startActivity(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            intent.putExtra("transitionName", producerModel.getId());
+
+            startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(
+                    this, circularImageView, circularImageView.getTransitionName()).toBundle());
+        } else {
+            startActivity(intent);
+        }
     }
 
     @Override

@@ -3,11 +3,17 @@ package com.android.example.gawala.Generel.Activities;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LayoutAnimationController;
+import android.widget.AbsListView;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -18,8 +24,6 @@ import com.android.example.gawala.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -32,10 +36,18 @@ public class NotificationsActivity extends AppCompatActivity implements Notifica
     private NotificationsAdapter notificationsAdapter;
     private ArrayList<NotificationModel> notificationModelArrayList;
 
+
     private String myId;
     private AlertDialog mAlertDialog;
+    private int indexForAdding;
 
     private RelativeLayout emptyViewcontainer;
+    private FrameLayout pogressBarcontainer;
+    SwipeRefreshLayout swipeRefreshLayout;
+
+    private String lastNotificationKey;
+    private boolean allDataLoaded;
+    private RecyclerView.OnScrollListener onScrollListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +58,121 @@ public class NotificationsActivity extends AppCompatActivity implements Notifica
 
 
         initFields();
-        loadNotifications();
+        attachListeners();
+        loadNotifications(false);
+
+    }
+
+    private void attachListeners() {
+
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            loadNotifications(true);
+
+        });
+
+
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            recyclerView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+//
+//            });
+//
+//        } else {
+
+
+        onScrollListener = new RecyclerView.OnScrollListener() { //fixme  later see for this depricated code
+            boolean isScrolling = false;
+
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if (newState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL)
+                    isScrolling = true;
+            }
+
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                if (allDataLoaded) {
+                    recyclerView.removeOnScrollListener(this);
+                    return;
+                }
+                if (recyclerView.getLayoutManager() != null) {
+                    int totalItems = recyclerView.getLayoutManager().getItemCount();
+                    int visibleItems = recyclerView.getLayoutManager().getChildCount();
+                    int scrolledItems = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition();
+                    if (isScrolling && (visibleItems + scrolledItems >= totalItems)) {
+                        indexForAdding = totalItems;
+                        loadNotificationsAfterScroll();
+                        isScrolling = false;
+                    }
+                }
+            }
+        };
+        recyclerView.setOnScrollListener(onScrollListener);//// FIXME: 1/4/2020 deal with depricated code if time
+
+
+//        }
+
+    }
+
+    private void loadNotificationsAfterScroll() {
+        pogressBarcontainer.setVisibility(View.VISIBLE);
+        rootRef.child("notifications")
+                .child(myId)//reciever id
+                .orderByKey()
+                .endAt(lastNotificationKey)
+                .limitToLast(21)//because 1 is duplicate
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if (NotificationsActivity.this != null) {
+                            if (dataSnapshot.exists()) {
+//                                notificationModelArrayList.clear();
+                                boolean isFirst = true;
+                                String duplicatedId = lastNotificationKey; // because the first notification retrieved in this query is not the duplicate one and is the last one of this new query
+                                if (dataSnapshot.getChildrenCount() < 20) { //that means all data is loaded  and this is the last batch
+                                    allDataLoaded = true;
+                                }
+                                for (DataSnapshot notificationsSnap : dataSnapshot.getChildren()) {
+                                    String notificationId = notificationsSnap.getKey();
+                                    if (notificationId.equals(duplicatedId)) {
+                                        continue;
+                                    }
+                                    if (isFirst) {
+                                        lastNotificationKey = notificationId;
+                                        isFirst = false;
+                                    }
+                                    String senderId = notificationsSnap.child("sender_id").getValue(String.class);
+                                    String title = notificationsSnap.child("title").getValue(String.class);
+                                    String message = notificationsSnap.child("message").getValue(String.class);
+                                    String timeStamp = notificationsSnap.child("time_stamp").getValue(String.class);//this may be null so deal bufddy
+                                    String type = notificationsSnap.child("type").getValue(String.class);
+                                    NotificationModel notificationModel = new NotificationModel(notificationId, senderId, title, type, message, timeStamp);
+                                    notificationModelArrayList.add(indexForAdding, notificationModel);
+//                                    }
+                                }
+                                notificationsAdapter.notifyDataSetChanged();
+                            } else {
+                                Toast.makeText(NotificationsActivity.this, "No notifications yet", Toast.LENGTH_SHORT).show();
+
+                            }
+                            if (notificationModelArrayList.size() == 0) {
+                                emptyViewcontainer.setVisibility(View.VISIBLE);
+                            } else {
+                                emptyViewcontainer.setVisibility(View.GONE);
+                            }
+                            pogressBarcontainer.setVisibility(View.GONE);
+
+
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
 
     }
 
@@ -69,32 +195,51 @@ public class NotificationsActivity extends AppCompatActivity implements Notifica
         myId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         emptyViewcontainer = findViewById(R.id.rl_notification_empty_view_container);
 
+        swipeRefreshLayout = findViewById(R.id.srl_notifications);
+
+
+        pogressBarcontainer = findViewById(R.id.cv_notification_load);
         initializeDialog();
+        allDataLoaded = false;
     }
 
-    private void loadNotifications() {
-        mAlertDialog.show();
+    private void loadNotifications(boolean isRefreshing) {
+        indexForAdding = 0;
+        if (!isRefreshing) {
+            mAlertDialog.show();
+        } else {
+            allDataLoaded = false;
+            recyclerView.setOnScrollListener(onScrollListener);
+        }
+
+
         rootRef.child("notifications")
                 .child(myId)//reciever id
+                .orderByKey()
+                .limitToLast(20)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         if (NotificationsActivity.this != null) {
                             if (dataSnapshot.exists()) {
                                 notificationModelArrayList.clear();
+                                boolean isFirst = true;
                                 for (DataSnapshot notificationsSnap : dataSnapshot.getChildren()) {
-                                    String senderId = notificationsSnap.getKey();
-                                    for (DataSnapshot childNotiiftionSnap : notificationsSnap.getChildren()) {
-                                        String notificationId = childNotiiftionSnap.getKey();
-                                        String title = childNotiiftionSnap.child("title").getValue(String.class);
-                                        String message = childNotiiftionSnap.child("message").getValue(String.class);
-                                        String timeStamp = childNotiiftionSnap.child("time_stamp").getValue(String.class);//this may be null so deal bufddy
-                                        String type = childNotiiftionSnap.child("type").getValue(String.class);
-                                        NotificationModel notificationModel = new NotificationModel(notificationId, senderId, title, type, message, timeStamp);
-                                        notificationModelArrayList.add(notificationModel);
+                                    String notificationId = notificationsSnap.getKey();
+                                    if (isFirst) {
+                                        lastNotificationKey = notificationId;
+                                        isFirst = false;
                                     }
+                                    String senderId = notificationsSnap.child("sender_id").getValue(String.class);
+                                    String title = notificationsSnap.child("title").getValue(String.class);
+                                    String message = notificationsSnap.child("message").getValue(String.class);
+                                    String timeStamp = notificationsSnap.child("time_stamp").getValue(String.class);//this may be null so deal bufddy
+                                    String type = notificationsSnap.child("type").getValue(String.class);
+                                    NotificationModel notificationModel = new NotificationModel(notificationId, senderId, title, type, message, timeStamp);
+                                    notificationModelArrayList.add(indexForAdding, notificationModel);
+
+//                                    }
                                 }
-                                notificationsAdapter.notifyDataSetChanged();
                             } else {
                                 Toast.makeText(NotificationsActivity.this, "No notifications yet", Toast.LENGTH_SHORT).show();
 
@@ -104,7 +249,20 @@ public class NotificationsActivity extends AppCompatActivity implements Notifica
                             } else {
                                 emptyViewcontainer.setVisibility(View.GONE);
                             }
-                            mAlertDialog.cancel();
+                            if (!isRefreshing)
+                                mAlertDialog.cancel();
+                            else
+                                swipeRefreshLayout.setRefreshing(false);
+
+                            notificationsAdapter.notifyDataSetChanged();
+
+                            final LayoutAnimationController controller =
+                                    AnimationUtils.loadLayoutAnimation(NotificationsActivity.this, R.anim.layout_animation_fall_down);
+
+                            recyclerView.setLayoutAnimation(controller);
+                            recyclerView.getAdapter().notifyDataSetChanged();
+                            recyclerView.scheduleLayoutAnimation();
+
                         }
                     }
 

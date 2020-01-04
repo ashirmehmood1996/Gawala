@@ -5,18 +5,17 @@ import com.android.example.gawala.Generel.Models.ClientSummeryModel;
 import java.util.ArrayList;
 
 public class ProducerSummeryModel {
-    private String sessionID;
+    private String sessionID,transporterName;
     private long timeStamp;
     private ArrayList<ClientSummeryModel> clientSummeryModelArrayList;
     //    private float totalMilkVolume;
     private float totalAmount;
 
-    public ProducerSummeryModel(String sessionID, long timeStamp, ArrayList<ClientSummeryModel> clientSummeryModelArrayList) {
+    public ProducerSummeryModel(String sessionID, String transporterName, long timeStamp, ArrayList<ClientSummeryModel> clientSummeryModelArrayList) {
         this.sessionID = sessionID;
-
+        this.transporterName = transporterName;
         this.timeStamp = timeStamp;
         this.clientSummeryModelArrayList = clientSummeryModelArrayList;
-
         this.totalAmount = calculateTotalAmount();
     }
 
@@ -47,4 +46,7 @@ public class ProducerSummeryModel {
     }
 
 
+    public String getTransporterName() {
+        return transporterName;
+    }
 }

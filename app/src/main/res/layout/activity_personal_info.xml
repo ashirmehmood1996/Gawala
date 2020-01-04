@@ -14,17 +14,42 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <com.mikhaellopez.circularimageview.CircularImageView
-            android:id="@+id/iv_personal_info_image"
+        <RelativeLayout
+
             android:layout_width="150dp"
             android:layout_height="150dp"
             android:layout_gravity="center"
-            android:layout_margin="8dp"
-            android:clickable="true"
-            android:elevation="4dp"
-            android:focusable="true"
-            android:src="@drawable/ic_person_black_24dp"
-            app:civ_border="false" />
+            android:layout_margin="6dp">
+
+            <com.mikhaellopez.circularimageview.CircularImageView
+                android:id="@+id/iv_personal_info_image"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+
+                android:layout_margin="4dp"
+                android:clickable="true"
+                android:elevation="4dp"
+                android:focusable="true"
+                android:src="@drawable/ic_person_black_24dp"
+                app:civ_border="false" />
+
+            <ImageButton
+                android:id="@+id/ib_personal_info_edit_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_margin="4dp"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true"
+                android:layout_gravity="center"
+
+                android:background="@drawable/bg_bt_round"
+                android:contentDescription="Tap to Edit Location"
+                android:elevation="4dp"
+                android:padding="6dp"
+                android:src="@drawable/ic_mode_edit_black_24dp" />
+
+        </RelativeLayout>
 
         <TextView
             android:id="@+id/tv_personal_info_name"
@@ -47,6 +72,26 @@
             android:paddingBottom="16dp"
             android:text="@string/nav_header_subtitle"
             android:textColor="@color/text_light" />
+
+        <FrameLayout
+            android:id="@+id/frame_personal_info_rb_conatiner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="6dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true">
+
+            <RatingBar
+                android:id="@+id/rb_personal_info"
+                style="?android:attr/ratingBarStyleIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:isIndicator="true" />
+        </FrameLayout>
+
 
         <View
             android:layout_width="match_parent"
@@ -117,6 +162,71 @@
             android:text="user type" />
 
         <LinearLayout
+            android:id="@+id/ll_personal_info_transporter_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Transporter"
+                android:textColor="#000"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/ll_li_con_prod_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp">
+
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tv_personal_info_transporter_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="2dp"
+                        android:textSize="16sp"
+                        tools:text="firstname Lastname  " />
+
+
+                    <TextView
+                        android:id="@+id/tv_personal_info_transporter_number"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:padding="2dp"
+                        android:textColor="@color/text_light"
+                        android:textSize="14sp"
+                        tools:text="+92123456789" />
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/ib_profile_edit_transporter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_bt_round"
+                    android:padding="16dp"
+                    android:src="@drawable/ic_more_vert_black_24dp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/ll_personal_info_delivery_areas_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -137,13 +247,24 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/cg_personal_info_delivery_areas"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="6dp"
+                    android:layout_weight="1" />
+
+
                 <TextView
                     android:id="@+id/tv_personal_info_delivery_areas"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_weight="1"
-                    android:text="2 new Gulber Road Peshawar Cantt 2 new Gulber Road Peshawar Cantt 2 new Gulber Road Peshawar Cantt" />
+                    android:text="Delivery Areas were not set please click edit button"
+                    android:visibility="gone" />
 
 
                 <ImageButton

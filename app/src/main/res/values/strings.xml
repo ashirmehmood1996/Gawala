@@ -1,55 +1,107 @@
 <resources>
-    <string name="app_name">Gawala</string>
+
+    <!--todo    later remove the translatable false from those with which its not needed-->
+    <string name="app_name" translatable="false">Foodelivery </string>
 
     <string name="title_activity_producer_maps" translatable="false">Map</string>
-    <string name="requests">Manage Clients</string>
-    <string name="drawer_open">Drawer open</string>
-    <string name="drawer_closed">Drawer Closed</string>
-    <string name="title_activity_nav_producer_map">NavProducerMapActivity</string>
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Android Studio</string>
-    <string name="nav_header_subtitle">android.studio@android.com</string>
-    <string name="nav_header_desc">Navigation header</string>
-    <string name="action_settings">Settings</string>
-    <string name="menu_home">Home</string>
+    <string name="requests" translatable="false">Manage Clients</string>
+    <string name="drawer_open" translatable="false">Drawer open</string>
+    <string name="drawer_closed" translatable="false">Drawer Closed</string>
+    <string name="title_activity_nav_producer_map" translatable="false">NavProducerMapActivity</string>
+    <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
+    <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
+    <string name="nav_header_title" translatable="false">Android Studio</string>
+    <string name="nav_header_subtitle" translatable="false">android.studio@android.com</string>
+    <string name="nav_header_desc" translatable="false">Navigation header</string>
+    <string name="action_settings" translatable="false">Settings</string>
+    <string name="menu_home" translatable="false">Home</string>
 
-    <string name="menu_gallery">Gallery</string>
-    <string name="menu_slideshow">Slideshow</string>
-    <string name="menu_tools">Tools</string>
-    <string name="menu_share">Share</string>
-    <string name="menu_send">Send</string>
-    <string name="distance_matrix_api_key">AIzaSyDoDEsuwoTeQO4SfjqCiJJ3vlHHKi3G_2o</string>
-    <string name="directions_api">AIzaSyDoDEsuwoTeQO4SfjqCiJJ3vlHHKi3G_2o</string>
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="menu_gallery" translatable="false">Gallery</string>
+    <string name="menu_slideshow" translatable="false">Slideshow</string>
+    <string name="menu_tools" translatable="false">Tools</string>
+    <string name="menu_share" translatable="false">Share</string>
+    <string name="menu_send" translatable="false">Send</string>
+    <string name="distance_matrix_api_key" translatable="false">AIzaSyDoDEsuwoTeQO4SfjqCiJJ3vlHHKi3G_2o</string>
+    <string name="directions_api" translatable="false">AIzaSyDoDEsuwoTeQO4SfjqCiJJ3vlHHKi3G_2o</string>
 
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="status_producer_inactive">inactive</string>
-    <string name="status_producer_ontheway">On The Way</string>
-    <string name="status_producer_onduty">On Duty</string>
-    <string name="title_activity_clients_location_setting_map">Map</string>
+    <string name="status_producer_inactive" translatable="false">inactive</string>
+    <string name="status_producer_ontheway" translatable="false">On The Way</string>
+    <string name="status_producer_onduty" translatable="false">On Duty</string>
+    <string name="title_activity_clients_location_setting_map" translatable="false">Map</string>
     <string name="add_service_activity_name">Add Service</string>
-    <string name="my_services_activity_name">Services</string>
-    <string name="service_details_title">Item Details</string>
-    <string name="producer_details_activity_label">Producer Details</string>
+    <string name="my_services_activity_name" translatable="false">Services</string>
+    <string name="service_details_title" translatable="false">Item Details</string>
+    <string name="producer_details_activity_label" translatable="false">Producer Details</string>
     <string-array name="user_type">
         <item>@string/provider</item>
         <item>@string/consumer</item>
         <item>@string/transporter</item>
     </string-array>
-    <string name="title_activity_testmap">Map</string>
-    <string name="title_activity_maps">Map</string>
-    <string name="title_activity_consumer_map">Map</string>
-    <string name="title_activity_pick_location_maps">Map</string>
+    <string name="title_activity_testmap" translatable="false">Map</string>
+    <string name="title_activity_maps" translatable="false">Map</string>
+    <string name="title_activity_consumer_map" translatable="false">Map</string>
+    <string name="title_activity_pick_location_maps" translatable="false">Map</string>
 
     <!--its a generel key I guess-->
-    <string name="places_api_key">AIzaSyDoDEsuwoTeQO4SfjqCiJJ3vlHHKi3G_2o</string>
-    <string name="from_consumer_dash_board">consumerDashBoard</string>
-    <string name="from_which_activty">from</string>
-    <string name="provider">provider</string>
-    <string name="consumer">consumer</string>
-    <string name="transporter">transporter</string>
-    <string name="type_key">typeKey</string>
+    <string name="places_api_key" translatable="false">AIzaSyDoDEsuwoTeQO4SfjqCiJJ3vlHHKi3G_2o</string>
+    <string name="from_consumer_dash_board" translatable="false">consumerDashBoard</string>
+    <string name="from_which_activty" translatable="false">from</string>
+    <string name="provider" translatable="false">provider</string>
+    <string name="consumer" translatable="false">consumer</string>
+    <string name="transporter" translatable="false">transporter</string>
+    <string name="type_key" translatable="false">typeKey</string>
     <string name="transporter_id_key" translatable="false">transporter_id</string>
+    <string name="transporter_name_key" translatable="false">transporter_name</string>
+    <string name="transporter_number_key" translatable="false">transporter_number</string>
+
+    <!--deliveries categories array-->
+    <string-array name="categories">
+        <item> @string/other </item>
+        <item> @string/vegetables </item>
+        <item> @string/fruits </item>
+        <item> @string/grains_beans_nuts </item>
+        <item> @string/meat_and_poultry </item>
+        <item> @string/fish_and_seafood </item>
+        <item> @string/dairy_foods </item>
+    </string-array>
+
+    <string name="other" translatable="false">Other</string>
+    <string name="fruits" translatable="false">Fruits</string>
+    <string name="vegetables" translatable="false">Vegetables</string>
+    <string name="grains_beans_nuts" translatable="false">Grains, Beans and Nuts</string>
+    <string name="meat_and_poultry" translatable="false">Meat and Poultry</string>
+    <string name="fish_and_seafood" translatable="false">Fish and Seafood</string>
+    <string name="dairy_foods" translatable="false">Dairy Foods</string>
+
+
+    <!--quantity volume/mass array categories array-->
+    <string-array name="item_units">
+        <item> @string/kg </item>
+        <item> @string/gram </item>
+        <item> @string/hundred_gram </item>
+        <item> @string/litre </item>
+        <item> @string/milli_litre </item>
+        <item> @string/hundred_ml </item>
+        <item> @string/one_unit </item>
+        <item> @string/twelve_unit </item>
+    </string-array>
+
+    <string name="kg" translatable="false">kilogram</string>
+    <string name="gram" translatable="false">gram</string>
+    <string name="hundred_gram" translatable="false">100grams</string>
+    <string name="litre" translatable="false">litre</string>
+    <string name="milli_litre" translatable="false">milli litre</string>
+    <string name="hundred_ml" translatable="false">100 ml</string>
+    <string name="one_unit" translatable="false">single unit</string>
+    <string name="twelve_unit" translatable="false">Dozen</string>
+
+    <string-array name="alert_notification_type">
+        <item>Normal</item>
+        <item>Aggressive</item>
+    </string-array>
+
+
+    <string name="mode_key">mode</string>
 
 </resources>

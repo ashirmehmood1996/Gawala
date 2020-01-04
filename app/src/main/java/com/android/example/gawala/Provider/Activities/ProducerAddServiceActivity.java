@@ -13,10 +13,12 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.text.TextUtils;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.android.example.gawala.Generel.Models.GoodModel;
@@ -24,7 +26,6 @@ import com.android.example.gawala.R;
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -38,17 +39,18 @@ import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef
 
 public class ProducerAddServiceActivity extends AppCompatActivity {
     private static final int RC_PICK_FROM_GALLERY = 122;
-    private EditText nameEditText, descriptionEditText, typeEditText, priceEditText;
+    private EditText nameEditText, descriptionEditText/*, typeEditText*/, priceEditText;
     private Button addProductButton;
     private ImageView addPictureImageView;
 
     private AlertDialog mProgressDialog;
     private Bitmap mBitmap;
+    private Spinner categorySpinner, unitsSpinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_producer_add_service);
+        setContentView(R.layout.activity_provider_add_service);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         initFields();
@@ -58,14 +60,27 @@ public class ProducerAddServiceActivity extends AppCompatActivity {
     private void initFields() {
 
 
-        nameEditText = findViewById(R.id.et_add_service_name);
+        nameEditText = findViewById(R.id.et_add_service_title);
         descriptionEditText = findViewById(R.id.et_add_service_desc);
         priceEditText = findViewById(R.id.et_add_service_price);
-        typeEditText = findViewById(R.id.et_add_service_type);
+//        typeEditText = findViewById(R.id.et_add_service_type);
         addProductButton = findViewById(R.id.bt_add_service);
         addPictureImageView = findViewById(R.id.iv_add_service_image);
         initializeDialog();
         mBitmap = null;
+
+        categorySpinner = findViewById(R.id.sp_add_service_type);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.categories, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        categorySpinner.setAdapter(adapter);
+
+        unitsSpinner = findViewById(R.id.sp_add_service_units);
+        ArrayAdapter<CharSequence> adapter1 = ArrayAdapter.createFromResource(this,
+                R.array.item_units, android.R.layout.simple_spinner_item);
+        adapter1.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        unitsSpinner.setAdapter(adapter1);
+
     }
 
     private void initializeDialog() {
@@ -192,7 +207,9 @@ public class ProducerAddServiceActivity extends AppCompatActivity {
         String name = nameEditText.getText().toString();
         String desc = descriptionEditText.getText().toString();
         String price = priceEditText.getText().toString();
-        String type = typeEditText.getText().toString();
+//        String type = typeEditText.getText().toString();
+        String type = (String) categorySpinner.getSelectedItem();
+        String unit = (String) unitsSpinner.getSelectedItem();
 
 
         if (TextUtils.isEmpty(name) || TextUtils.isEmpty(desc)
@@ -200,7 +217,7 @@ public class ProducerAddServiceActivity extends AppCompatActivity {
             Toast.makeText(this, "plaese fill out all the fields", Toast.LENGTH_SHORT).show();
             return;
         }
-        final GoodModel goodModel = new GoodModel(name, desc, price, type,"");
+        final GoodModel goodModel = new GoodModel(name, desc, price, type, "", unit);
 
         new AlertDialog.Builder(this)
                 .setTitle("Confirm")
@@ -209,7 +226,6 @@ public class ProducerAddServiceActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         addNewGoodToFirebase(goodModel);
-
                     }
                 })
                 .setNegativeButton("cancel", null).show();

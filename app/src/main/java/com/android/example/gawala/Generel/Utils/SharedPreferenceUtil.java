@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 public final class SharedPreferenceUtil {
-    private static final String GAWALA_PREF = "GawalaPrefrences";
+    public static final String GAWALA_PREF = "GawalaPrefrences";
 
     private SharedPreferenceUtil() { //making private so that in future any contributor can not make an object
     }

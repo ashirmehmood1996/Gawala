@@ -7,6 +7,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -87,7 +88,14 @@ public class ProducerSummeryItemDetailsFragment extends DialogFragment implement
 
     private void setData() {
         totalAmountTextView.setText(String.format("%s", producerSummeryModel.getTotalAmount()));
-        titleTextView.setText(getFormattedDate(producerSummeryModel.getTimeStamp()));
+        String transporterName = producerSummeryModel.getTransporterName();//transporter name wil be null for transporter
+        if (producerSummeryModel.getTransporterName() != null) {//then its for provider
+            CharSequence title = Html.fromHtml("Served By <B>" + transporterName + "</B><br>(" +
+                    getFormattedDate(producerSummeryModel.getTimeStamp())+")");
+            titleTextView.setText(title);
+        } else {
+            titleTextView.setText(getFormattedDate(producerSummeryModel.getTimeStamp()));
+        }
 
 
     }

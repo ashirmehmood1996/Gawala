@@ -9,107 +9,134 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
+        android:background="#000"
         android:elevation="4dp"
-        android:background="@color/colorPrimary"
         android:orientation="horizontal">
 
         <ImageButton
-            android:id="@+id/ib_eidt_cities_dialig_cancel"
+            android:id="@+id/ib_eidt_cities_dialig_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:background="@drawable/bg_bt_round_black"
             android:padding="16dp"
-            android:background="@color/colorPrimary"
-            android:src="@drawable/ic_cancel_rotated" />
+            android:src="@drawable/ic_arrow_back_white_24dp" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_gravity="center_vertical"
             android:layout_weight="1"
             android:fontFamily="sans-serif-condensed-light"
-            android:gravity="center"
             android:text="Edit Cities"
+            android:layout_marginLeft="16dp"
             android:textColor="#fff"
             android:textSize="22sp"
             android:textStyle="bold" />
-
-        <Button
-            android:id="@+id/bt_edit_cities_dialig_done"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:background="@color/colorPrimary"
-            android:text="Done"
-            android:textColor="#fff" />
     </LinearLayout>
 
-
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="16dp">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:text="Add new City"
-            android:textColor="#000000"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
+        android:background="#fff">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp">
+            android:layout_height="match_parent"
 
-            <Spinner
-                android:id="@+id/sp_eidt_cities_dialig_countries"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <Spinner
-                android:id="@+id/sp_eidt_cities_dialig_cities"
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1" />
+                android:text="Add new City"
+                android:textColor="#000"
+                android:textSize="22sp"
+                android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/bt_edit_cities_add_new"
-                android:layout_width="wrap_content"
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:background="@drawable/bg_button_solid"
-                android:text="add"
-                android:textColor="#fff" />
+                android:layout_marginBottom="8dp"
+                android:orientation="vertical">
+
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:layout_marginTop="5dp"
+                    android:background="@drawable/bg_info_edit_text">
+
+                    <Spinner
+                        android:id="@+id/sp_eidt_cities_dialig_countries"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:background="@drawable/bg_info_edit_text">
+
+                    <Spinner
+                        android:id="@+id/sp_eidt_cities_dialig_cities"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone" />
+                </FrameLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/bt_edit_cities_add_new"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_button_solid"
+                    android:text="add"
+                    app:icon="@drawable/ic_add_white_24dp" />
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
+                android:background="#000" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Cities"
+
+                android:textColor="#000"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/cg_eidt_cities"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" />
+
+            <!--    <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_edit_cities_dialog_cities"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:fadingEdge="vertical|horizontal"
+                    android:orientation="vertical"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />-->
+
 
         </LinearLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:text="Cities"
-            android:textColor="#000000"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_edit_cities_dialog_cities"
-
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:fadingEdge="vertical|horizontal"
-            android:orientation="vertical"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
-
-    </LinearLayout>
+    </ScrollView>
 
 </LinearLayout>
+
+    <!--we can add the animation of floting action button to a view
+     by following the guide in link
+     https://medium.com/@lcdsmao/material-design-transition-for-floating-action-button-in-android-dc8304343cfe-->

@@ -31,8 +31,9 @@ import com.android.example.gawala.Generel.AsyncTasks.GeoCoderAsyncTask;
 import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 import com.android.example.gawala.Generel.Models.GoodModel;
 import com.android.example.gawala.Generel.Utils.SharedPreferenceUtil;
+import com.android.example.gawala.Provider.Activities.ProviderMainActivity;
 import com.android.example.gawala.Transporter.Adapters.AciveRideStopsAdaper;
-import com.android.example.gawala.Transporter.Fragments.ProducerRideInfoFragment;
+import com.android.example.gawala.Transporter.Fragments.TransporterRideInfoFragment;
 import com.android.example.gawala.Provider.Models.ConsumerModel;
 import com.android.example.gawala.Transporter.Fragments.ProducerSettingsFragment;
 import com.android.example.gawala.Transporter.Fragments.TransporterClientsFragment;
@@ -123,12 +124,13 @@ import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef
 
 public class TransporterMainActivity extends AppCompatActivity
         implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener,
-        ProducerRideInfoFragment.Callbacks/*, TaskLoadedCallback*/, RideService.Callbacks
+        TransporterRideInfoFragment.Callbacks/*, TaskLoadedCallback*/, RideService.Callbacks
         /*,ProviderClientsFragment.CallBacks */ {
 
 
     private RideService mRideService;
     private boolean mIsBound = false;
+    private boolean isProviderAlso = false;
 
     private static final String TAG_FRAG_RIDE_INFO = "FragRideInfo";
     private static final String CLIENTS_FRAG_TAG = "FragClients";
@@ -136,7 +138,7 @@ public class TransporterMainActivity extends AppCompatActivity
     private Uri mPhotoImageUri = null;
     private static final int RC_SET_DELIVERY_LOCATION = 102;
     private final int RC_LOCAION_ON = 101;
-    private final String PRODUCER_DASHBOARD_FRAGMENT_TAG = "ProducerRideInfoFragment";
+    private final String PRODUCER_DASHBOARD_FRAGMENT_TAG = "TransporterRideInfoFragment";
     private final String SUMMERY_FRAGMENT_TAG = "SummeryProducerTag";
     private String PRODUCER_CLIENT_REQUEST_FRAGMENT_TAG = "ProducerClientRequestFragment";
     private final int RC_PERMISSION_ALL = 100;
@@ -194,6 +196,8 @@ public class TransporterMainActivity extends AppCompatActivity
 
     private CircularImageView profileCircularImageView;
     private TextView nameTextView, numberTextView;
+    public static final String IS_PROVIDER_TOO = "isProviderKey";
+    private NavigationView navigationView;
 
 
     @Override
@@ -246,7 +250,7 @@ public class TransporterMainActivity extends AppCompatActivity
     }
 
     private void showAlerDialogForGPS() {
-        final android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Enable Location !")
                 .setMessage("Location must be enabled in settings in order to use this app." +
                         "Want to enable Location?")
@@ -270,7 +274,7 @@ public class TransporterMainActivity extends AppCompatActivity
                         }, 2000);
                     }
                 });
-        android.app.AlertDialog alert = builder.create();
+        AlertDialog alert = builder.create();
         alert.show();
     }
 
@@ -333,6 +337,9 @@ public class TransporterMainActivity extends AppCompatActivity
     }
 
     private void initFields() {
+        isProviderAlso = getIntent().getBooleanExtra(IS_PROVIDER_TOO, false);
+
+
         myID = FirebaseAuth.getInstance().getCurrentUser().getUid();
 //        providerId = getIntent().getStringExtra(PROVIDER_ID);
 
@@ -362,7 +369,7 @@ public class TransporterMainActivity extends AppCompatActivity
 //        setSupportActionBar(toolbar);
 //        getSupportActionBar().setTitle("Map");
         drawer = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView = findViewById(R.id.nav_view);
 //        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
 //                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 //        drawer.addDrawerListener(toggle);
@@ -396,7 +403,23 @@ public class TransporterMainActivity extends AppCompatActivity
         //for counter in drawer menu
         counterActionViewTextView = (TextView) MenuItemCompat.getActionView(navigationView.getMenu().
                 findItem(R.id.nav_producer_map_clients));
+
         setUpCounterLayout();
+
+        if (isProviderAlso) {
+            setDrawer();
+        } else {
+            navigationView.getMenu().removeItem(R.id.nav_producer_map_switch_to_provider);
+
+        }
+    }
+
+    private void setDrawer() {
+
+        navigationView.getMenu().removeItem(R.id.nav_producer_map_share_code);
+        navigationView.getMenu().removeItem(R.id.nav_producer_map_personal_info);
+        navigationView.getMenu().removeItem(R.id.nav_producer_map_provider);
+        navigationView.getMenu().removeItem(R.id.nav_producer_map_notifications);//fixme what to do with notifitcations
     }
 
     private void setUpCounterLayout() {
@@ -754,6 +777,9 @@ public class TransporterMainActivity extends AppCompatActivity
             case R.id.nav_producer_map_notifications:
                 startActivity(new Intent(this, NotificationsActivity.class));
                 break;
+            case R.id.nav_producer_map_switch_to_provider:
+                sendToProviderActivity();
+                break;
 
             case R.id.nav_producer_map_ride_info:
                 checkIfConsumerIsOnVacation();
@@ -777,10 +803,21 @@ public class TransporterMainActivity extends AppCompatActivity
         return true;
     }
 
+    private void sendToProviderActivity() {
+        SharedPreferenceUtil.storeValue(this, getResources().getString(R.string.mode_key), getResources().getString(R.string.provider));
+
+        Intent intent = new Intent(this, ProviderMainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+        finish();
+    }
+
     private void fetchProviderIdAndShowDetails() {
         if (providerId != null) {
             Intent intent = new Intent(TransporterMainActivity.this, ProfileActivity.class);
             intent.putExtra(ProfileActivity.USER_ID, providerId);
+            intent.putExtra(ProfileActivity.REQUEST_USER_TYPE, getResources().getString(R.string.transporter));
+            //fixme think about sending the provider id for the consuemr
             intent.putExtra(ProfileActivity.OTHER_USER, true);
             startActivity(intent);
         } else {
@@ -864,23 +901,23 @@ public class TransporterMainActivity extends AppCompatActivity
             return;
         }
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        ProducerRideInfoFragment producerRideInfoFragment = (ProducerRideInfoFragment) getSupportFragmentManager().findFragmentByTag(TAG_FRAG_RIDE_INFO);
-        if (producerRideInfoFragment != null) {
-            transaction.remove(producerRideInfoFragment);
+        TransporterRideInfoFragment transporterRideInfoFragment = (TransporterRideInfoFragment) getSupportFragmentManager().findFragmentByTag(TAG_FRAG_RIDE_INFO);
+        if (transporterRideInfoFragment != null) {
+            transaction.remove(transporterRideInfoFragment);
         }
-        producerRideInfoFragment = ProducerRideInfoFragment.newInstance(mActiveRideArrayList, providerId);
-        producerRideInfoFragment.setCallBacks(this);
-        producerRideInfoFragment.show(transaction, TAG_FRAG_RIDE_INFO);
+        transporterRideInfoFragment = TransporterRideInfoFragment.newInstance(mActiveRideArrayList, providerId);
+        transporterRideInfoFragment.setCallBacks(this);
+        transporterRideInfoFragment.show(transaction, TAG_FRAG_RIDE_INFO);
     }
 
 //    private void startRideInfoFragment() {
 //
 //        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-//        ProducerRideInfoFragment producerRideInfoFragment = (ProducerRideInfoFragment) getSupportFragmentManager().findFragmentByTag(PRODUCER_DASHBOARD_FRAGMENT_TAG);
+//        TransporterRideInfoFragment producerRideInfoFragment = (TransporterRideInfoFragment) getSupportFragmentManager().findFragmentByTag(PRODUCER_DASHBOARD_FRAGMENT_TAG);
 //        if (producerRideInfoFragment != null) {
 //            fragmentTransaction.remove(producerRideInfoFragment);
 //        }
-//        ProducerRideInfoFragment dialogFragment = ProducerRideInfoFragment.newInstance(/*mActiveRideArrayList*/ "asdasdas");
+//        TransporterRideInfoFragment dialogFragment = TransporterRideInfoFragment.newInstance(/*mActiveRideArrayList*/ "asdasdas");
 //        dialogFragment.setCallBacks(this);
 ////        dialogFragment.setCallback(this);
 //        dialogFragment.show(fragmentTransaction, PRODUCER_DASHBOARD_FRAGMENT_TAG);
@@ -888,7 +925,7 @@ public class TransporterMainActivity extends AppCompatActivity
 
     private void showLogoutAlertDialog() {
         //logout code
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(TransporterMainActivity.this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(TransporterMainActivity.this);
         builder.setTitle("Logout")
                 .setMessage("press logout to continue..")
                 .setPositiveButton("logout", new DialogInterface.OnClickListener() {
@@ -1106,6 +1143,7 @@ public class TransporterMainActivity extends AppCompatActivity
         mConsumerModelArrayList.clear();
 //        mMap.clear();
         rootRef.child("clients").child(providerId)//prodcuer id
+                .orderByChild("transporter_id").equalTo(myID)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -1135,8 +1173,12 @@ public class TransporterMainActivity extends AppCompatActivity
 
                                                         String lat = userSnapshot.child("location").child("lat").getValue(String.class);
                                                         String lng = userSnapshot.child("location").child("lng").getValue(String.class);
+                                                        long alertNotificationTime = 2 * 60;// 2 minutes
+                                                        if (userSnapshot.hasChild("notification_prefs/alert_notification_time")) {
+                                                            alertNotificationTime = userSnapshot.child("notification_prefs/alert_notification_time").getValue(Long.class) * 60;//converting miutes to seconds
+                                                        }
 
-                                                        final ConsumerModel consumerModel = new ConsumerModel(id, name, number, timeStamp, lat, lng, imageUri);
+                                                        final ConsumerModel consumerModel = new ConsumerModel(id, name, number, timeStamp, lat, lng, imageUri, alertNotificationTime);
                                                         if (lat != null) {
                                                             new GeoCoderAsyncTask(TransporterMainActivity.this) {
                                                                 @Override
@@ -2622,7 +2664,8 @@ public class TransporterMainActivity extends AppCompatActivity
         bottomSheetBehavior.setHideable(true);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         isjournyActive = false;
-        mCurrentPolyline.remove();
+        if (mCurrentPolyline != null)
+            mCurrentPolyline.remove();
         mCurrentPolyline = null;
     }
     //

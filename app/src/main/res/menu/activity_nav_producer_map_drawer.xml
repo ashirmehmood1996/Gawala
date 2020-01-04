@@ -6,10 +6,17 @@
         https://stackoverflow.com/questions/32563200/how-to-set-unread-notification-count-in-navigationview-of-drawerlayout-->
 
     <item
+        android:id="@+id/nav_producer_map_switch_to_provider"
+        android:icon="@drawable/ic_swap_horiz_black_24dp"
+        android:title="Switch To Provider"
+        app:actionViewClass="android.widget.TextView" />
+
+    <item
         android:id="@+id/nav_producer_map_notifications"
         android:icon="@drawable/ic_notifications_active_black_24dp"
         android:title="Notifications"
         app:actionViewClass="android.widget.TextView" />
+
     <item
         android:id="@+id/nav_producer_map_ride_info"
         android:icon="@drawable/ic_local_shipping_black_24dp"

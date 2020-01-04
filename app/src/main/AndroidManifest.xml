@@ -22,8 +22,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Provider.Activities.ProviderTransportersActivity"></activity>
-        <activity android:name=".Provider.Activities.ProviderMainActivity" />
+        <activity
+            android:name=".Consumer.Activities.AggressiveNotificationAlertActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen" />
+        <activity android:name=".Provider.Activities.ProviderTransportersActivity" />
+        <activity
+            android:name=".Provider.Activities.ProviderMainActivity"
+            android:theme="@style/AppThemeDefault" />
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
@@ -46,7 +51,9 @@
         <activity
             android:name=".Generel.Activities.PickLocationMapsActivity"
             android:label="@string/title_activity_pick_location_maps" />
-        <activity android:name=".Consumer.Activities.ConsumerMapActivity" />
+        <activity
+            android:name=".Consumer.Activities.ConsumerMapActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -87,7 +94,9 @@ todo   this detail activty is neing used in more than one palces and
              sign the APK for publishing.
              You can define the keys for the debug and release targets in src/debug/ and src/release/.
         -->
-        <activity android:name=".Consumer.Activities.ConsumerMainActivity" />
+        <activity
+            android:name=".Consumer.Activities.ConsumerMainActivity"
+            android:theme="@style/AppThemeDefault" />
         <activity
             android:name=".Transporter.Activities.TransporterMainActivity"
             android:label="@string/title_activity_nav_producer_map"
@@ -97,10 +106,10 @@ todo   this detail activty is neing used in more than one palces and
             android:screenOrientation="portrait" />
         <activity
             android:name=".Generel.Activities.SignupActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+            android:theme="@style/loginSignUpTheme" />
         <activity
             android:name=".Generel.Activities.LoginActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+            android:theme="@style/loginSignUpTheme" />
         <activity android:name=".Generel.Activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -116,8 +125,9 @@ todo   this detail activty is neing used in more than one palces and
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-        <service android:name=".Transporter.Services.RideService"
-            android:exported="false"/>
+        <service
+            android:name=".Transporter.Services.RideService"
+            android:exported="false" />
     </application>
 
 </manifest>

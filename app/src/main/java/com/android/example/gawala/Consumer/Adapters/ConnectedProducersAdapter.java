@@ -2,6 +2,7 @@ package com.android.example.gawala.Consumer.Adapters;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,6 +48,9 @@ public class ConnectedProducersAdapter extends RecyclerView.Adapter<ConnectedPro
         if (!producerModel.getImageUri().isEmpty()) {
             Glide.with(context).load(producerModel.getImageUri()).into(holder.circularImageView);
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            holder.circularImageView.setTransitionName(producerModel.getId());
+        }
 
 
     }
@@ -68,13 +72,13 @@ public class ConnectedProducersAdapter extends RecyclerView.Adapter<ConnectedPro
             numberTextView = itemView.findViewById(R.id.tv_li_con_prod_number);
             circularImageView = itemView.findViewById(R.id.civ_li_con_prod_picture);
 
-            producerConatiner.setOnClickListener(v -> callback.onconnectedProducerClick(getAdapterPosition()));
+            producerConatiner.setOnClickListener(v -> callback.onconnectedProducerClick(getAdapterPosition(), circularImageView));
 
         }
     }
 
     public interface Callback {
 
-        void onconnectedProducerClick(int pos);
+        void onconnectedProducerClick(int pos, CircularImageView circularImageView);
     }
 }

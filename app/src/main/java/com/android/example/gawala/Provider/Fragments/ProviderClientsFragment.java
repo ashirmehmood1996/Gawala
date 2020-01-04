@@ -19,6 +19,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.android.example.gawala.Constants;
 import com.android.example.gawala.Generel.Activities.ProfileActivity;
 import com.android.example.gawala.Generel.AsyncTasks.GeoCoderAsyncTask;
 import com.android.example.gawala.Provider.Activities.ProviderTransportersActivity;
@@ -80,8 +81,19 @@ public class ProviderClientsFragment extends DialogFragment implements RequestsA
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setStyle(DialogFragment.STYLE_NORMAL, R.style.FullScreendialogTheme);
-
+//        getDialog().getWindow().setWindowAnimations(R.style.dialogtheme);
     }
+
+//    @Override
+//    public void onStart() {
+//        super.onStart();
+//
+//    }
+////
+//    @Override
+//    public int getTheme() {
+//        return R.style.AppTheme.NoActionBar.FullScreenDialog;
+//    }
 
     @Nullable
     @Override
@@ -213,8 +225,7 @@ public class ProviderClientsFragment extends DialogFragment implements RequestsA
 
                                 String lat = userSnapshot.child("location").child("lat").getValue(String.class);
                                 String lng = userSnapshot.child("location").child("lng").getValue(String.class);
-
-                                final ConsumerModel consumerModel = new ConsumerModel(id, name, number, timeStamp, lat, lng, imageUri);
+                                final ConsumerModel consumerModel = new ConsumerModel(id, name, number, timeStamp, lat, lng, imageUri, 0);
                                 if (lat != null) {
                                     new GeoCoderAsyncTask(getActivity()) {
                                         @Override
@@ -301,8 +312,9 @@ public class ProviderClientsFragment extends DialogFragment implements RequestsA
         if (requestCode == RC_SELECT_TRANSPORTER) {
             if (resultCode == RESULT_OK) {
                 String transporterId = data.getStringExtra(getResources().getString(R.string.transporter_id_key));
-                acceptRequest(transporterId);
-
+                String name = data.getStringExtra(getResources().getString(R.string.transporter_name_key));
+                String number = data.getStringExtra(getResources().getString(R.string.transporter_number_key));
+                acceptRequest(transporterId, name, number);
             } else {
                 currentActiveRequestPosition = -1;
                 Toast.makeText(getActivity(), "transporter was not selected.", Toast.LENGTH_SHORT).show();
@@ -310,7 +322,7 @@ public class ProviderClientsFragment extends DialogFragment implements RequestsA
         }
     }
 
-    private void acceptRequest(String transporterId) {
+    private void acceptRequest(String id, String name, String number) {
         final RequestModel requestModel = requestModelArrayList.get(currentActiveRequestPosition);
 
 
@@ -324,15 +336,18 @@ public class ProviderClientsFragment extends DialogFragment implements RequestsA
 //        clientMap.put("time_stamp",time); //this time stamp is the time of sending this request
         String time_accept = Calendar.getInstance().getTimeInMillis() + "";
         clientMap.put("time_stamp", time_accept);
-        clientMap.put("transporter_id", transporterId);
+        clientMap.put("transporter_id", id);
+        clientMap.put("transporter_name", name);
+        clientMap.put("transporter_number", number);
         clientMap.put("client_id", requestModel.getSender_id());// for datbase query later
-        rootRef
-                .child("clients").child(myID)
+
+        rootRef.child("clients").child(myID)
                 .child(requestModel.getSender_id())
                 .setValue(clientMap)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         addConenctedProducerNodeToDatabase(requestModel.getSender_id());
+                        sendNotification(requestModel.getSender_id());
                         removeRequestNode(requestModel.getSender_id(), true, currentActiveRequestPosition);
                         //update the clients  list
 //                        ((TransporterMainActivity) getActivity()).loadAllConsumers();
@@ -340,6 +355,29 @@ public class ProviderClientsFragment extends DialogFragment implements RequestsA
                         Toast.makeText(getContext(), "something went wrong try later", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    /**
+     * this method is responsible to notify the respective provider that request is sent
+     */
+    private void sendNotification(String recieverID) {
+        String message = "You are successfully connected to " + FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+        HashMap<String, Object> notificationMap = new HashMap<>();
+        notificationMap.put("title", "Request Accepted");
+        notificationMap.put("message", message);
+        notificationMap.put("type", Constants.Notification.TYPE_REQUEST_ACCEPTED);
+        notificationMap.put("sender_id", FirebaseAuth.getInstance().getCurrentUser().getUid());
+        notificationMap.put("time_stamp", Calendar.getInstance().getTimeInMillis() + "");
+
+//        for (int i = 0; i < 100; i++) {
+//            String newtitle = title + "  " + i;
+//            notificationMap.put("title", newtitle);
+        rootRef.child("notifications")
+                .child(recieverID)//reciever id
+//                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())//sender id
+                .push()//notification id
+                .setValue(notificationMap);//for now no need for completion listener
+//        }
     }
 
     @Override
@@ -369,8 +407,7 @@ public class ProviderClientsFragment extends DialogFragment implements RequestsA
     }
 
     private void removeRequestNode(String sender_id, final boolean isAccepted, final int position) {
-        rootRef
-                .child("requests")
+        rootRef.child("requests")
                 .child(myID)
                 .child(sender_id).removeValue().addOnCompleteListener(task -> {
             if (ProviderClientsFragment.this != null) {
@@ -431,6 +468,8 @@ public class ProviderClientsFragment extends DialogFragment implements RequestsA
         Intent intent = new Intent(getActivity(), ProfileActivity.class);
         intent.putExtra(ProfileActivity.OTHER_USER, true);
         intent.putExtra(ProfileActivity.USER_ID, mConsumersArrayList.get(position).getId());
+        intent.putExtra(ProfileActivity.PROVIDER_ID, FirebaseAuth.getInstance().getCurrentUser().getUid());
+        intent.putExtra(ProfileActivity.REQUEST_USER_TYPE, getResources().getString(R.string.provider));
         startActivity(intent);
     }
 }

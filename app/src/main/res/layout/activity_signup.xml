@@ -64,6 +64,7 @@
                     android:imeOptions="actionNext"
                     android:inputType="textCapWords"
                     android:padding="16dp" />
+
             </LinearLayout>
 
             <LinearLayout
@@ -135,11 +136,11 @@
                     android:textStyle="bold" />
 
                 <FrameLayout
-                    android:layout_marginTop="5dp"
-
                     android:layout_width="match_parent"
-                    android:background="@drawable/bg_info_edit_text"
-                    android:layout_height="wrap_content">
+
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:background="@drawable/bg_info_edit_text">
 
                     <Spinner
                         android:id="@+id/sp_register_type"
@@ -149,14 +150,16 @@
                 </FrameLayout>
             </LinearLayout>
 
-            <Button
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/bt_register_register"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_margin="16dp"
-                android:background="@drawable/bg_button_solid"
-                android:text="Register"
-                android:textColor="#ffffff" />
+                android:minWidth="300dp"
+                android:text="Register" />
+
 
         </LinearLayout>
     </RelativeLayout>

@@ -2,6 +2,7 @@ package com.android.example.gawala.Consumer.Activities;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -19,10 +20,14 @@ import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
+import android.view.animation.Interpolator;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.android.example.gawala.Consumer.fragments.ClientsSettingsFragment;
 import com.android.example.gawala.Generel.Activities.LoginActivity;
 import com.android.example.gawala.Generel.Activities.NotificationsActivity;
 import com.android.example.gawala.Generel.Activities.ProfileActivity;
@@ -42,18 +47,20 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
+import java.util.Random;
 
 import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
 
 public class ConsumerMainActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String CLIENT_SUMMERY_FRAGMENT_TAG = "ClientsummeryFragment";
+    private static final String TAG_SETTINGS_FRAGMENT = "settingFragment";
     private Button manageVacationsButton, showSummeryButton, myProvidesButton,
             myServicesButton, /*showMapButton,*/
             myProfilebutton, notificationsButton;
 
     //firbase related
     private String myId;
-    private String producerId;
+    private String providerId;
     //    private String producuerKey;
 //    private String producerStatus;
 //    private String mCurrentMilkPrice;
@@ -87,6 +94,9 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
 
 
         UtilsMessaging.initFCM();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            animateViewsIn();
+        }
 
     }
 
@@ -198,9 +208,9 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
 
                                 for (DataSnapshot clientSnap : producerSnap.getChildren()) {
                                     if (clientSnap.getKey().equals(myId)) {
-                                        producerId = dataSnapshot.getChildren().iterator().next().getKey();//producer key
+                                        providerId = dataSnapshot.getChildren().iterator().next().getKey();//producer key
                                         found = true;
-//                                        fetchReleventDataUsingKey(producerId);
+//                                        fetchReleventDataUsingKey(providerId);
                                         mAlertDialog.dismiss();
                                         break outerLoop;
                                     }
@@ -445,7 +455,7 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
 //                showNoMilkRecieveAlert(v);
                 break;
             case R.id.bt_con_dash_show_summery:
-                if (producerId == null) {
+                if (providerId == null) {
                     Toast.makeText(this, "please add producers first", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -459,11 +469,12 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
                 break;
 //            case R.id.bt_con_show_map:
 //                Intent intent = new Intent(this, ConsumerMapActivity.class);
-//                intent.putExtra("producer_id", producerId);
+//                intent.putExtra("producer_id", providerId);
 //                startActivity(intent);
 //                break;
             case R.id.bt_con_dash_my_profile:
                 Intent intent1 = new Intent(this, ProfileActivity.class);
+                intent1.putExtra(ProfileActivity.PROVIDER_ID, providerId);
                 startActivity(intent1);
                 break;
             case R.id.bt_con_dash_notifications:
@@ -481,7 +492,7 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
         if (clientSummeryFragment != null) {
             fragmentTransaction.remove(clientSummeryFragment);
         }
-        ClientSummeryFragment dialogFragment = ClientSummeryFragment.newInstance(producerId);
+        ClientSummeryFragment dialogFragment = ClientSummeryFragment.newInstance(providerId);
 //        dialogFragment.setCallBacks(this);
         dialogFragment.show(fragmentTransaction, CLIENT_SUMMERY_FRAGMENT_TAG);
     }
@@ -507,10 +518,10 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
                     public void onClick(DialogInterface dialog, int which) {
 
                         if (mIsAtHome) {
-                            ConsumerFirebaseHelper.atHome(false, producerId);
+                            ConsumerFirebaseHelper.atHome(false, providerId);
                             mIsAtHome = false;
                         } else {
-                            ConsumerFirebaseHelper.atHome(true, producerId);
+                            ConsumerFirebaseHelper.atHome(true, providerId);
                             mIsAtHome = true;
                         }
                     }
@@ -535,15 +546,28 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
                     Toast.makeText(this, "ops ! something went wrong, you were too quick", Toast.LENGTH_SHORT).show();
                 }
                 return true;
+            case R.id.nav_consumer_settings:
+                startSettingsFragment();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
 
         }
     }
 
+    private void startSettingsFragment() {
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        ClientsSettingsFragment clientsSettingsFragment = (ClientsSettingsFragment) getSupportFragmentManager().findFragmentByTag(TAG_SETTINGS_FRAGMENT);
+        if (clientsSettingsFragment != null) {
+            fragmentTransaction.remove(clientsSettingsFragment);
+        }
+        clientsSettingsFragment = ClientsSettingsFragment.getInstance();
+        clientsSettingsFragment.show(fragmentTransaction, TAG_SETTINGS_FRAGMENT);
+    }
+
     private void showLogoutDialogue() {
         //logout code
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Logout")
                 .setMessage("press logout to continue..")
                 .setPositiveButton("logout", new DialogInterface.OnClickListener() {
@@ -582,6 +606,43 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
                 Toast.makeText(ConsumerMainActivity.this, "logout failed please check your internet connection", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    //code borrowed from google must make understanding of it later
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private void animateViewsIn() {
+        // setup random initial state
+        ViewGroup root = findViewById(R.id.ll_consumer_main_container);
+        float maxWidthOffset = 2f * getResources().getDisplayMetrics().widthPixels;
+        float maxHeightOffset = 2f * getResources().getDisplayMetrics().heightPixels;
+        Interpolator interpolator =
+                AnimationUtils.loadInterpolator(this, android.R.interpolator.linear_out_slow_in);
+        Random random = new Random();
+        int count = root.getChildCount();
+        for (int i = 0; i < count; i++) {
+            View view = root.getChildAt(i);
+            view.setVisibility(View.VISIBLE);
+            view.setAlpha(0.85f);
+            float xOffset = random.nextFloat() * maxWidthOffset;
+            if (random.nextBoolean()) {
+                xOffset *= -1;
+            }
+            view.setTranslationX(xOffset);
+            float yOffset = random.nextFloat() * maxHeightOffset;
+            if (random.nextBoolean()) {
+                yOffset *= -1;
+            }
+            view.setTranslationY(yOffset);
+
+            // now animate them back into their natural position
+            view.animate()
+                    .translationY(0f)
+                    .translationX(0f)
+                    .alpha(1f)
+                    .setInterpolator(interpolator)
+                    .setDuration(1000)
+                    .start();
+        }
     }
 
 }

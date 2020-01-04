@@ -4,12 +4,17 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.RingtoneManager;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
+import com.android.example.gawala.Constants;
+import com.android.example.gawala.Consumer.Activities.AggressiveNotificationAlertActivity;
 import com.android.example.gawala.Generel.Activities.MainActivity;
 import com.android.example.gawala.Generel.App;
+import com.android.example.gawala.Generel.Utils.SharedPreferenceUtil;
 import com.android.example.gawala.R;
 import com.android.example.gawala.Generel.Utils.UtilsMessaging;
 import com.google.firebase.auth.FirebaseAuth;
@@ -19,10 +24,12 @@ import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.Map;
 
+import static com.android.example.gawala.Consumer.fragments.ClientsSettingsFragment.ALERT_NOTIFICATION_TYPE;
+
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     @Override
-    public void onNewToken(String s) {
+    public void onNewToken(@NonNull String s) {
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             UtilsMessaging.sendRegistrationToServer(s);
         }
@@ -31,19 +38,26 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
 
-
         if (remoteMessage.getData().size() > 0) {
-            Map<String, String> data = remoteMessage.getData();
+            Map<String, String> dataMap = remoteMessage.getData();
 
-            switch (data.get("type")) {
-                case "newRequest":
+            switch (dataMap.get("type")) {
+                case Constants.Notification.TYPE_NEW_REQUEST:
                     newRequest(remoteMessage.getData());
                     break;
-                case "requestAccepted":
-                    onRequestAccepted();
+                case Constants.Notification.TYPE_REQUEST_ACCEPTED:
+                    onRequestAccepted(remoteMessage.getData());
                     break;
-                case "generel":
-                    showNotification(data);
+                case Constants.Notification.TYPE_GENERAL:
+                    showNotification(dataMap);
+                    break;
+                case Constants.Notification.TYPE_ALERT:
+                    showNotification(dataMap);
+                    SharedPreferences sharedPreferences = getSharedPreferences(SharedPreferenceUtil.GAWALA_PREF, Context.MODE_PRIVATE);
+                    boolean isTypeAggressive = sharedPreferences.getBoolean(ALERT_NOTIFICATION_TYPE, false);
+                    if (isTypeAggressive) {
+                        showAggressiveActivity(dataMap.get("message"));
+                    }
                     break;
 
 
@@ -53,21 +67,31 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     }
 
+
+    //below both methods are acting similarly but are seprated for future
     private void newRequest(Map<String, String> data) {
 
-        String sender_id = data.get("sender_id");
-        String sender_name = data.get("sender_name");
-        String sender_number = data.get("sender_number");
-        String time_stamp = data.get("time_stamp");//set time stamp to notification if possible
+//        String sender_id = data.get("sender_id");
+//        String sender_name = data.get("sender_name");
+//        String sender_number = data.get("sender_number");
+//        String time_stamp = data.get("time_stamp");//set time stamp to notification if possible
+        String title = data.get("title");
+        String message = data.get("message");
 
         //make use of other details if needed later
-        sendNotification("new ClientSummeryModel Request ", "you have a new client request from" + sender_name);
+        sendNotification(title, message);
 
 
     }
 
-    private void onRequestAccepted() {
-        sendNotification("congratulations", "You are now successfully connected to your requested produced");
+
+    private void onRequestAccepted(Map<String, String> data) {
+
+        String title = data.get("title");
+        String message = data.get("message");
+
+        //make use of other details if needed later
+        sendNotification(title, message);
     }
 
 
@@ -128,4 +152,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     }
 
+    private void showAggressiveActivity(String messsage) {
+        Intent intent = new Intent(getApplicationContext(), AggressiveNotificationAlertActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(AggressiveNotificationAlertActivity.MESSAGE, messsage);
+        startActivity(intent);
+    }
 }

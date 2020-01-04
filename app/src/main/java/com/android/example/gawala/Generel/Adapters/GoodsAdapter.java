@@ -11,6 +11,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.example.gawala.Generel.Models.GoodModel;
@@ -42,13 +43,15 @@ public class GoodsAdapter extends RecyclerView.Adapter<GoodsAdapter.GoodsHolder>
         GoodModel currentGood = goodModelArrayList.get(position);
         holder.nameTextView.setText(currentGood.getName());
         holder.priceTextView.setText(currentGood.getPrice() + " PKR");// hard coded for now later we will deal when we add currency suppor
-        holder.typeTextView.setText(currentGood.getType());
+        holder.descriptionTextView.setText(currentGood.getDescription());
+//        holder.typeTextView.setText(currentGood.getType());
 
         if (currentGood.getImage_uri() != null && !currentGood.getImage_uri().isEmpty()) {
             Glide.with(context).load(currentGood.getImage_uri()).into(holder.imageView);
         } else {
             holder.imageView.setImageResource(R.drawable.ic_broken_image_black_24dp);
         }
+        ViewCompat.setTransitionName(holder.imageView, currentGood.getId());
 
     }
 
@@ -59,7 +62,7 @@ public class GoodsAdapter extends RecyclerView.Adapter<GoodsAdapter.GoodsHolder>
 
     class GoodsHolder extends RecyclerView.ViewHolder {
 
-        TextView nameTextView, priceTextView, typeTextView;
+        TextView nameTextView, priceTextView, descriptionTextView/*, typeTextView*/;
         LinearLayout goodsContainer;
         ImageView imageView;
 
@@ -67,16 +70,16 @@ public class GoodsAdapter extends RecyclerView.Adapter<GoodsAdapter.GoodsHolder>
             super(itemView);
             nameTextView = itemView.findViewById(R.id.tv_li_goods_name);
             priceTextView = itemView.findViewById(R.id.tv_li_goods_price);
-            typeTextView = itemView.findViewById(R.id.tv_li_goods_type);
+//            typeTextView = itemView.findViewById(R.id.tv_li_goods_type);
             goodsContainer = itemView.findViewById(R.id.ll_li_goods_container);
             imageView = itemView.findViewById(R.id.iv_li_goods_picture);
-            goodsContainer.setOnClickListener(v -> callBack.onGoodItemClick(getAdapterPosition()));
+            descriptionTextView = itemView.findViewById(R.id.tv_li_goods_desc);
+            goodsContainer.setOnClickListener(v -> callBack.onGoodItemClick(getAdapterPosition(), imageView));
         }
     }
 
     public interface CallBack {
-
-        void onGoodItemClick(int position);
+        void onGoodItemClick(int position, ImageView sharedImageView);
     }
 
 }

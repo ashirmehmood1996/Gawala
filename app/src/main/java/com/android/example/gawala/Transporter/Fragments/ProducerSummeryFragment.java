@@ -38,7 +38,7 @@ public class ProducerSummeryFragment extends DialogFragment implements ProducerS
 
     private static final String ARG_PROVIDER_ID = "proId";
     private static final String ARG_FROM_PROVIDER = "fromProvider";
-    private Dialog mAlertDialog;
+    private Dialog mProgressDialog;
     private String myId;
 
     private ArrayList<ProducerSummeryModel> producerSummeryModelArrayList;
@@ -94,7 +94,7 @@ public class ProducerSummeryFragment extends DialogFragment implements ProducerS
     }
 
     private void loadThisMonthSummary() {
-        mAlertDialog.show();
+        mProgressDialog.show();
         Calendar calendar = Calendar.getInstance();//this calender object contains this month
         calendar.set(Calendar.MILLISECOND, 0);
         calendar.set(Calendar.SECOND, 0);
@@ -119,8 +119,10 @@ public class ProducerSummeryFragment extends DialogFragment implements ProducerS
 
                                     String sessionId = data.getKey();
                                     long timeStamp = data.child("time_stamp").getValue(Long.class);
+
                                     // FIXME: 12/16/2019 bad practice we are fetching all he producer data and for no reason at all so we beed to change the data structure in firebase
                                     if (!isFromProvider) {
+
                                         if (data.child("transporter_id").getValue(String.class).equals(myId)) {
 
                                             ArrayList<ClientSummeryModel> clientSummeryModelArrayList = new ArrayList<>();
@@ -135,9 +137,11 @@ public class ProducerSummeryFragment extends DialogFragment implements ProducerS
                                                 }
                                                 clientSummeryModelArrayList.add(new ClientSummeryModel(clientId, name, acquiredGoodModels));
                                             }
-                                            producerSummeryModelArrayList.add(new ProducerSummeryModel(sessionId, timeStamp, clientSummeryModelArrayList));
+                                            producerSummeryModelArrayList.add(new ProducerSummeryModel(sessionId, null, timeStamp, clientSummeryModelArrayList));
                                         }
                                     } else {
+                                        String transporterName = data.child("transporter_name").getValue(String.class);
+
                                         ArrayList<ClientSummeryModel> clientSummeryModelArrayList = new ArrayList<>();
 
                                         for (DataSnapshot clientData : data.child("clients").getChildren()) {
@@ -150,14 +154,14 @@ public class ProducerSummeryFragment extends DialogFragment implements ProducerS
                                             }
                                             clientSummeryModelArrayList.add(new ClientSummeryModel(clientId, name, acquiredGoodModels));
                                         }
-                                        producerSummeryModelArrayList.add(new ProducerSummeryModel(sessionId, timeStamp, clientSummeryModelArrayList));
+                                        producerSummeryModelArrayList.add(new ProducerSummeryModel(sessionId, transporterName, timeStamp, clientSummeryModelArrayList));
 
                                     }
                                 }
                                 producerSummeryAdapter.notifyDataSetChanged();
-                                mAlertDialog.dismiss();
+                                mProgressDialog.dismiss();
                             } else {
-                                mAlertDialog.dismiss();
+                                mProgressDialog.dismiss();
                                 Toast.makeText(getContext(), "there was no summary for this month", Toast.LENGTH_LONG).show();
                                 dismiss();
                             }
@@ -166,7 +170,7 @@ public class ProducerSummeryFragment extends DialogFragment implements ProducerS
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
-                        mAlertDialog.dismiss();
+                        mProgressDialog.dismiss();
 
                     }
                 });
@@ -174,7 +178,7 @@ public class ProducerSummeryFragment extends DialogFragment implements ProducerS
 
     private void initializeDialog() {
         LinearLayout alertDialog = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_progress, null);
-        this.mAlertDialog = new AlertDialog.Builder(getActivity()).setView(alertDialog).setCancelable(false).create();
+        this.mProgressDialog = new AlertDialog.Builder(getActivity()).setView(alertDialog).setCancelable(false).create();
     }
 
 

@@ -61,6 +61,7 @@ public class TransporterClientsFragment extends DialogFragment {
         return transporterClientsFragment;
     }
 
+    // FIXME: 12/26/2019 may be we should load the already loaded consumer in main activty here rather than fetching them again?
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -122,7 +123,7 @@ public class TransporterClientsFragment extends DialogFragment {
                                 String lat = userSnapshot.child("location").child("lat").getValue(String.class);
                                 String lng = userSnapshot.child("location").child("lng").getValue(String.class);
 
-                                final ConsumerModel consumerModel = new ConsumerModel(id, name, number, timeStamp, lat, lng, imageUri);
+                                final ConsumerModel consumerModel = new ConsumerModel(id, name, number, timeStamp, lat, lng, imageUri,0);
                                 if (lat != null) {
                                     new GeoCoderAsyncTask(getActivity()) {
                                         @Override

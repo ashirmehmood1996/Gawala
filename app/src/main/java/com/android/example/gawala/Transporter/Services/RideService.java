@@ -15,6 +15,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
+import com.android.example.gawala.Constants;
 import com.android.example.gawala.Generel.Activities.MainActivity;
 import com.android.example.gawala.Generel.App;
 import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
@@ -54,18 +55,19 @@ import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef
 // when service is started we start to listen the location
 // once lcation listening is started on each location change we check that how close we are to the fist stop in the list
 // to check how close we are to a customer we can do the following
-//One way //this wasy has an extra complexity of adding the stop in the list of steps because by default I didnt see there
+//One way (CHEAP BUT COMPLEX WITH GOOD ACCURACYLOW ACCURACY )(using polyline )//this way has an extra complexity of adding the stop in the list of steps because by default I didnt see there
 // 1) we requests a full polyline
 // 2) we need to find the point which is our current destination stop
 // 3) we find the closest point on polyline from our current location
 // 4) we cal caulate the time and distance of all the remaining points till the stop and when they reach to a certain thresh hold we notify the customer
 // 5) the only problem is that if we have more than one stop next to each other then they are getting notified only a few seconds before delivery
 // so to tackle the problem in the point number 5 we may add further checks like if two stops are nearer than a certain thresh hold then we may have to treat them along side of the current stop
-//Another way
+//Another way(CHEAP LOW ACCURACY )(using one time distance matrix call )
 //1) we requests one time the distance matrix api and get over all distance and time
 //2) we measure the small displacements of the driver and add them to calculate the distance covered and them subtract the from total distance obtained by distance matrix api in order to get the remainng time and distance.
 //3) then we send notifications over a certain thresh hold.
 //NOTE:- in all of the ways we also have to suggest the bests order of stop later
+//third way(EXPENSIVE HIGH accuracy)(making alot of distance matrix api calls along with the polyline calles for each consumer)
 // 1) currently I have to do is call the polyline of first stop just for visual effects and save the json.
 // 2) in on location change we make the calculation that if X meters is covered then we must call the distance matrix api for new calculations and notify the clients accordingly
 // 3) once we recieve a click  that stop is covered we move the pointer to next stop and do the same for newt stop until all are done and abort the journey
@@ -119,8 +121,6 @@ public class RideService extends Service {
                 if (mCurrentLocationResult.getLastLocation().distanceTo(mCurrentLocationResult.getLocations().get(0)) >= DISTANCE_MATRIX_MIN_INTRVAL_DISTANCE) {
                     callForDistanceMatrixApi();
                 }
-
-
             }
 
             updateMyLocationInFirebase(locationResult);
@@ -298,13 +298,19 @@ public class RideService extends Service {
                         String speed = String.format("%.2f m/sec", mCurrentLocationResult.getLocations().get(0).getSpeed());
                         callbacks.setDistanceTimeSpeed(distance, time, speed);
                     }
+                    if (mActiveRideArrayList != null && !mActiveRideArrayList.isEmpty()) {
+                        ConsumerModel consumerModel = mActiveRideArrayList.get(activeStopPosition);
+                        if (consumerModel.getAlertNotificationTime() != 0) {//if time is zero then the notification was already sent
+                            if (distanceMatrixModel.getDurationLong() <= consumerModel.getAlertNotificationTime()) {
+                                consumerModel.setAlertNotificationTime(0);//this means that the notification has already been sent
+                                long timeRemaining = distanceMatrixModel.getDurationLong();
+                                String title = "Milk Alert";
+                                String message = "your milk is about to arrive in " + timeRemaining + "seconds";
+                                sendNotificationToConsumer(mActiveRideArrayList.get(activeStopPosition).getId(), title, message, Constants.Notification.TYPE_ALERT);
 
-                    if (distanceMatrixModel.getDurationLong() <= MINIMUM_TIME_FOR_AGGRESIVE_ALERT) {
-                        long timeRemaining = distanceMatrixModel.getDurationLong();
-                        String title = "Milk Alert";
-                        String message = "your milk is about to arrive in " + timeRemaining + "seconds";
-                        sendNotificationToConsumer(mActiveRideArrayList.get(activeStopPosition).getId(), title, message, "alert");
 //                        solve the bug || may be array list was not populated an location was 0 which can be made a check
+                            }
+                        }
                     }
 
                 }
@@ -317,18 +323,22 @@ public class RideService extends Service {
 
     private void sendNotificationToConsumer(String id, String title, String message, String type) {
         // TODO: 8/4/2019  for now generating both  in current app and in customers app later only customer will be notified
-
         HashMap<String, Object> notificationMap = new HashMap<>();
         notificationMap.put("title", title);
         notificationMap.put("message", message);
         notificationMap.put("type", type);
+        notificationMap.put("sender_id", myID);
         notificationMap.put("time_stamp", Calendar.getInstance().getTimeInMillis() + "");
 
+//        for (int i = 0; i < 100; i++) {
+//            String newtitle = title + "  " + i;
+//            notificationMap.put("title", newtitle);
         rootRef.child("notifications")
                 .child(id)//reciever id
-                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())//sender id
+//                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())//sender id
                 .push()//notification id
                 .setValue(notificationMap);//for now no need for completion listener
+//        }
 
 
         Intent activityIntent = new Intent(this, MainActivity.class);
@@ -377,20 +387,38 @@ public class RideService extends Service {
      */
     public void deliveredToCurrentStop() {
         mActiveRideArrayList.get(activeStopPosition).setDelivered(true);
+        sendMessageToConsumer(mActiveRideArrayList.get(activeStopPosition).getId());
         activeStopPosition++;
         if (activeStopPosition >= mActiveRideArrayList.size()) { //then there are no stops further and we need to finish journey
             abortJourney();
             return;
         }
 
+        sendStartMessageToConsumer(mActiveRideArrayList.get(activeStopPosition).getId());// this will indicate that transporter is headed to this consumer
         speak("Now heading towards " + mActiveRideArrayList.get(activeStopPosition).getName());
         currentStopPolylineOptions = null; // they will be called again in on location changed
         distanceMatrixModel = null;
     }
 
-    public PolylineOptions getPolyLineOptions(){
+    private void sendStartMessageToConsumer(String consumerId) {
+        String title = "Acknowledgement";
+        String message = "Transporter is headed to deliver your order";
+        String type = Constants.Notification.TYPE_GENERAL;
+        sendNotificationToConsumer(consumerId, title, message, type);
+    }
+
+    private void sendMessageToConsumer(String consumerId) {
+        String title = "Acknowledgement";
+        String message = "milk is delivered to you";
+        String type = Constants.Notification.TYPE_GENERAL;
+        sendNotificationToConsumer(consumerId, title, message, type);
+    }
+
+
+    public PolylineOptions getPolyLineOptions() {
         return this.currentStopPolylineOptions;
     }
+
     private void abortJourney() {
         speak("Saving");
         if (client != null) {
@@ -438,6 +466,7 @@ public class RideService extends Service {
             clientsMap.put(id, clientDatamap);
         }
         mainMap.put("clients", clientsMap);
+        mainMap.put("transporter_name", FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
         mainMap.put("time_stamp", Calendar.getInstance().getTimeInMillis());//the time at ehich this session was put to an end
 //        mainMap.put("milk_price", mMilkPrice); //adding price just because it can change from day to day
         mainMap.put("transporter_id", myID); //transporter id

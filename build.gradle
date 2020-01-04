@@ -25,3 +25,5 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+//add implementation 'com.github.stfalcon:stfalcon-imageviewer:latest_version' and pt an end to this

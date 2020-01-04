@@ -23,11 +23,11 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:gravity="center"
-        android:layout_weight="1"
+        android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:layout_marginBottom="24dp"
-        android:layout_height="wrap_content">
+        android:layout_weight="1"
+        android:gravity="center">
 
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/ll_dialog_add_transporter_search_container"
@@ -36,25 +36,31 @@
             android:orientation="horizontal"
             android:padding="16dp">
 
-            <EditText
-                android:id="@+id/et_dialog_add_transporter_edit_field"
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
                 android:layout_weight="1"
-                android:background="@drawable/bg_info_edit_text"
-                android:padding="16dp"
-                android:hint="enter Id e.g. jasdh893nd8eh2doi2noidh3n"
-                android:textAlignment="center" />
+                android:hint="Transporter Id">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_dialog_add_transporter_edit_field"
+                    android:layout_width="match_parent"
+                    android:hint="sdkj0932adasdmwdlwmdpo12"
+
+                    android:layout_height="match_parent"
+                    android:textAlignment="center" />
+            </com.google.android.material.textfield.TextInputLayout>
+
 
             <ImageButton
                 android:id="@+id/ib_dialog_add_transporter_search"
 
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_margin="6dp"
                 android:layout_marginStart="16dp"
-                android:layout_gravity="center"
                 android:layout_marginLeft="16dp"
                 android:layout_marginTop="6dp"
                 android:layout_marginEnd="6dp"

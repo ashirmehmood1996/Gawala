@@ -3,14 +3,19 @@ package com.android.example.gawala.Provider.Activities;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityOptionsCompat;
+import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
+import com.android.example.gawala.Consumer.Activities.ConProducerServiceDetailsActivty;
+import com.android.example.gawala.Consumer.Activities.ProducerDetailActivty;
 import com.android.example.gawala.Generel.Adapters.GoodsAdapter;
 import com.android.example.gawala.Generel.Models.GoodModel;
 import com.android.example.gawala.R;
@@ -181,11 +186,16 @@ public class ProducerServicesActivty extends AppCompatActivity implements GoodsA
     }
 
     @Override
-    public void onGoodItemClick(int position) {
+    public void onGoodItemClick(int position, ImageView sharedImageView) {
         GoodModel currentModel = goodModelArrayList.get(position);
         Intent intent = new Intent(this, ProducerServiceDetailsActivity.class);
         intent.putExtra("goods_model", currentModel);
-        startActivity(intent);
+        intent.putExtra(ProducerDetailActivty.EXTRA_ANIMAL_IMAGE_TRANSITION_NAME, ViewCompat.getTransitionName(sharedImageView));
+        ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                this,
+                sharedImageView,
+                ViewCompat.getTransitionName(sharedImageView));
+        startActivity(intent, options.toBundle());
     }
 
     @Override

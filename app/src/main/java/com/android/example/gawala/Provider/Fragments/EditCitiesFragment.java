@@ -1,5 +1,6 @@
 package com.android.example.gawala.Provider.Fragments;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,12 +14,14 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.example.gawala.Provider.Adapters.SelectedCitiesAdapter;
 import com.android.example.gawala.Provider.Adapters.SpinnerAdapter;
-import com.android.example.gawala.Transporter.Models.CityModel;
+import com.android.example.gawala.Provider.Models.CityModel;
 import com.android.example.gawala.R;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipDrawable;
+import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -39,21 +42,26 @@ import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef
 
 public class EditCitiesFragment extends DialogFragment implements View.OnClickListener, SelectedCitiesAdapter.Callback {
 
+    private static final String SELECT_COUNTRY = "Select Country";
     private ImageButton cancelImageButton;
-    private Button doneButton;
-    private RecyclerView selectedCitiesRecyclerView;
-    private SelectedCitiesAdapter selectedCitiesAdapter;
-    private ArrayList<CityModel> cityModelArrayList;
+//    private Button doneButton;
+    //    private RecyclerView selectedCitiesRecyclerView;
+//    private SelectedCitiesAdapter selectedCitiesAdapter;
+    private ArrayList<CityModel> selectedCityModelArrayList;
     private ArrayList<String> countriesArrayList;
-    private ArrayList<String> currentCitiesArrayList;
+    private ArrayList<String> citiesArrayList;
     private Spinner countrySpinner, citySpinner;
     private Button addNewCityButton;
-    private SpinnerAdapter countrySpinnerAdapter, currentCitiesSpinnerAdapter;
+    private SpinnerAdapter countrySpinnerAdapter, citiesSpinnerAdapter;
+
+    private ChipGroup chipGroup;
+
     private String myId;
 
     private Callback callback;
     private ValueEventListener mCitiesNodeListener;
     private DatabaseReference citiesNodeRef;
+    private String SELECT_CITY = "Select City";
 
 
     public static EditCitiesFragment getInmstance() {
@@ -84,10 +92,10 @@ public class EditCitiesFragment extends DialogFragment implements View.OnClickLi
     }
 
     private void initFields(View rootView) {
+        chipGroup = rootView.findViewById(R.id.cg_eidt_cities);
 
-
-        cancelImageButton = rootView.findViewById(R.id.ib_eidt_cities_dialig_cancel);
-        doneButton = rootView.findViewById(R.id.bt_edit_cities_dialig_done);
+        cancelImageButton = rootView.findViewById(R.id.ib_eidt_cities_dialig_back);
+//        doneButton = rootView.findViewById(R.id.bt_edit_cities_dialig_done);
 
         countrySpinner = rootView.findViewById(R.id.sp_eidt_cities_dialig_countries);
         countriesArrayList = new ArrayList<>();
@@ -95,42 +103,43 @@ public class EditCitiesFragment extends DialogFragment implements View.OnClickLi
         countrySpinner.setAdapter(countrySpinnerAdapter);
 
         citySpinner = rootView.findViewById(R.id.sp_eidt_cities_dialig_cities);
-        currentCitiesArrayList = new ArrayList<>();
-        currentCitiesSpinnerAdapter = new SpinnerAdapter(getActivity(), currentCitiesArrayList);
-        citySpinner.setAdapter(currentCitiesSpinnerAdapter);
+        citiesArrayList = new ArrayList<>();
+        citiesSpinnerAdapter = new SpinnerAdapter(getActivity(), citiesArrayList);
+        citySpinner.setAdapter(citiesSpinnerAdapter);
 
         addNewCityButton = rootView.findViewById(R.id.bt_edit_cities_add_new);
-        selectedCitiesRecyclerView = rootView.findViewById(R.id.rv_edit_cities_dialog_cities);
-        cityModelArrayList = new ArrayList<>();
-        selectedCitiesAdapter = new SelectedCitiesAdapter(cityModelArrayList, this);
-        selectedCitiesRecyclerView.setAdapter(selectedCitiesAdapter);
+        addNewCityButton.setEnabled(false);
+//        selectedCitiesRecyclerView = rootView.findViewById(R.id.rv_edit_cities_dialog_cities);
+        selectedCityModelArrayList = new ArrayList<>();
+//        selectedCitiesAdapter = new SelectedCitiesAdapter(selectedCityModelArrayList, this);
+//        selectedCitiesRecyclerView.setAdapter(selectedCitiesAdapter);
 
 
         myId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        citiesNodeRef = rootRef.child("users")
-                .child(myId)
-                .child("cities");
+        citiesNodeRef = rootRef.child("users").child(myId).child("cities");
 
         mCitiesNodeListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                cityModelArrayList.clear();
+                selectedCityModelArrayList.clear();
                 if (dataSnapshot.exists()) {
                     for (DataSnapshot countrySnap : dataSnapshot.getChildren()) {
                         String countryName = countrySnap.getKey();
                         for (DataSnapshot citySnap : countrySnap.getChildren()) {
-                            String cityName = citySnap.getValue(String.class);
-                            String id = citySnap.getKey();
-                            CityModel cityModel = new CityModel(id, countryName, cityName);
-                            cityModelArrayList.add(cityModel);
+                            String cityName = citySnap.getKey();
+                            CityModel cityModel = new CityModel(countryName, cityName);
+                            selectedCityModelArrayList.add(cityModel);
                         }
                     }
 
                 } else {
                     Toast.makeText(getActivity(), "no cities were added", Toast.LENGTH_SHORT).show();
                 }
-                selectedCitiesAdapter.notifyDataSetChanged();
+                populateChips();
+
+
+//                selectedCitiesAdapter.notifyDataSetChanged();
 
 
             }
@@ -143,15 +152,47 @@ public class EditCitiesFragment extends DialogFragment implements View.OnClickLi
         };
     }
 
+    private void populateChips() {
+        chipGroup.removeAllViews();
+        for (CityModel cityModel : selectedCityModelArrayList) {
+            Chip chip = new Chip(getActivity());
+            ChipDrawable chipDrawable = ChipDrawable.createFromAttributes(getActivity(),
+                    null,
+                    0,
+                    R.style.Widget_MaterialComponents_Chip_Entry);
+            chip.setChipDrawable(chipDrawable);
+
+            chip.setText(String.format("%s, %s", cityModel.getCity(), cityModel.getCountry()));
+            chip.setOnCloseIconClickListener(v -> {
+                int index = chipGroup.indexOfChild(v);
+                onRemoveCity(index);
+            });
+            chipGroup.addView(chip);
+        }
+    }
+
+    @Override
+    public void onDismiss(@NonNull DialogInterface dialog) {
+        this.callback.onArrayListUpdated(selectedCityModelArrayList);
+        super.onDismiss(dialog);
+    }
+
     private void attachListeners() {
         cancelImageButton.setOnClickListener(this);
-        doneButton.setOnClickListener(this);
+//        doneButton.setOnClickListener(this);
         addNewCityButton.setOnClickListener(this);
 
         countrySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                loadCities((String) countrySpinner.getSelectedItem());
+                if (countrySpinner.getSelectedItem().equals(SELECT_COUNTRY)) {
+                    citiesArrayList.clear();
+                    citiesSpinnerAdapter.notifyDataSetChanged();
+                    citySpinner.setVisibility(View.GONE);
+                    addNewCityButton.setEnabled(false);
+                } else {
+                    loadCities((String) countrySpinner.getSelectedItem());
+                }
             }
 
             @Override
@@ -159,14 +200,27 @@ public class EditCitiesFragment extends DialogFragment implements View.OnClickLi
 
             }
         });
+        citySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (citySpinner.getSelectedItem().equals(SELECT_CITY)) {
+                    addNewCityButton.setEnabled(false);
+                } else {
+                    addNewCityButton.setEnabled(true);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
     }
 
     private void loadCities(String selectedItem) {
-        currentCitiesArrayList.clear();
+        citiesArrayList.clear();
         String jsonString = loadJSONFromAsset();
-
-        String locale = getActivity().getResources().getConfiguration().locale.getDisplayCountry();
-        System.out.println("countryname :" + locale);
 
         try {
             JSONObject jsonObject = new JSONObject(jsonString);
@@ -175,14 +229,19 @@ public class EditCitiesFragment extends DialogFragment implements View.OnClickLi
 
             for (int i = 0; i < currentCitiesJsonArray.length(); i++) {
                 if (((String) currentCitiesJsonArray.get(i)).isEmpty()) continue;
-                currentCitiesArrayList.add((String) currentCitiesJsonArray.get(i));
+                citiesArrayList.add((String) currentCitiesJsonArray.get(i));
             }
-            Collections.sort(currentCitiesArrayList);
-            currentCitiesSpinnerAdapter.notifyDataSetChanged();
+            Collections.sort(citiesArrayList);
+            citiesArrayList.add(0, SELECT_CITY);
+            citySpinner.setVisibility(View.VISIBLE);
 
         } catch (JSONException e) {
             e.printStackTrace();
+            citySpinner.setVisibility(View.GONE);
+
         }
+        citiesSpinnerAdapter.notifyDataSetChanged();
+        addNewCityButton.setEnabled(true);
 
 
     }
@@ -190,7 +249,7 @@ public class EditCitiesFragment extends DialogFragment implements View.OnClickLi
     private void loadData() {
         loadCountries();
         loadSelectedCities();
-        selectedCitiesAdapter.notifyDataSetChanged();
+//        selectedCitiesAdapter.notifyDataSetChanged();
         // TODO: 11/14/2019  loadt the data from json parse it
     }
 
@@ -237,9 +296,10 @@ public class EditCitiesFragment extends DialogFragment implements View.OnClickLi
                 if (((String) countriesJsonArray.get(i)).isEmpty()) continue;
                 countriesArrayList.add((String) countriesJsonArray.get(i));
             }
-            Collections.sort(countriesArrayList);
-            countrySpinnerAdapter.notifyDataSetChanged();
 
+            Collections.sort(countriesArrayList);
+            countriesArrayList.add(0, SELECT_COUNTRY);
+            countrySpinnerAdapter.notifyDataSetChanged();
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -250,11 +310,12 @@ public class EditCitiesFragment extends DialogFragment implements View.OnClickLi
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.ib_eidt_cities_dialig_cancel:
-            case R.id.bt_edit_cities_dialig_done:
-                this.callback.onArrayListUpdated(cityModelArrayList);
+            case R.id.ib_eidt_cities_dialig_back:
                 dismiss();
                 break;
+//            case R.id.bt_edit_cities_dialig_done:
+//                dismiss();
+//                break;
             case R.id.bt_edit_cities_add_new:
                 addNewCityToFirebase();
                 break;
@@ -262,27 +323,55 @@ public class EditCitiesFragment extends DialogFragment implements View.OnClickLi
     }
 
     private void addNewCityToFirebase() {
+//        rootRef.child("users")
+//                .child(myId)
+//                .child("cities")
+//                .child(countrySpinner.getSelectedItem().toString())//selected contry
+//                .push()//unique key for city
+//                .setValue(citySpinner.getSelectedItem().toString())
+//                .addOnCompleteListener(task -> {
+//                    if (task.isSuccessful()) {
+//                        Toast.makeText(getContext(), "City Added Successfully", Toast.LENGTH_SHORT).show();
+//                    } else {
+//                        Toast.makeText(getContext(), "ERROR: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+//                    }
+//                });
+
+        addNewCityButton.setEnabled(false);
+        String country = countrySpinner.getSelectedItem().toString();
+        String city = country;
+        if (citySpinner != null && citySpinner.getSelectedItem() != null) {
+            city = citySpinner.getSelectedItem().toString();
+        }
+        if (country.equals(SELECT_COUNTRY) || city.equals(SELECT_CITY)) {
+            Toast.makeText(getActivity(), "please Set both the Country and City", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+
         rootRef.child("users")
                 .child(myId)
                 .child("cities")
-                .child(countrySpinner.getSelectedItem().toString())//selected contry
-                .push()//unique key for city
-                .setValue(citySpinner.getSelectedItem().toString())
+                .child(country)//selected contry
+                .child(city)
+                .setValue(true) //// FIXME: 1/2/2020 the bug of no city
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        Toast.makeText(getContext(), "City Added Successfully", Toast.LENGTH_SHORT).show();
+                        if (getActivity() != null)
+                            Toast.makeText(getActivity(), "City Added Successfully", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(getContext(), "ERROR: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        if (getActivity() != null)
+                            Toast.makeText(getActivity(), "ERROR: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
-    @Override
+
     public void onRemoveCity(int position) {
 
-        CityModel cityModel = cityModelArrayList.get(position);
+        CityModel cityModel = selectedCityModelArrayList.get(position);
         rootRef.child("users").child(myId).child("cities")
-                .child(cityModel.getCountry()).child(cityModel.getId()).removeValue()
+                .child(cityModel.getCountry()).child(cityModel.getCity()).removeValue()
                 .addOnCompleteListener(task -> Toast.makeText(getContext(), "city removed successfully", Toast.LENGTH_SHORT).show());
 
         Toast.makeText(getContext(), String.format("I was clicked at poostion %d", position), Toast.LENGTH_SHORT).show();

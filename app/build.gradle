@@ -67,10 +67,20 @@ dependencies {
 
     implementation 'com.mikhaellopez:circularimageview:4.1.0'
 
+    implementation 'com.google.android.material:material:1.0.0'
+//    implementation 'com.google.android.material:material:1.2.0-alpha03'
+
+
+
     implementation 'com.github.bumptech.glide:glide:4.9.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
 
     implementation 'com.github.yalantis:ucrop:2.2.2'
+
+    //image viewer library
+//    implementation 'com.github.stfalcon:stfalcon-imageviewer:0.4.0' //needs min SDK 19
+
+    implementation 'com.github.chrisbanes:PhotoView:2.3.0'
 
 
     //todo later add the license and proguards of libraries

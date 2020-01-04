@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.MenuItem;
@@ -36,9 +37,17 @@ public class ConProducerServiceDetailsActivty extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_con_producer_service_details_activty);
+
+
+        supportPostponeEnterTransition();//for trasition animation
+        initFields();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Bundle extras = getIntent().getExtras();
+            String imageTransitionName = extras.getString(ProducerDetailActivty.EXTRA_ANIMAL_IMAGE_TRANSITION_NAME);
+            servicePictureImageView.setTransitionName(imageTransitionName);
+        }
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         // TODO: 10/8/2019 we need to check weather the user has already added this service in demand or not
-        initFields();
         setData();
         attachListeners();
 
@@ -56,7 +65,7 @@ public class ConProducerServiceDetailsActivty extends AppCompatActivity {
         typeTextView = findViewById(R.id.tv_con_prod_goods_detail_type);
         addItemToDemandButton = findViewById(R.id.bt_con_prod_goods_edit);
         servicePictureImageView = findViewById(R.id.iv_con_prod_goods_detail_picture);
-        warningView= findViewById(R.id.tv_con_prod_goods_detail_warning);
+        warningView = findViewById(R.id.tv_con_prod_goods_detail_warning);
 
     }
 
@@ -70,10 +79,12 @@ public class ConProducerServiceDetailsActivty extends AppCompatActivity {
         priceTextView.setText(String.format("%s PKR", goodModel.getPrice()));
         typeTextView.setText(goodModel.getType());
 
-
+// FIXME: 1/3/2020 check for no image url
         if (goodModel.getImage_uri() != null && !goodModel.getImage_uri().isEmpty()) {
             Glide.with(this).load(goodModel.getImage_uri()).into(servicePictureImageView);
         }
+        supportStartPostponedEnterTransition();
+
         if (!getIntent().getBooleanExtra("is_connected", false)) {//no connected
             addItemToDemandButton.setEnabled(false);
             warningView.setVisibility(View.VISIBLE);

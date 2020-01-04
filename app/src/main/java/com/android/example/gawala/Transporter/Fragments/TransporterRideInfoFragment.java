@@ -1,52 +1,38 @@
 package com.android.example.gawala.Transporter.Fragments;
 
 import android.app.AlertDialog;
-import android.location.Address;
-import android.os.AsyncTask;
 import android.os.Bundle;
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.android.example.gawala.Generel.AsyncTasks.GeoCoderAsyncTask;
 import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
-import com.android.example.gawala.Generel.Models.GoodModel;
 import com.android.example.gawala.Transporter.Adapters.ConsumerMarkersAdapter;
 import com.android.example.gawala.Transporter.Interfaces.StopMarkerClickCallBack;
 import com.android.example.gawala.Provider.Models.ConsumerModel;
 import com.android.example.gawala.R;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
-import java.util.concurrent.CountDownLatch;
 
 import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class ProducerRideInfoFragment extends DialogFragment implements StopMarkerClickCallBack {
+public class TransporterRideInfoFragment extends DialogFragment implements StopMarkerClickCallBack {
     private static final String ARG_MARKERS_KEY = "markersKey";
     private static final String TAG = "RideInfoFragment";
     private static final String ARG_PROVIDER_ID = "providerId";
@@ -70,7 +56,7 @@ public class ProducerRideInfoFragment extends DialogFragment implements StopMark
     //    private ArrayList<ConsumerModel> mConsumerModelArrayList;
     private AlertDialog mProgressDialog;
 
-    public ProducerRideInfoFragment() {
+    public TransporterRideInfoFragment() {
         // Required empty public constructor
     }
 
@@ -79,7 +65,7 @@ public class ProducerRideInfoFragment extends DialogFragment implements StopMark
      * @return
      */
 
-    public static ProducerRideInfoFragment newInstance(ArrayList<ConsumerModel> aactiveRidesArrayList, String providerId) {
+    public static TransporterRideInfoFragment newInstance(ArrayList<ConsumerModel> aactiveRidesArrayList, String providerId) {
 
 
         ArrayList<ConsumerModel> activeRidesArrayList = new ArrayList<>();
@@ -87,7 +73,7 @@ public class ProducerRideInfoFragment extends DialogFragment implements StopMark
             activeRidesArrayList.add(consumerModel.getConsumerModel());
         }
 
-        ProducerRideInfoFragment fragment = new ProducerRideInfoFragment();
+        TransporterRideInfoFragment fragment = new TransporterRideInfoFragment();
         Bundle args = new Bundle();
         args.putSerializable(ARG_MARKERS_KEY, activeRidesArrayList);
         args.putString(ARG_PROVIDER_ID, providerId);
@@ -148,7 +134,7 @@ public class ProducerRideInfoFragment extends DialogFragment implements StopMark
                              Bundle savedInstanceState) {
 
 
-        View rootView = inflater.inflate(R.layout.fragment_producer_dash_board, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_transporter_ride_info, container, false);
         initFields(rootView);
         attachListeners();
 //        loadAllConsumers();
@@ -244,7 +230,7 @@ public class ProducerRideInfoFragment extends DialogFragment implements StopMark
 //                .addListenerForSingleValueEvent(new ValueEventListener() {
 //                    @Override
 //                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-//                        if (dataSnapshot.exists() && ProducerRideInfoFragment.this != null) {
+//                        if (dataSnapshot.exists() && TransporterRideInfoFragment.this != null) {
 //
 //                            new AsyncTask<Void, Void, Boolean>() {
 //                                @Override

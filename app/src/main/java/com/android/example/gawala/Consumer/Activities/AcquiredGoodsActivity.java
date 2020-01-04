@@ -65,6 +65,7 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
 
     @Override
     protected void onStart() {
+        // FIXME: 1/3/2020 avoid loading all data in on start rather on the calll backs of details activty or fragment we can simple change according to new data
         loadProducersListAndRespectiveServices();//doing it here for data updation
         super.onStart();
     }

@@ -27,6 +27,7 @@ import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -126,6 +127,10 @@ public class ProviderTransportersActivity extends AppCompatActivity implements T
 
             }
         };
+        if (isForSelection) {
+            addNewTransporterButton.hide();
+        }
+
     }
 
 
@@ -142,7 +147,8 @@ public class ProviderTransportersActivity extends AppCompatActivity implements T
 
         LinearLayout searchContainer = linearLayout.findViewById(R.id.ll_dialog_add_transporter_search_container);
         TextView titleTextView = linearLayout.findViewById(R.id.tv_dialog_add_transporter_title);
-        EditText editText = linearLayout.findViewById(R.id.et_dialog_add_transporter_edit_field);
+
+        TextInputEditText editText = linearLayout.findViewById(R.id.et_dialog_add_transporter_edit_field);
         ImageButton searchImageButton = linearLayout.findViewById(R.id.ib_dialog_add_transporter_search);
 
         ProgressBar progressBar = linearLayout.findViewById(R.id.pb_dialog_add_transporter);
@@ -170,6 +176,7 @@ public class ProviderTransportersActivity extends AppCompatActivity implements T
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             if (dataSnapshot.exists()) {
                                 progressBar.setVisibility(View.GONE);
+
                                 transporterContainer.setVisibility(View.VISIBLE);
                                 titleTextView.setText("add Transporter");
                                 String name = dataSnapshot.child("name").getValue(String.class);
@@ -182,7 +189,10 @@ public class ProviderTransportersActivity extends AppCompatActivity implements T
                                     Glide.with(ProviderTransportersActivity.this).load(imageUri).into(circularImageView);
                                 }
                             } else {
-                                Toast.makeText(ProviderTransportersActivity.this, "Some error accured", Toast.LENGTH_SHORT).show();
+                                titleTextView.setText("Add transporter");
+                                progressBar.setVisibility(View.GONE);
+                                searchContainer.setVisibility(View.VISIBLE);
+                                editText.setError("no Transporter was associated with the provided ID, please make sure the ID is correct");
                             }
                         }
 
@@ -222,6 +232,8 @@ public class ProviderTransportersActivity extends AppCompatActivity implements T
     public void onTransporterClick(int position) {
         Intent intent = new Intent(this, ProfileActivity.class);
         intent.putExtra(ProfileActivity.USER_ID, transportersModelArrayList.get(position).getId());
+        intent.putExtra(ProfileActivity.REQUEST_USER_TYPE, getResources().getString(R.string.provider));
+        intent.putExtra(ProfileActivity.PROVIDER_ID, FirebaseAuth.getInstance().getCurrentUser().getUid());
         intent.putExtra(ProfileActivity.OTHER_USER, true);
         startActivity(intent);
     }
@@ -230,6 +242,8 @@ public class ProviderTransportersActivity extends AppCompatActivity implements T
     public void onAssignButtonClicked(int positon) {
         Intent intent = new Intent();
         intent.putExtra(getResources().getString(R.string.transporter_id_key), transportersModelArrayList.get(positon).getId());
+        intent.putExtra(getResources().getString(R.string.transporter_name_key), transportersModelArrayList.get(positon).getName());
+        intent.putExtra(getResources().getString(R.string.transporter_number_key), transportersModelArrayList.get(positon).getNumber());
         setResult(RESULT_OK, intent);
         finish();
     }

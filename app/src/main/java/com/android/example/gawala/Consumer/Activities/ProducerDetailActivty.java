@@ -2,17 +2,23 @@ package com.android.example.gawala.Consumer.Activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityOptionsCompat;
+import androidx.core.view.ViewCompat;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.transition.TransitionInflater;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.example.gawala.Constants;
 import com.android.example.gawala.Consumer.Models.ProducerModel;
 import com.android.example.gawala.Generel.Adapters.GoodsAdapter;
 import com.android.example.gawala.Generel.Fraagments.DistanceViewerMapsFragment;
@@ -37,7 +43,8 @@ import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef
 
 public class ProducerDetailActivty extends AppCompatActivity implements GoodsAdapter.CallBack {
 
-    private String producerID;
+    public static final String EXTRA_ANIMAL_IMAGE_TRANSITION_NAME = "imageTransitionName";
+    private String providerId;
     private int status;
 
     private TextView nameTextView, numberTextView;
@@ -53,15 +60,28 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
     private CircularImageView profileCircularImageView;
     private String MAP_TAG = "mapTAG";
     private String lat, lng;
-    private boolean isConneted =false;
+    private boolean isConneted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_producer_detail_activty);
+        supportPostponeEnterTransition();//for trasition animation
+
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         initFields();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+
+            String transitionName = getIntent().getStringExtra("transitionName");
+            profileCircularImageView.setTransitionName(transitionName);
+            getWindow().setSharedElementEnterTransition(TransitionInflater.from(this)
+                    .inflateTransition(R.transition.curve));
+            supportStartPostponedEnterTransition();
+        }
+
+
         attachListeners();
         loadThisProducerStatus();
         loadThisProducerGoods();
@@ -74,8 +94,7 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
         Intent intent = getIntent();
         lat = getIntent().getStringExtra("lat");
         lng = getIntent().getStringExtra("lng");
-        isConneted =getIntent().getBooleanExtra("is_connected",false);
-        producerID = getIntent().getStringExtra("producer_id");
+        providerId = getIntent().getStringExtra("producer_id");
         nameTextView = findViewById(R.id.tv_prod_detail_name);
         numberTextView = findViewById(R.id.tv_prod_detail_number);
         profileCircularImageView = findViewById(R.id.civ_prod_detail_picture);
@@ -90,7 +109,9 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
             Glide.with(getApplicationContext()).load(imageUri).into(profileCircularImageView);
         }
         status = getIntent().getIntExtra("status", ProducerModel.STATUS_NEUTRAL);
-
+        if (status == ProducerModel.REQUEST_ACCEPTED) {
+            isConneted = true;
+        }
         requestButton = findViewById(R.id.bt_prod_detail_request);
         seeOnMapButton = findViewById(R.id.bt_prod_detail_see_on_map);
 
@@ -103,7 +124,7 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
     }
 
     private void loadThisProducerGoods() {
-        rootRef.child("goods").child(producerID).addListenerForSingleValueEvent(new ValueEventListener() {
+        rootRef.child("goods").child(providerId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists() && ProducerDetailActivty.this != null) {
@@ -146,7 +167,7 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
 //    private void checkIfProvideIsSharingInfo() {
 //        rootRef
 //                .child("share_location")
-//                .child(producerID)
+//                .child(providerId)
 //                .addListenerForSingleValueEvent(new ValueEventListener() {
 //                    @Override
 //                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -175,7 +196,7 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
 
     //    private void showOnMap() {
 //        Intent intent = new Intent(this, ConsumerMapActivity.class);
-//        intent.putExtra("producer_id", producerID);
+//        intent.putExtra("producer_id", providerId);
 //        startActivity(intent);
 //    }
     private void showOnMap() {
@@ -185,9 +206,10 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
         if (clientInfoFullScreenDialogFragment != null) {
             fragmentTransaction.remove(clientInfoFullScreenDialogFragment).commit();
         }
+
         DistanceViewerMapsFragment dialogFragment =
                 DistanceViewerMapsFragment.newInstance(Double.parseDouble(lat),
-                        Double.parseDouble(lng),"Provider");
+                        Double.parseDouble(lng), "Provider");
 //        dialogFragment.setCallback(this);
         dialogFragment.show(fragmentTransaction, MAP_TAG);
     }
@@ -220,7 +242,7 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
         }
 
         rootRef.child("requests")
-                .child(producerID).child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .child(providerId).child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                 .setValue(requestMap)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
@@ -229,6 +251,7 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
                             if (task.isSuccessful()) {
                                 requestButton.setText("cancel Request");
                                 status = ProducerModel.REQUEST_SENT;
+                                sendNotification();
                                 Toast.makeText(getApplicationContext(), "request sent", Toast.LENGTH_SHORT).show();
                             } else {
                                 Toast.makeText(getApplicationContext(), "failed to send request", Toast.LENGTH_SHORT).show();
@@ -239,10 +262,33 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
 
     }
 
+    /**
+     * this method is responsible to notify the respective provider that request is sent
+     */
+    private void sendNotification() {
+        String message = "You have a new Request from " + FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+        HashMap<String, Object> notificationMap = new HashMap<>();
+        notificationMap.put("title", "New Request");
+        notificationMap.put("message", message);
+        notificationMap.put("type", Constants.Notification.TYPE_NEW_REQUEST);
+        notificationMap.put("sender_id", FirebaseAuth.getInstance().getCurrentUser().getUid());
+        notificationMap.put("time_stamp", Calendar.getInstance().getTimeInMillis() + "");
+
+//        for (int i = 0; i < 100; i++) {
+//            String newtitle = title + "  " + i;
+//            notificationMap.put("title", newtitle);
+        rootRef.child("notifications")
+                .child(providerId)//reciever id
+//                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())//sender id
+                .push()//notification id
+                .setValue(notificationMap);//for now no need for completion listener
+//        }
+    }
+
     private void cancelRequest() {
         rootRef
                 .child("requests")
-                .child(producerID).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                .child(providerId).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful() && ProducerDetailActivty.this != null) {
@@ -257,13 +303,13 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
     private void loadThisProducerStatus() {
         if (status == ProducerModel.REQUEST_ACCEPTED) {
             //then no need to query and we just make the button enabled and also change the text
-            requestButton.setText("remove Producer");
+            requestButton.setText("Remove");
             requestButton.setEnabled(true);
             return;
         }
         //listen if the request is already sent
         rootRef.child("requests")
-                .child(producerID).child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .child(providerId).child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -290,13 +336,19 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
 
 
     @Override
-    public void onGoodItemClick(int position) {
+    public void onGoodItemClick(int position, ImageView sharedImageView) {
         GoodModel currentModel = goodModelArrayList.get(position);
         Intent intent = new Intent(this, ConProducerServiceDetailsActivty.class);
         intent.putExtra("goods_model", currentModel);
-        intent.putExtra("producer_id", producerID);
+        intent.putExtra("producer_id", providerId);
         intent.putExtra("is_connected", isConneted);
-        startActivity(intent);
+        intent.putExtra(EXTRA_ANIMAL_IMAGE_TRANSITION_NAME, ViewCompat.getTransitionName(sharedImageView));
+
+        ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                this,
+                sharedImageView,
+                ViewCompat.getTransitionName(sharedImageView));
+        startActivity(intent, options.toBundle());
     }
 
     @Override

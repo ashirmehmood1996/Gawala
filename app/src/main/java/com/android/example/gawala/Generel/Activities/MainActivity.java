@@ -57,8 +57,7 @@ public class MainActivity extends AppCompatActivity {
             alertContainerLieanrLayout.setVisibility(View.VISIBLE);
             alertContainerLieanrLayout.findViewById(R.id.bt_main_refresh)
                     .setOnClickListener(v -> {
-                        finish();
-                        startActivity(getIntent());
+                        recreate();
 
                     });
             Toast.makeText(this, "please check your internet connection", Toast.LENGTH_SHORT).show();
@@ -111,13 +110,30 @@ public class MainActivity extends AppCompatActivity {
     private void sendUsingType(String userType) {
         if (userType != null && userType.equals(getResources().getString(R.string.provider))) {
             //            showProgressBar(false);
-            startActivity(new Intent(MainActivity.this, ProviderMainActivity.class));
+            if ((SharedPreferenceUtil.hasValue(getApplicationContext(), getResources().getString(R.string.mode_key))) &&
+                    (SharedPreferenceUtil.getValue(getApplicationContext(), getResources()
+                            .getString(R.string.mode_key)).equals(getResources().getString(R.string.transporter)))) {
+                Intent intent = new Intent(this, TransporterMainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.putExtra(TransporterMainActivity.IS_PROVIDER_TOO, true);
+                startActivity(intent);
+            } else {
+                startActivity(new Intent(MainActivity.this, ProviderMainActivity.class));
+            }
             finish();
-        } else if (userType != null && userType.equals(getResources().getString(R.string.consumer))) {
+        } else if (userType != null && userType.equals(
+
+                getResources().
+
+                        getString(R.string.consumer))) {
             //          showProgressBar(false);
             startActivity(new Intent(MainActivity.this, ConsumerMainActivity.class));
             finish();
-        } else if (userType != null && userType.equals(getResources().getString(R.string.transporter))) {
+        } else if (userType != null && userType.equals(
+
+                getResources().
+
+                        getString(R.string.transporter))) {
             //          showProgressBar(false);
             startActivity(new Intent(MainActivity.this, TransporterMainActivity.class));
             finish();
@@ -134,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
 //  9) improve the UI i.e. add animations plus fine tune coloring add Image to makers
 //  2) later  take the repetitive notiofications module take help from the previous hints that were created by you few lines above in previous to do
 //  5) later  make record of all notifitcations for both consumers and producers
-//  7) later  you must make the ride up and running in background
+//  7) !!!done  you must make the ride up and running in background
 //  3) !!? partially done make the records summery more robust like an option to fetch the monthly or yearly summery can also add the payment recived or not module also
 //  10) make the notification batch working and to other places like notification button and app oicon too
 //  11) add rating feature
@@ -155,47 +171,33 @@ public class MainActivity extends AppCompatActivity {
 //  2.2)  !!!done place notification module
 //  2.3)  !!!done place Services Module
 //  2.4)  !!!done place Clients Module need a little more functionality to be shifted as the cients were prefetched either we prefetch them now whicg is memory intensive or we may cache them in sqlite or any ither form or we simple have them on the go
-//  2.5) ??later we first need to do the rider portion Develop Riders Module
-//        provider can also be a rider and hence by default there will be one rider available to which the cients can be assigned
-//        we can also see the list of client he she is assigned for delivery and can remove the client any time from that rider
-//  2.6) later(because it will be though of at the time of ride saving with special reference to old records) Modify History Module // may be we just make another parent node for each rider node and hence make the data fetching easy
-//  2.7) should show the statistic on top like amazon does wich will have an initila hard codded values of clients riders earnings etc
 //  3)  !!!done See client side
-//  4)  see what we can do with the RIDER and other users sides too i.e. provider and client
+//  4)!!!done   see what we can do with the RIDER and other users sides too i.e. provider and client
 //  4.1) !!!done transporter share his code
 //  4.2) !!!done provider add the transporter in one click
 //  4.3) !!!done list transporter in the transporter activity (will deal later with self transporter role)
 //  4.4) !!!done  transporter can see the  provider details
 //  4.5) !!!done provider should accept the client and assign it to a trnsporter and then the request is processed only
-//  4.6) start riding
+//  4.6)!!!done  start riding
 //  4.6.1) !!!done show clients only in one fragment and do all the data fatching there
 //  4.6.2) !!! done fethc fresh data in ride fragment and start ride as it was before in a map fragment may be
-//  4.6.3) shift the functionality in a service
+//  4.6.3)!!!done  shift the functionality in a service
 //  4.7)  !!! done show shummery for consumer
 //  4.8) !!! done show shummery for provider
 //  4.9) !!! done show shummery for rider
-//  5)  in provider activity show assigned transporter for the clinet and a change transporter option indeed
-//  6) show the number of clients sales and success on top may be hard coded and further improve the UI
 
-
-
-// TODO: 12/17/2019 Now
+// TODO: 12/17/2019
 //  after that we will perform the remianing task above or may include them here
-//  1) put the ride in service
-//  2) make it completely online i.e. for each ride we be sending values
-// what are the main fucntions of a ride:
-// fetch a polyline of complete route (not necessarily)
-// inform the consumer that his delivery is on board (not necessarily)
-// when transporter is near to the consumer about some meters then he/ be notified that the delivery is on board(required )
-// when the stuff is delivered we need to make a boolaen that delivered is true and deriver recieves an acknowledgement (required)
-// data for this delivery is saved (required)
-// todo   now   so first we think for the required features in service
-//  1) !!already done we fetch the active rides models as we do already and get all the necessary data regarding deiveries
-//  2) we make this data passed to the service or to the fire base where it resides as an active session
-//  3) the is delivered option should be as a button in foreground notification  and in the ride activity which it is already there
-//  4) the at the time of delivery what we do is simply make the set delivered to true for each consumer goods delivered
-//  5) when activity is restarted we simple fetch the session data from service or firebase where ever the list resides base on check that there is a session already running and we make the ride active accordingly
-//  6) when the ride is completed we fetch the data from session node and replace it to the data history node which in our case is summery node
-
+// fixme cloud functions are not in place for new data structure we can either remove the old data or we can simply keep this new node and add more cloud functions
 //  fixme should make a separate activty or class for permissions asking  and send the user there each time a pemission is needed
 //  fixme allow the provider in real time that client locvation has changes
+//  fixme do Geocoding the names only one time when the location is changes for the users only and retrieve both latlng and strings then
+
+
+//  1) later if said so show the consumer top items and a search option to avail new Item for which ofcourse we have to provide rge categoris and change the schema a little bit and learn some good seraching techniques good luck
+//  2) later if said so should show the statistic on top like amazon does wich will have an initila hard codded values of clients riders earnings etc
+
+
+// TODO: 12/31/2019
+//    towards the minor bug fixings nd fixmes and then shif to the colors
+
