@@ -336,7 +336,7 @@ public class RatingFragment extends DialogFragment {
         public void onBindViewHolder(@NonNull RatingHolder holder, int position) {
             RatingModel ratingModel = ratingModelArrayList.get(position);
             long timeInMillis = Long.parseLong(ratingModel.getTime_stamp());
-            holder.dateTextView.setText(new SimpleDateFormat("dd/MM/YY").format(timeInMillis));//fixme deal woth the warning by studying on internet in details
+            holder.dateTextView.setText(new SimpleDateFormat("dd/MM/YY").format(timeInMillis));//fixme LATER deal woth the warning by studying on internet in details
             holder.nameTextView.setText(ratingModel.getRater_name());
             holder.descTextView.setText(ratingModel.getDescription());
             holder.ratingBar.setRating(Float.parseFloat(ratingModel.getRating()));

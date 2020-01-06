@@ -272,7 +272,7 @@ public class ProducerServiceDetailsActivity extends AppCompatActivity implements
 
     private void deleteItem() {
 
-        // TODO: 11/19/2019 for now we donot delte the item we need to think about it that this item can  be obtained by many consumers and cannot be simple deleted  may be can add a node like available =false and then after some time e,g, 30 days we will be able to delete the item
+        // TODO: 11/19/2019 LATER for production level for now we donot delte the item we need to think about it that this item can  be obtained by many consumers and cannot be simple deleted  may be can add a node like available =false and then after some time e,g, 30 days we will be able to delete the item
         Toast.makeText(this, "this item is obtained by many parties and cannot be delted until the contract is fullfilled, contact us for mode details", Toast.LENGTH_SHORT).show();
 //        rootRef
 //                .child("goods").child(FirebaseAuth.getInstance().getCurrentUser().getUid())

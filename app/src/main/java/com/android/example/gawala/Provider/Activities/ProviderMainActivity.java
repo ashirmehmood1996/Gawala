@@ -185,6 +185,8 @@ public class ProviderMainActivity extends AppCompatActivity implements View.OnCl
                 } else {//location was set
                     SharedPreferenceUtil.storeValue(getApplicationContext(), "lat", dataSnapshot.child("lat").getValue(String.class));
                     SharedPreferenceUtil.storeValue(getApplicationContext(), "lng", dataSnapshot.child("lng").getValue(String.class));
+                    SharedPreferenceUtil.storeValue(getApplicationContext(), "address", dataSnapshot.child("address").getValue(String.class));
+
                 }
             }
 
@@ -231,11 +233,13 @@ public class ProviderMainActivity extends AppCompatActivity implements View.OnCl
             if (resultCode == RESULT_OK) {
                 double lat = data.getDoubleExtra("lat", 0);
                 double lng = data.getDoubleExtra("lng", 0);
+                String address = data.getStringExtra("address");
+
                 if (lat == 0 && lng == 0) {
                     Toast.makeText(this, "seems like something went wrong ", Toast.LENGTH_SHORT).show();
 
                 } else {
-                    sendDataToFirebase(lat, lng);
+                    sendDataToFirebase(lat, lng, address);
                 }
             }
 
@@ -243,16 +247,18 @@ public class ProviderMainActivity extends AppCompatActivity implements View.OnCl
             super.onActivityResult(requestCode, resultCode, data);
     }
 
-    private void sendDataToFirebase(double lat, double lng) {
+    private void sendDataToFirebase(double lat, double lng, String address) {
         HashMap<String, Object> locationMap = new HashMap<>();
         locationMap.put("lat", "" + lat);
         locationMap.put("lng", "" + lng);
+        locationMap.put("address", address);
 
         rootRef.child("users").child(myID).child("location").setValue(locationMap)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         SharedPreferenceUtil.storeValue(getApplicationContext(), "lat", lat + "");
                         SharedPreferenceUtil.storeValue(getApplicationContext(), "lng", lng + "");
+                        SharedPreferenceUtil.storeValue(getApplicationContext(), "address", address);
                         Toast.makeText(getApplicationContext(), "Shop/Business Location set Successfully", Toast.LENGTH_SHORT).show();
 
                     } else {
@@ -325,8 +331,6 @@ public class ProviderMainActivity extends AppCompatActivity implements View.OnCl
                         .signOut(ProviderMainActivity.this)
                         .addOnCompleteListener(task1 -> {
                             if (task1.isSuccessful()) {
-                                SharedPreferenceUtil.storeValue(getApplicationContext(), "lat", null);
-                                SharedPreferenceUtil.storeValue(getApplicationContext(), "lng", null);
                                 SharedPreferenceUtil.clearAllPreferences(getApplicationContext());
                                 Toast.makeText(ProviderMainActivity.this, "logout successful", Toast.LENGTH_SHORT).show();
                                 startActivity(new Intent(ProviderMainActivity.this, LoginActivity.class));

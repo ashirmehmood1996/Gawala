@@ -11,7 +11,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.location.Address;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -28,9 +27,9 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.example.gawala.Generel.AsyncTasks.GeoCoderAsyncTask;
 import com.android.example.gawala.Generel.Fraagments.ImageViewerFragment;
 import com.android.example.gawala.Generel.Fraagments.RatingFragment;
+import com.android.example.gawala.Generel.Utils.SharedPreferenceUtil;
 import com.android.example.gawala.Provider.Activities.ProviderTransportersActivity;
 import com.android.example.gawala.Provider.Fragments.EditCitiesFragment;
 import com.android.example.gawala.Provider.Models.CityModel;
@@ -57,12 +56,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Objects;
 
 import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
 
 public class ProfileActivity extends AppCompatActivity implements EditCitiesFragment.Callback, RatingFragment.Callbacks {
-    public static final String PROVIDER_ID = "provider_id";
+//    public static final String PROVIDER_ID_ARRAY = "provider_id_array";
     private static final int RC_SET_DELIVERY_LOCATION = 121;
     private static final String DIALOG_EDIT_CITIES = "dialogFragment";
     public static final String USER_ID = "user_id";
@@ -91,15 +89,15 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
 
 
     //data
-    private String name, number, locatioAddress, type, profileImageUri;
+    private String name, number, locationAddress, type, profileImageUri;
     private LatLng latLng;
     private AlertDialog mProgressDialog;
 
     private ArrayList<CityModel> cityModelArrayList;
     private int RC_PICK_FROM_GALLERY = 12121;
     private boolean isOtherUser;
-    private String transporterID, transporterName, transporterNumber;
-    private String providerID;
+    private String transporterID, transporterName, transporterNumber, myId;
+//    private ArrayList<String> providerIdArray;
     private String otherUserType;
     private float averageRatings;
 
@@ -116,7 +114,7 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
             userId = getIntent().getStringExtra(USER_ID);
             otherUserType = getIntent().getStringExtra(REQUEST_USER_TYPE);
 //            if (otherUserType != null && otherUserType.equals(getResources().getString(R.string.provider))) {
-//                providerID = getIntent().getStringExtra(PROVIDER_ID);
+//                providerIdArray = getIntent().getStringExtra(PROVIDER_ID_ARRAY);
 //            }
         } else {
             userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -153,6 +151,8 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
         profileCircularImageView = findViewById(R.id.iv_personal_info_image);
         editPictureImageButton = findViewById(R.id.ib_personal_info_edit_image);
 
+        myId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
     }
 
     private void attachListeners() {
@@ -178,7 +178,6 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
             });
         }
         profileCircularImageView.setOnClickListener(v -> {
-            // TODO: 1/3/2020  show image in a new activity jsing shared elemnet transition
             FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
             ImageViewerFragment imageViewerFragment = (ImageViewerFragment) getSupportFragmentManager().findFragmentByTag(FRAG_IMAGE_VIEWER);
             if (imageViewerFragment != null) {
@@ -355,22 +354,15 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
             if (resultCode == RESULT_OK) {
                 double lat = data.getDoubleExtra("lat", 0);
                 double lng = data.getDoubleExtra("lng", 0);
+                String address = data.getStringExtra("address");
                 if (lat == 0 && lng == 0) {
                     Toast.makeText(this, "seems like something went wrong ", Toast.LENGTH_SHORT).show();
                 } else {
                     latLng = new LatLng(lat, lng);
-                    new GeoCoderAsyncTask(ProfileActivity.this) {
-                        @Override
-                        protected void onPostExecute(Address address) {
-                            if (address != null) {
-                                locatioAddress = address.getAddressLine(0);
-                                // TODO: 10/29/2019 later animate the layout changes
-                                locationTextView.setTextColor(Color.DKGRAY);
-                                locationTextView.setText(locatioAddress);
-                            }
-                        }
-                    }.execute(latLng);
-                    sendDataToFirebase(lat, lng);
+                    locationAddress = address;
+                    locationTextView.setTextColor(Color.DKGRAY);
+                    locationTextView.setText(locationAddress);
+                    sendDataToFirebase(lat, lng, address);
                 }
             }
 
@@ -434,7 +426,7 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
         transporterMap.put("transporter_id", id);
         transporterMap.put("transporter_name", name);
         transporterMap.put("transporter_number", number);
-        rootRef.child("clients").child(providerID)
+        rootRef.child("clients").child(myId)//provider id that is curruntly changing the transporter
                 .child(userId)
                 .updateChildren(transporterMap)
                 .addOnCompleteListener(task -> {
@@ -448,14 +440,18 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
                 });
     }
 
-    private void sendDataToFirebase(double lat, double lng) {
+    private void sendDataToFirebase(double lat, double lng, String address) {
         HashMap<String, Object> locationMap = new HashMap<>();
         locationMap.put("lat", "" + lat);
         locationMap.put("lng", "" + lng);
+        locationMap.put("address", address);
 
         rootRef.child("users").child(userId).child("location").setValue(locationMap)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
+                        SharedPreferenceUtil.storeValue(getApplicationContext(), "lat", lat + "");
+                        SharedPreferenceUtil.storeValue(getApplicationContext(), "lng", lng + "");
+                        SharedPreferenceUtil.storeValue(getApplicationContext(), "address", address);
                         Toast.makeText(getApplicationContext(), "Delivery Location set Successfully", Toast.LENGTH_SHORT).show();
 
                     } else {
@@ -537,37 +533,47 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
                             locationContainerLinearLayout.setVisibility(View.GONE);
 
                         } else if (type.equals(getResources().getString(R.string.consumer))) {
-                            providerID = getIntent().getStringExtra(PROVIDER_ID);//assuming that only provider and consumer can see the clients details
-                            transporterInfoLinearLayout.setVisibility(View.VISIBLE);
-                            transporterNameTextView.setText("fetching data...");
-                            fetchTransporterData();
+//                            providerIdArray = getIntent().getStringArrayListExtra(PROVIDER_ID_ARRAY);
+
+                            if (isOtherUser && otherUserType.equals(getResources().getString(R.string.provider))) {
+                                transporterInfoLinearLayout.setVisibility(View.VISIBLE);
+                                transporterNameTextView.setText("fetching data...");
+                                fetchTransporterData();
+                            }
                         }
                         if (dataSnapshot.hasChild("location")) {
                             double lat = Double.parseDouble(dataSnapshot.child("location").child("lat").getValue(String.class));
                             double lng = Double.parseDouble(dataSnapshot.child("location").child("lng").getValue(String.class));
-                            locationTextView.setText("fetching location...");
-                            locationTextView.setText("fetching location...");
-                            latLng = new LatLng(lat, lng);
-                            new GeoCoderAsyncTask(ProfileActivity.this) {
-                                @Override
-                                protected void onPostExecute(Address address) {
-                                    if (address != null) {
-                                        locatioAddress = address.getAddressLine(0);
-                                        locationTextView.setText(locatioAddress);
-                                    } else {
-                                        locationTextView.setText("problem in fetching the location");
+                            String address = lat + "\n" + lng;
+                            if (dataSnapshot.child("location").hasChild("address")) {
+                                address = dataSnapshot.child("location").child("address").getValue(String.class);
+                            }
 
-                                    }
-                                    locationTextView.setTextColor(Color.DKGRAY);
-                                    mProgressDialog.dismiss();
-                                }
-                            }.execute(latLng);
+                            locationTextView.setText(address);
+                            locationTextView.setTextColor(Color.DKGRAY);
+
+
+                            latLng = new LatLng(lat, lng);
+//                            new GeoCoderAsyncTask(ProfileActivity.this) {
+//                                @Override
+//                                protected void onPostExecute(Address address) {
+//                                    if (address != null) {
+//                                        locationAddress = address.getAddressLine(0);
+//                                        locationTextView.setText(locationAddress);
+//                                    } else {
+//                                        locationTextView.setText("problem in fetching the location");
+//
+//                                    }
+//                                    locationTextView.setTextColor(Color.DKGRAY);
+//                                    mProgressDialog.dismiss();
+//                                }
+//                            }.execute(latLng);
                         } else {
-                            mProgressDialog.dismiss();
 //                            Toast.makeText(getApplicationContext(), "location was not set", Toast.LENGTH_SHORT).show();
                             locationTextView.setText("Warning ! Location was not provided");
                             locationTextView.setTextColor(Color.RED);
                         }
+                        mProgressDialog.dismiss();
 
                     } else {
                         Toast.makeText(ProfileActivity.this, "Something went wrong. Please restart the application", Toast.LENGTH_SHORT).show();
@@ -589,25 +595,26 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
     }
 
     private void fetchTransporterData() {
-
-        if (providerID == null) {
-            transporterInfoLinearLayout.setVisibility(View.GONE);
-            Toast.makeText(this, "something went wrong,Provider id was null", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        rootRef.child("clients").child(providerID)
+//        if (providerIdArray == null || providerIdArray.isEmpty()) {
+//            transporterInfoLinearLayout.setVisibility(View.GONE);
+////            Toast.makeText(this, "No provoder is connected yet", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
+        rootRef.child("clients").child(myId)
                 .child(userId)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
-                            transporterID = dataSnapshot.child("transporter_id").getValue(String.class);
-                            transporterName = dataSnapshot.child("transporter_name").getValue(String.class);
-                            transporterNumber = dataSnapshot.child("transporter_number").getValue(String.class);
-                            transporterNameTextView.setText(transporterName);
-                            transporterNumberTextView.setText(transporterNumber);
-                            if (isOtherUser && otherUserType.equals(getResources().getString(R.string.provider))) {
-                                editTransporterImageButton.setVisibility(View.VISIBLE);
+                        if (ProfileActivity.this != null) {
+                            if (dataSnapshot.exists()) {
+                                transporterID = dataSnapshot.child("transporter_id").getValue(String.class);
+                                transporterName = dataSnapshot.child("transporter_name").getValue(String.class);
+                                transporterNumber = dataSnapshot.child("transporter_number").getValue(String.class);
+                                transporterNameTextView.setText(transporterName);
+                                transporterNumberTextView.setText(transporterNumber);
+                                if (isOtherUser && otherUserType.equals(getResources().getString(R.string.provider))) {
+                                    editTransporterImageButton.setVisibility(View.VISIBLE);
+                                }
                             }
                         }
                     }
@@ -617,6 +624,8 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
 
                     }
                 });
+
+
     }
 
     private void makeEditableFalse() {

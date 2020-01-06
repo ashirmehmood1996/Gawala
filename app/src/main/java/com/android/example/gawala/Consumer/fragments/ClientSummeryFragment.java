@@ -8,6 +8,7 @@ import androidx.appcompat.app.AlertDialog;
 
 import androidx.fragment.app.DialogFragment;
 
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
@@ -15,12 +16,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.example.gawala.Generel.Adapters.ClientSummeryAdapter;
 import com.android.example.gawala.Generel.Adapters.ClientSummeryItemDetailsAdapter;
+import com.android.example.gawala.Generel.Fraagments.MonthYearPickerDialog;
 import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 import com.android.example.gawala.Generel.Models.ClientSummeryModel;
 import com.android.example.gawala.R;
@@ -38,6 +41,7 @@ import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef
 
 public class ClientSummeryFragment extends DialogFragment implements ClientSummeryAdapter.Callback {
     private static final String ARG_PRODUCER_ID = "producerID";
+    private static final String TAG_MONTH_YEAR_PICKER = "monthYearPickerTag";
     private String producerID; // fatch all producers ids dynamically
 
     private RecyclerView recyclerView;
@@ -47,9 +51,12 @@ public class ClientSummeryFragment extends DialogFragment implements ClientSumme
 
     private TextView titleTextView, totalItemsTextView, totalCostTextView;
     private TableLayout tableLayout;
+    private RelativeLayout emptyViewcontainer;
     private ImageButton backButton;
     private String myId;
-    private AlertDialog mAlertDialog;
+    private AlertDialog mProgressDialog;
+    private ImageButton monthPickerButton;
+    private Calendar selectedMonthCalendar;
 
 
     public ClientSummeryFragment() {
@@ -63,7 +70,6 @@ public class ClientSummeryFragment extends DialogFragment implements ClientSumme
      * @param parentId parent id
      * @return A new instance of fragment ClientSummeryFragment.
      */
-    // TODO: Rename and change types and number of parameters
     public static ClientSummeryFragment newInstance(String parentId) {
         ClientSummeryFragment fragment = new ClientSummeryFragment();
         Bundle args = new Bundle();
@@ -88,7 +94,16 @@ public class ClientSummeryFragment extends DialogFragment implements ClientSumme
         View rootView = inflater.inflate(R.layout.fragment_client_summery, container, false);
         initFields(rootView);
         attachListeners();
+
+
+        selectedMonthCalendar = Calendar.getInstance();//this calender object contains this month
+        selectedMonthCalendar.set(Calendar.MILLISECOND, 0);
+        selectedMonthCalendar.set(Calendar.SECOND, 0);
+        selectedMonthCalendar.set(Calendar.MINUTE, 0);
+        selectedMonthCalendar.set(Calendar.HOUR_OF_DAY, 0);
+        selectedMonthCalendar.set(Calendar.DAY_OF_MONTH, 1);//if we keep day of month to 0 then the last day of previous month is also retrieved because the new day hasnot been startted yet
         loadThisMonthSummary();
+
         return rootView;
     }
 
@@ -96,11 +111,13 @@ public class ClientSummeryFragment extends DialogFragment implements ClientSumme
     private void initFields(View rootView) {
         titleTextView = rootView.findViewById(R.id.tv_frag_con_summery_title);
         tableLayout = rootView.findViewById(R.id.tl_frag_client_summery);
+        emptyViewcontainer = rootView.findViewById(R.id.rl_frag_client_summery_empty_view_container);
         totalCostTextView = rootView.findViewById(R.id.tv_frag_con_summery_total_cost);
         totalItemsTextView = rootView.findViewById(R.id.tv_frag_con_summery_total_items);
 
         recyclerView = rootView.findViewById(R.id.rv_frag_con_summery);
         backButton = rootView.findViewById(R.id.ib_frag_client_summery_back);
+        monthPickerButton = rootView.findViewById(R.id.ib_frag_client_summery_month_picker);
 
         initializeDialog();
 
@@ -111,29 +128,58 @@ public class ClientSummeryFragment extends DialogFragment implements ClientSumme
 
     private void attachListeners() {
         backButton.setOnClickListener(v -> dismiss());
+        monthPickerButton.setOnClickListener(v -> {
+            FragmentTransaction fragmentTransaction = getChildFragmentManager().beginTransaction();
+            MonthYearPickerDialog monthYearPickerDialog = (MonthYearPickerDialog) getChildFragmentManager().findFragmentByTag(TAG_MONTH_YEAR_PICKER);
 
+            if (monthYearPickerDialog != null) {
+                fragmentTransaction.remove(monthYearPickerDialog);
+            }
+
+            monthYearPickerDialog = MonthYearPickerDialog.newInstance(selectedMonthCalendar.get(Calendar.MONTH), selectedMonthCalendar.get(Calendar.YEAR));
+            monthYearPickerDialog.setListener((month, year) -> {
+                selectedMonthCalendar.set(Calendar.MONTH, month);
+                selectedMonthCalendar.set(Calendar.YEAR, year);
+                loadThisMonthSummary();
+            });
+
+            monthYearPickerDialog.show(fragmentTransaction, TAG_MONTH_YEAR_PICKER);
+
+        });
     }
 
-    // FIXME: 11/27/2019 //we need to load data from all producer which in this case is not happening the solution to this is tat we will send here all the producerrs ids her if already fetched or will fetch the producer ids first and the qery tthe data for this summery
     private void loadThisMonthSummary() {
-        mAlertDialog.show();
-        Calendar calendar = Calendar.getInstance();//this calender object contains this month
-        calendar.set(Calendar.MILLISECOND, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.DAY_OF_MONTH, 1);//if we keep day of month to 0 then the last day of previous month is also retrieved because the new day hasnot been startted yet
-        //fixme fetching  all data which is bad practice later shift to a better solution
+        Calendar endMonthCalendar = Calendar.getInstance();
+        endMonthCalendar.set(Calendar.MILLISECOND, 0);
+        endMonthCalendar.set(Calendar.SECOND, 0);
+        endMonthCalendar.set(Calendar.MINUTE, 0);
+        endMonthCalendar.set(Calendar.HOUR_OF_DAY, 0);
+        endMonthCalendar.set(Calendar.DAY_OF_MONTH, 1);//if we keep day of month to 0 then the last day of previous month is also retrieved because the new day hasnot been startted yet
+
+
+        endMonthCalendar.set(Calendar.MONTH, selectedMonthCalendar.get(Calendar.MONTH) + 1);
+        endMonthCalendar.set(Calendar.YEAR, selectedMonthCalendar.get(Calendar.YEAR));
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MMMM, yyyy");
+        titleTextView.setText(simpleDateFormat.format(selectedMonthCalendar.getTimeInMillis()));
+//        titleTextView.append("\n" + new SimpleDateFormat("hh:mm: a dd,MMMM, yyyy").format(endMonthCalendar.getTimeInMillis()));
+
+        mProgressDialog.show();
+        //fixme LATER when systme expands fetching  all data which is bad practice later shift to a better solution
         rootRef.child("data")
                 .child(producerID)
                 .child("permanent_data")
                 .orderByChild("time_stamp")
-                .startAt(calendar.getTimeInMillis())//restricts the data to the values starting  from the specifiend and greater
+                .startAt(selectedMonthCalendar.getTimeInMillis())//restricts the data to the values starting  from the specifiend and greater
+                .endAt(endMonthCalendar.getTimeInMillis())
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         if (ClientSummeryFragment.this != null) {
+                            clientSummeryModelArrayList.clear();
                             if (dataSnapshot.exists()) {
+                                tableLayout.setVisibility(View.VISIBLE);
+                                emptyViewcontainer.setVisibility(View.GONE);
                                 int totalItems = 0;
                                 int totalCost = 0;
                                 for (DataSnapshot sessionSnapShot : dataSnapshot.getChildren()) {
@@ -180,31 +226,27 @@ public class ClientSummeryFragment extends DialogFragment implements ClientSumme
 //                                TextView costView = tableRow.findViewById(R.id.tv_li_client_summery_cost);
 //                                costView.setText(Html.fromHtml("<b>" + totalCost + " PKR</b>"));
 //                                tableLayout.addView(tableRow);
-                                mAlertDialog.dismiss();
                             } else {
-                                mAlertDialog.dismiss();
                                 Toast.makeText(getContext(), "there was no summary for this month", Toast.LENGTH_LONG).show();
-                                dismiss();
+                                tableLayout.setVisibility(View.GONE);
+                                emptyViewcontainer.setVisibility(View.VISIBLE);
                             }
-                        }
+                            mProgressDialog.dismiss();
 
+                        }
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
                         if (ClientSummeryFragment.this != null)
-                            mAlertDialog.dismiss();
-
+                            mProgressDialog.dismiss();
                     }
                 });
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MMMM, yyyy");
-        titleTextView.setText(simpleDateFormat.format(calendar.getTimeInMillis()));
-
     }
 
     private void initializeDialog() {
         LinearLayout alertDialog = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_progress, null);
-        this.mAlertDialog = new AlertDialog.Builder(getActivity()).setView(alertDialog).setCancelable(false).create();
+        this.mProgressDialog = new AlertDialog.Builder(getActivity()).setView(alertDialog).setCancelable(false).create();
     }
 
     private String getFormattedDate(long timeInMilliseconds) {
@@ -244,6 +286,3 @@ public class ClientSummeryFragment extends DialogFragment implements ClientSumme
         builder.show();
     }
 }
-
-// todo doing now
-//                          for another month we need to provide an option for selecting months indeed and showing results accordingly with start at and edn at query

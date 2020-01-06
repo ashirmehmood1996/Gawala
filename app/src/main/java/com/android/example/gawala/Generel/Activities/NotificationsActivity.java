@@ -79,7 +79,7 @@ public class NotificationsActivity extends AppCompatActivity implements Notifica
 //        } else {
 
 
-        onScrollListener = new RecyclerView.OnScrollListener() { //fixme  later see for this depricated code
+        onScrollListener = new RecyclerView.OnScrollListener() {
             boolean isScrolling = false;
 
             @Override
@@ -109,7 +109,7 @@ public class NotificationsActivity extends AppCompatActivity implements Notifica
                 }
             }
         };
-        recyclerView.setOnScrollListener(onScrollListener);//// FIXME: 1/4/2020 deal with depricated code if time
+        recyclerView.setOnScrollListener(onScrollListener);//// FIXME: LATER 1/4/2020 deal with depricated code if time
 
 
 //        }

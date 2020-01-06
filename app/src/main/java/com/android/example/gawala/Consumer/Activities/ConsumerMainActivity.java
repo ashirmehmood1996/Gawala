@@ -17,6 +17,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,6 +26,8 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.Interpolator;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.example.gawala.Consumer.fragments.ClientsSettingsFragment;
@@ -34,7 +37,6 @@ import com.android.example.gawala.Generel.Activities.ProfileActivity;
 import com.android.example.gawala.Generel.Activities.PickLocationMapsActivity;
 import com.android.example.gawala.Generel.Utils.SharedPreferenceUtil;
 import com.android.example.gawala.R;
-import com.android.example.gawala.Consumer.Utils.ConsumerFirebaseHelper;
 import com.android.example.gawala.Generel.Utils.UtilsMessaging;
 import com.android.example.gawala.Consumer.fragments.ClientSummeryFragment;
 import com.firebase.ui.auth.AuthUI;
@@ -46,7 +48,9 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
@@ -60,13 +64,15 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
 
     //firbase related
     private String myId;
-    private String providerId;
+
+    private HashMap<String, String> providerIdNameMap;//provider key/ name
+//    private ArrayList<String> providerIdArrayList;
+//    private String providerId;
     //    private String producuerKey;
 //    private String producerStatus;
 //    private String mCurrentMilkPrice;
-    private boolean mIsAtHome;
-    private String SUMMERY_FRAG_TAG = "SummerFragmentTag";
-    private AlertDialog mAlertDialog;
+
+    private AlertDialog mProgressDialog;
     private int RC_SET_DELIVERY_LOCATION = 122;
 
     private final int RC_PERMISSION_ALL = 100;
@@ -111,6 +117,8 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
         notificationsButton = findViewById(R.id.bt_con_dash_notifications);
 
 
+//        providerIdArrayList = new ArrayList<>();
+        providerIdNameMap = new HashMap<>();
         //date related
         myId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         initializeDialog();
@@ -191,48 +199,74 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
 
     private void initializeDialog() {
         LinearLayout alertDialog = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_progress, null);
-        this.mAlertDialog = new AlertDialog.Builder(this).setView(alertDialog).setCancelable(false).create();
+        this.mProgressDialog = new AlertDialog.Builder(this).setView(alertDialog).setCancelable(false).create();
     }
 
     private void checkIfUserIsCoonnectedToProducer() {
-        this.mAlertDialog.show();
-        //lter deal with query
-        rootRef.child("clients")/*.orderByChild("number").equalTo(FirebaseAuth.getInstance().getCurrentUser().getPhoneNumber())*/
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists() && ConsumerMainActivity.this != null) {
-                            boolean found = false;
-                            outerLoop:
-                            for (DataSnapshot producerSnap : dataSnapshot.getChildren()) {
+        this.mProgressDialog.show();
 
-                                for (DataSnapshot clientSnap : producerSnap.getChildren()) {
-                                    if (clientSnap.getKey().equals(myId)) {
-                                        providerId = dataSnapshot.getChildren().iterator().next().getKey();//producer key
-                                        found = true;
-//                                        fetchReleventDataUsingKey(providerId);
-                                        mAlertDialog.dismiss();
-                                        break outerLoop;
-                                    }
-                                }
-                            }
-                            if (!found) {
-                                mAlertDialog.dismiss();
-//                                upDateUiForNoProducerConnection();
-                            }
-                            // TODO: 7/14/2019  later change the query along with the change in data
-                        } else {
-                            mAlertDialog.dismiss();
-//                            upDateUiForNoProducerConnection();
 
+        rootRef.child("connected_producers")
+                .child(myId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (ConsumerMainActivity.this != null) {
+                    mProgressDialog.dismiss();
+                    if (dataSnapshot.exists()) {
+                        for (DataSnapshot providerSnap : dataSnapshot.getChildren()) {
+                            String providerId = providerSnap.getKey();
+                            String providerName = providerSnap.child("name").getValue(String.class);
+//                            providerIdArrayList.add(providerId);
+                            providerIdNameMap.put(providerId, providerName);
                         }
-                    }
 
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                    } else {
+                        //do something if needed to e.g. show a banner that indicated that [please connect o a producer
                     }
-                });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+//        //lter deal with query
+//        rootRef.child("clients")/*.orderByChild("number").equalTo(FirebaseAuth.getInstance().getCurrentUser().getPhoneNumber())*/
+//                .addListenerForSingleValueEvent(new ValueEventListener() {
+//                    @Override
+//                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                        if (dataSnapshot.exists() && ConsumerMainActivity.this != null) {
+////                            boolean found = false;
+////                            outerLoop:
+//                            for (DataSnapshot producerSnap : dataSnapshot.getChildren()) {
+//                                for (DataSnapshot clientSnap : producerSnap.getChildren()) {
+//                                    if (clientSnap.getKey().equals(myId)) {
+//                                        String providerId = dataSnapshot.getChildren().iterator().next().getKey();//producer key
+////                                        found = true;
+//                                        providerIdArrayList.add(providerId);
+////                                        fetchReleventDataUsingKey(providerId);
+////                                        break outerLoop;
+//                                    }
+//                                }
+//                            }
+////                            if (!found) {
+//                            mProgressDialog.dismiss();
+////                                upDateUiForNoProducerConnection();
+////                            }
+//                            // TO DO: 7/14/2019  later change the query along with the change in data
+//                        } else {
+//                            mProgressDialog.dismiss();
+////                            upDateUiForNoProducerConnection();
+//
+//                        }
+//                    }
+//
+//
+//                    @Override
+//                    public void onCancelled(@NonNull DatabaseError databaseError) {
+//                    }
+//                });
     }
 
 //    private void upDateUiForNoProducerConnection() {
@@ -246,10 +280,10 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
 //
 ////    private void pouplateRelevantData() {
 ////
-////        // FIXME: 8/25/2019 later the consumer id be already fetchedand saved in shared preference
+////        // FIX ME: 8/25/2019 later the consumer id be already fetchedand saved in shared preference
 ////
 ////        //first fetch the producer id
-////        //// TODO: 8/25/2019 iterating over al data is very bad but will be taken care of in future by makkin queries or prefetching the producer id one time
+////        //// TO DO: 8/25/2019 iterating over al data is very bad but will be taken care of in future by makkin queries or prefetching the producer id one time
 ////        rootRef.child("clients")/*.orderByChild("number").equalTo(FirebaseAuth.getInstance().getCurrentUser().getPhoneNumber())*/
 ////                .addListenerForSingleValueEvent(new ValueEventListener() {
 ////                    @Override
@@ -269,7 +303,7 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
 ////                                }
 ////                            }
 ////
-////                            // TODO: 7/14/2019  later change the query along with the change in data
+////                            // TO DO: 7/14/2019  later change the query along with the change in data
 ////                        }
 ////
 ////                    }
@@ -307,12 +341,12 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
 //                        } else {
 //                            Toast.makeText(ConsumerMainActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
 //                        }
-//                        mAlertDialog.dismiss();
+//                        mProgressDialog.dismiss();
 //                    }
 //
 //                    @Override
 //                    public void onCancelled(@NonNull DatabaseError databaseError) {
-//                        mAlertDialog.dismiss();
+//                        mProgressDialog.dismiss();
 //
 //                    }
 //                });
@@ -364,6 +398,7 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
                     } else {//location was set
                         SharedPreferenceUtil.storeValue(getApplicationContext(), "lat", dataSnapshot.child("lat").getValue(String.class));
                         SharedPreferenceUtil.storeValue(getApplicationContext(), "lng", dataSnapshot.child("lng").getValue(String.class));
+                        SharedPreferenceUtil.storeValue(getApplicationContext(), "address", dataSnapshot.child("address").getValue(String.class));
                     }
                 }
             }
@@ -411,11 +446,11 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
             if (resultCode == RESULT_OK) {
                 double lat = data.getDoubleExtra("lat", 0);
                 double lng = data.getDoubleExtra("lng", 0);
+                String address = data.getStringExtra("address");
                 if (lat == 0 && lng == 0) {
                     Toast.makeText(this, "seems like something went wrong ", Toast.LENGTH_SHORT).show();
-
                 } else {
-                    sendDataToFirebase(lat, lng);
+                    sendDataToFirebase(lat, lng, address);
                 }
             }
 
@@ -423,24 +458,22 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
             super.onActivityResult(requestCode, resultCode, data);
     }
 
-    private void sendDataToFirebase(double lat, double lng) {
+    private void sendDataToFirebase(double lat, double lng, String address) {
         HashMap<String, Object> locationMap = new HashMap<>();
         locationMap.put("lat", "" + lat);
         locationMap.put("lng", "" + lng);
+        locationMap.put("address", address);
 
         rootRef.child("users").child(myId).child("location").setValue(locationMap)
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        SharedPreferenceUtil.storeValue(getApplicationContext(), "lat", lat + "");
+                        SharedPreferenceUtil.storeValue(getApplicationContext(), "lng", lng + "");
+                        SharedPreferenceUtil.storeValue(getApplicationContext(), "address", address);
+                        Toast.makeText(ConsumerMainActivity.this, "Delivery Location set Successfully", Toast.LENGTH_SHORT).show();
 
-                            SharedPreferenceUtil.storeValue(getApplicationContext(), "lat", lat + "");
-                            SharedPreferenceUtil.storeValue(getApplicationContext(), "lng", lng + "");
-                            Toast.makeText(ConsumerMainActivity.this, "Delivery Location set1 Successfully", Toast.LENGTH_SHORT).show();
-
-                        } else {
-                            Toast.makeText(ConsumerMainActivity.this, "unable to set Delivery Location", Toast.LENGTH_SHORT).show();
-                        }
+                    } else {
+                        Toast.makeText(ConsumerMainActivity.this, "unable to set Delivery Location", Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -455,11 +488,11 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
 //                showNoMilkRecieveAlert(v);
                 break;
             case R.id.bt_con_dash_show_summery:
-                if (providerId == null) {
+                if (providerIdNameMap.isEmpty()) {
                     Toast.makeText(this, "please add producers first", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                startSummeryFragment();
+                showFragmentToPickSummeryForEachProvider();
                 break;
             case R.id.bt_con_dash_my_providers:
                 startActivity(new Intent(this, ConsumerRequestsActivity.class));
@@ -474,7 +507,7 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
 //                break;
             case R.id.bt_con_dash_my_profile:
                 Intent intent1 = new Intent(this, ProfileActivity.class);
-                intent1.putExtra(ProfileActivity.PROVIDER_ID, providerId);
+//                intent1.putStringArrayListExtra(ProfileActivity.PROVIDER_ID_ARRAY, providerIdArrayList);
                 startActivity(intent1);
                 break;
             case R.id.bt_con_dash_notifications:
@@ -484,7 +517,33 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
-    private void startSummeryFragment() {
+    private void showFragmentToPickSummeryForEachProvider() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Select Provider ");
+        builder.setNegativeButton("cancel", null);
+
+        LinearLayout linearLayout = new LinearLayout(this);
+        linearLayout.setPadding(16,16,16,16);
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        builder.setView(linearLayout);
+        AlertDialog alertDialog = builder.create();
+        alertDialog.getWindow().getAttributes().windowAnimations = R.style.dialogtheme; //style id
+
+
+        for (Map.Entry<String, String> providerMapEntry : providerIdNameMap.entrySet()) {
+            RelativeLayout producerLayout = (RelativeLayout) getLayoutInflater().inflate(R.layout.li_producers, null);
+            ((TextView) producerLayout.findViewById(R.id.tv_li_prod_name)).setText(providerMapEntry.getValue());
+            producerLayout.findViewById(R.id.ll_li_prod_container).setOnClickListener(v -> {
+                startSummeryFragment(providerMapEntry.getKey());
+                alertDialog.cancel();
+            });
+            linearLayout.addView(producerLayout);
+        }
+        alertDialog.show();
+
+    }
+
+    private void startSummeryFragment(String providerId) {
 
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         ClientSummeryFragment clientSummeryFragment =
@@ -498,7 +557,7 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
     }
 
 
-    private void showNoMilkRecieveAlert(View v) {
+/*    private void showNoMilkRecieveAlert(View v) {
 
         String message = null;
         String title = null;
@@ -513,22 +572,19 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
         new AlertDialog.Builder(this)
                 .setTitle(title)
                 .setMessage(message)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
+                .setPositiveButton("Yes", (dialog, which) -> {
 
-                        if (mIsAtHome) {
-                            ConsumerFirebaseHelper.atHome(false, providerId);
-                            mIsAtHome = false;
-                        } else {
-                            ConsumerFirebaseHelper.atHome(true, providerId);
-                            mIsAtHome = true;
-                        }
+                    if (mIsAtHome) {
+                        ConsumerFirebaseHelper.atHome(false, providerId);
+                        mIsAtHome = false;
+                    } else {
+                        ConsumerFirebaseHelper.atHome(true, providerId);
+                        mIsAtHome = true;
                     }
                 }).setNegativeButton("cancel", null).show();
 
 
-    }
+    }*/
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -589,8 +645,6 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
                         .signOut(ConsumerMainActivity.this)
                         .addOnCompleteListener(task1 -> {
                             if (task1.isSuccessful()) {
-                                SharedPreferenceUtil.storeValue(getApplicationContext(), "lat", null);
-                                SharedPreferenceUtil.storeValue(getApplicationContext(), "lng", null);
                                 SharedPreferenceUtil.clearAllPreferences(getApplicationContext());
                                 Toast.makeText(ConsumerMainActivity.this, "logout successful", Toast.LENGTH_SHORT).show();
                                 startActivity(new Intent(ConsumerMainActivity.this, LoginActivity.class));
@@ -646,4 +700,4 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
     }
 
 }
-// TODO: 8/6/2019  put a braod cast receiver when GPs is turned on adn off and then trigger the location api
+

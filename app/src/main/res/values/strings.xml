@@ -25,9 +25,6 @@
     <string name="directions_api" translatable="false">AIzaSyDoDEsuwoTeQO4SfjqCiJJ3vlHHKi3G_2o</string>
 
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="status_producer_inactive" translatable="false">inactive</string>
-    <string name="status_producer_ontheway" translatable="false">On The Way</string>
-    <string name="status_producer_onduty" translatable="false">On Duty</string>
     <string name="title_activity_clients_location_setting_map" translatable="false">Map</string>
     <string name="add_service_activity_name">Add Service</string>
     <string name="my_services_activity_name" translatable="false">Services</string>

@@ -106,7 +106,6 @@ public class RideService extends Service {
             if (FirebaseAuth.getInstance().getCurrentUser() == null) return;
 
             if (mActiveRideArrayList != null) { // to make sure that on start command has been called
-                // TODO: 12/19/2019  here we need to per form the notifications logic and also the record updating logic
 
                 if (currentStopPolylineOptions == null) { //will be null in the beginning and when the new stop is assigned
                     callForPolylineApi();
@@ -173,7 +172,7 @@ public class RideService extends Service {
             public void onFailure(@androidx.annotation.NonNull Exception e) {
                 if (e instanceof ResolvableApiException) {
                     Toast.makeText(getApplicationContext(), "resolvable failure", Toast.LENGTH_SHORT).show();
-                    // FIXME: 9/20/2019 later use this reolution code experimentally to resolve the issue
+                    // FIXME: if time an on production level  9/20/2019 later use this reolution code experimentally to resolve the issue
 //               try {
 //                   // Show the dialog by calling startResolutionForResult(),
 //                   // and check the result in onActivityResult().
@@ -207,7 +206,7 @@ public class RideService extends Service {
         if (permission == PackageManager.PERMISSION_GRANTED) {
             // Request location updates and when an update is
             // received, store the location in Firebase
-            client.requestLocationUpdates(request, mLocationcallback, null);// FIXME: 8/8/2019 detach the listener when the user logs out or activity is teminated
+            client.requestLocationUpdates(request, mLocationcallback, null);// FIXME:  if time 8/8/2019 detach the listener when the user logs out or activity is teminated
 
         } else {
             Toast.makeText(getApplicationContext(), "no permissions", Toast.LENGTH_SHORT).show();
@@ -223,15 +222,15 @@ public class RideService extends Service {
 
         TaskLoadedCallback taskLoadedCallback = values -> {
             currentStopPolylineOptions = (PolylineOptions) values[0];
-            if (callbacks != null)
+            if (callbacks != null)//notify to activty if alive else it will be retrieved while it gets alive
                 callbacks.updatePolyline(currentStopPolylineOptions);
-            // TODO: 12/21/2019  notify to activty if alive else it will be retrieved while it gets alive
+
         };
         new FetchURL(taskLoadedCallback, false).execute(getDirectionApiUrl(currentLocation, stopLocation), "driving");
 
     }
 
-    // TODO: 8/15/2019 create this one on your own and place in httphelper util class and add direction mode later if needed
+    // TODO: LATER if time  8/15/2019 create this one on your own and place in httphelper util class and add direction mode later if needed
     private String getDirectionApiUrl(LatLng origin, LatLng dest/*, boolean isFullRoute *//*, String directionMode*/) {
         // Origin of route
         String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
@@ -287,7 +286,7 @@ public class RideService extends Service {
 ////                    System.out.println("response :" + s);
 ////                    Snackbar.make(drawer, "riding now", Snackbar.LENGTH_LONG).show();
 //
-//                    // FIXME: 9/16/2019 crashes here as its still running while app shutdowns
+//                    // FIXME: later iof needed 9/16/2019 crashes here as its still running while app shutdowns
 //                    ProducerFirebaseHelper.updateStatus(getResources().getString(R.string.status_producer_onduty));
 ////                    System.out.println("json string :" + s);
                     distanceMatrixModel = HttpRequestHelper.parseDistanceMatrixJson(s);
@@ -322,7 +321,7 @@ public class RideService extends Service {
 
 
     private void sendNotificationToConsumer(String id, String title, String message, String type) {
-        // TODO: 8/4/2019  for now generating both  in current app and in customers app later only customer will be notified
+        // TODO: 8/4/2019  LATER at the time of production for now generating both  in current app and in customers app later only customer will be notified
         HashMap<String, Object> notificationMap = new HashMap<>();
         notificationMap.put("title", title);
         notificationMap.put("message", message);
@@ -353,7 +352,7 @@ public class RideService extends Service {
                 .setSmallIcon(R.drawable.ic_add_location_black_24dp)
                 .setContentTitle(title)
                 .setContentText(message)
-                .setPriority(NotificationManager.IMPORTANCE_DEFAULT)//fixme  if needed
+                .setPriority(NotificationManager.IMPORTANCE_DEFAULT)//fixme LATER   if needed
                 .setCategory(NotificationCompat.CATEGORY_PROGRESS)
                 .setContentIntent(contentIntent)
                 .setOnlyAlertOnce(true);
@@ -364,7 +363,7 @@ public class RideService extends Service {
     }
 
     private void updateMyLocationInFirebase(LocationResult locationResult) {
-        rootRef.child("locationUpdates").child(FirebaseAuth.getInstance().getCurrentUser().getUid())// FIXME: 9/8/2019 fix float to string cast exception
+        rootRef.child("locationUpdates").child(FirebaseAuth.getInstance().getCurrentUser().getUid())// FIXME: LATER if time 9/8/2019 fix float to string cast exception
                 .setValue(locationResult).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 //                                Toast.makeText(TransporterMainActivity.this, "node updated", Toast.LENGTH_SHORT).show();
@@ -443,7 +442,7 @@ public class RideService extends Service {
         HashMap<String, Object> clientsMap = new HashMap<>();
         for (ConsumerModel consumerModel : mActiveRideArrayList) {
             String id = consumerModel.getId();
-//            String time_stamp=//fixme include later  //the time at which this stop was visited
+//            String time_stamp=//fixme include later if time and neded   //the time at which this stop was visited
             String name = consumerModel.getName();
             float amounOfMilk = consumerModel.getAmountOfMilk();
             boolean status = consumerModel.isDelivered();

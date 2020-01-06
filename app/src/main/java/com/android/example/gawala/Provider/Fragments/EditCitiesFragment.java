@@ -250,7 +250,6 @@ public class EditCitiesFragment extends DialogFragment implements View.OnClickLi
         loadCountries();
         loadSelectedCities();
 //        selectedCitiesAdapter.notifyDataSetChanged();
-        // TODO: 11/14/2019  loadt the data from json parse it
     }
 
     private void loadSelectedCities() {
@@ -354,7 +353,7 @@ public class EditCitiesFragment extends DialogFragment implements View.OnClickLi
                 .child("cities")
                 .child(country)//selected contry
                 .child(city)
-                .setValue(true) //// FIXME: 1/2/2020 the bug of no city
+                .setValue(true)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         if (getActivity() != null)

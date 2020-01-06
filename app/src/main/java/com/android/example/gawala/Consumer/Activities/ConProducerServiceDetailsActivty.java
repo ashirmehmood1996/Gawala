@@ -47,7 +47,6 @@ public class ConProducerServiceDetailsActivty extends AppCompatActivity {
             servicePictureImageView.setTransitionName(imageTransitionName);
         }
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        // TODO: 10/8/2019 we need to check weather the user has already added this service in demand or not
         setData();
         attachListeners();
 
@@ -79,7 +78,6 @@ public class ConProducerServiceDetailsActivty extends AppCompatActivity {
         priceTextView.setText(String.format("%s PKR", goodModel.getPrice()));
         typeTextView.setText(goodModel.getType());
 
-// FIXME: 1/3/2020 check for no image url
         if (goodModel.getImage_uri() != null && !goodModel.getImage_uri().isEmpty()) {
             Glide.with(this).load(goodModel.getImage_uri()).into(servicePictureImageView);
         }
@@ -123,7 +121,7 @@ public class ConProducerServiceDetailsActivty extends AppCompatActivity {
 
     private void addGoodToFireBase() {
 
-        // TODO: 10/8/2019 now we can addd good like that in demand  we will then add some restrictions like amunt of units needed and others if any as a sibling to id
+        // TODO: 10/8/2019 LATER at production level now we can addd good like that in demand  we will then add some restrictions like amunt of units needed and others if any as a sibling to id
 
         HashMap<String, Object> goodsMap = new HashMap<>();
         goodsMap.put("demand", "1"); //setting initial demand to 1 unit late rthe consumer will edit according to the need
@@ -137,8 +135,8 @@ public class ConProducerServiceDetailsActivty extends AppCompatActivity {
                 .setValue(goodsMap).addOnCompleteListener(task -> {
             if (ConProducerServiceDetailsActivty.this != null) {
                 Toast.makeText(getApplicationContext(), "Good added Successfully", Toast.LENGTH_SHORT).show();
-                // TODO: 10/8/2019  we need to change some UI like changing the button or text of button to remove from demand
-                // TODO: 11/22/2019   need to check that if demand is already added and then we send the user to demand detail activty rather than keeping the same activity
+                // TODO: 10/8/2019 LATER with SQLITE we need to change some UI like changing the button or text of button to remove from demand
+                // TODO: 11/22/2019 LATER with SQLITE  need to check that if demand is already added and then we send the user to demand detail activty rather than keeping the same activity
 
             }
         });

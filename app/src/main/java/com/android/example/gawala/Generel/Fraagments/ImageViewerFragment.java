@@ -66,4 +66,3 @@ public class ImageViewerFragment extends DialogFragment {
         return rootView;
     }
 }
-// TODO: 1/4/2020 deal with animation later

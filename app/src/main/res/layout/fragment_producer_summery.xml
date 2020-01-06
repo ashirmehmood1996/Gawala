@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#fff"
     android:clickable="true"
     android:focusable="true"
     android:orientation="vertical"
@@ -12,7 +13,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#000"
+        android:background="#fff"
         android:elevation="4dp"
         android:orientation="horizontal">
 
@@ -21,9 +22,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:background="#000"
+            android:layout_margin="6dp"
+            android:background="@drawable/bg_bt_round"
             android:padding="10dp"
-            android:src="@drawable/ic_keyboard_backspace_white_24dp" />
+            android:src="@drawable/ic_arrow_back_black_24dp" />
 
         <TextView
             android:id="@+id/tv_li_prod_summery_month"
@@ -31,64 +33,115 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_weight="1"
+            android:gravity="center"
             android:padding="16dp"
             android:text="December, 2019"
-            android:textColor="#fff"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textColor="#000"
+            android:textSize="22sp" />
+
+        <ImageButton
+            android:id="@+id/ib_prod_summery_change_month"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="6dp"
+            android:background="@drawable/bg_bt_round"
+            android:padding="10dp"
+            android:src="@drawable/ic_date_range_black_24dp" />
+
 
     </LinearLayout>
+
+    <!--
+        <View
+            android:layout_width="match_parent"
+            android:layout_height=".5dp"
+            android:layout_below="@id/tv_frag_con_summery_title"
+            android:background="#555" />
+    -->
 
     <LinearLayout
-        android:id="@+id/ll_li_prod_summery_title_bar"
+
+        android:id="@+id/ll_li_prod_summery_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#e9e9e9"
-        android:elevation="2dp"
-        android:orientation="horizontal"
-        android:padding="8dp">
+        android:orientation="vertical">
 
-        <TextView
-            android:layout_width="0dp"
+        <LinearLayout
+            android:id="@+id/ll_li_prod_summery_title_bar"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="Dated"
-            android:textColor="#000"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:background="#e9e9e9"
+            android:elevation="2dp"
+            android:orientation="horizontal"
+            android:padding="8dp">
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="Clients"
-            android:textColor="#000"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Dated"
+                android:textColor="#000"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
-        <TextView
-            android:layout_width="0dp"
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Clients"
+                android:textColor="#000"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Amount"
+                android:textColor="#000"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_li_prod_summery"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="Amount"
-            android:textColor="#000"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:fadingEdge="vertical"
+            android:orientation="vertical"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_li_prod_summery"
+    <RelativeLayout
+        android:id="@+id/rl_frag_client_summery_empty_view_container"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fadingEdge="vertical"
-        android:orientation="vertical"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:visibility="gone">
 
+        <ImageView
+            android:id="@+id/iv_frag_client_summery_empty_image_view"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_centerInParent="true"
+            android:src="@drawable/whitebox_large" />
 
+        <TextView
+            android:id="@+id/tv_frag_client_summery_empty_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/iv_frag_client_summery_empty_image_view"
+            android:layout_centerHorizontal="true"
+            android:text="No Record for this month"
+            android:textAppearance="?android:textAppearanceMedium" />
+
+    </RelativeLayout>
 </LinearLayout>

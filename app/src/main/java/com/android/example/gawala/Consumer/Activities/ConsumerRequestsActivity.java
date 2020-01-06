@@ -165,6 +165,7 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
         double lat = Double.parseDouble(SharedPreferenceUtil.getValue(getApplicationContext(), "lat"));
         double lng = Double.parseDouble(SharedPreferenceUtil.getValue(getApplicationContext(), "lng"));
         LatLng latLng = new LatLng(lat, lng);
+
         new GeoCoderAsyncTask(ConsumerRequestsActivity.this) {
             @Override
             protected void onPostExecute(Address address) {
@@ -187,7 +188,7 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
 //        rootRef.child("users").orderByChild("type").equalTo(getResources().getString(R.string.provider))
 //                .addListenerForSingleValueEvent(new ValueEventListener() {
 //                    @Override
-//                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) { // TODO: 11/16/2019  test by adding more producers
+//                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 //                        if (dataSnapshot.exists() && ConsumerRequestsActivity.this != null) {
 //                            for (DataSnapshot producerSnap : dataSnapshot.getChildren()) {
 //                                if (!producerSnap.hasChild("cities")) {
@@ -208,7 +209,7 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
 //                                                String lat = producerSnap.child("location").child("lat").getValue(String.class);
 //                                                String lng = producerSnap.child("location").child("lng").getValue(String.class);
 //                                                ProducerModel producerModel = new ProducerModel(id, name, number, imageUri, lat, lng);
-//                                                //// FIXME: 11/19/2019 bad practice
+//                                                //// FI XME: 11/19/2019 bad practice
 //                                                for (ProducerModel connectedProducer : connectedProducerArrayList) {
 //                                                    if (connectedProducer.getId().equals(producerModel.getId())) {
 //                                                        if (!producerModel.getImageUri().isEmpty()) {//if this producer has image then feed this iamge to the connected one too
@@ -234,7 +235,7 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
 //                        } else {
 //                            Toast.makeText(getApplicationContext(), "No Producer Found.. Sorry", Toast.LENGTH_SHORT).show();
 //                        }
-//                        mAlertDialog.dismiss();//fixme error
+//                        mAlertDialog.dismiss();//fi xme error
 //                    }
 //
 //                    @Override
@@ -243,64 +244,69 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
 //                        Toast.makeText(getApplicationContext(), "database error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
 //                    }
 //                });
-        //not changing database schema for now and qurying all the data whihc is a bad practice later we can find better apoproaches if time
+        //// TODO: 1/6/2020 LATER not changing database schema for now and qurying all the data whihc is a bad practice later we can find better apoproaches if time
         //for now  loading all producers later that can be changed when the system expands
         rootRef.child("users").orderByChild("type").equalTo(getResources().getString(R.string.provider))
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) { // TODO: 11/16/2019  test by adding more producers
-                        if (dataSnapshot.exists() && ConsumerRequestsActivity.this != null) {
-                            for (DataSnapshot producerSnap : dataSnapshot.getChildren()) {
-                                if (!producerSnap.hasChild("cities")) {
-                                    continue;
-                                }
-                                for (DataSnapshot countrySnap : producerSnap.child("cities").getChildren()) {
-                                    if (countrySnap.getKey().equals(country)) {
-                                        for (DataSnapshot citySnap : countrySnap.getChildren()) {
-                                            if (citySnap.getKey().equals(city)) {
-                                                String id = producerSnap.getKey();
-                                                String name = producerSnap.child("name").getValue(String.class);
-                                                String number = producerSnap.child("number").getValue(String.class);
-                                                String imageUri = "";
-                                                if (producerSnap.hasChild("profile_image_uri")) {
-                                                    imageUri = producerSnap.child("profile_image_uri").getValue(String.class);
-                                                }
-                                                String lat = producerSnap.child("location").child("lat").getValue(String.class);
-                                                String lng = producerSnap.child("location").child("lng").getValue(String.class);
-                                                ProducerModel producerModel = new ProducerModel(id, name, number, imageUri, lat, lng);
-                                                //// FIXME: 11/19/2019 bad practice
-                                                for (ProducerModel connectedProducer : connectedProducerArrayList) {
-                                                    if (connectedProducer.getId().equals(producerModel.getId())) {
-                                                        if (!producerModel.getImageUri().isEmpty()) {//if this producer has image then feed this iamge to the connected one too
-                                                            connectedProducer.setImageUri(producerModel.getImageUri());
-                                                            connectedProducersAdapter.notifyDataSetChanged();
-                                                        }
-                                                        connectedProducer.setLat(lat);
-                                                        connectedProducer.setLng(lng);
-                                                        producerModel.setStatus(ProducerModel.REQUEST_ACCEPTED);
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) { // TODO: LATER 11/16/2019  test by adding more producers
+                        if (ConsumerRequestsActivity.this != null) {
+                            if (dataSnapshot.exists()) {
+                                for (DataSnapshot producerSnap : dataSnapshot.getChildren()) {
+                                    if (!producerSnap.hasChild("cities")) {
+                                        continue;
+                                    }
+                                    for (DataSnapshot countrySnap : producerSnap.child("cities").getChildren()) {
+                                        if (countrySnap.getKey().equals(country)) {
+                                            for (DataSnapshot citySnap : countrySnap.getChildren()) {
+                                                if (citySnap.getKey().equals(city)) {
+                                                    String id = producerSnap.getKey();
+                                                    String name = producerSnap.child("name").getValue(String.class);
+                                                    String number = producerSnap.child("number").getValue(String.class);
+                                                    String imageUri = "";
+                                                    if (producerSnap.hasChild("profile_image_uri")) {
+                                                        imageUri = producerSnap.child("profile_image_uri").getValue(String.class);
                                                     }
+                                                    String lat = producerSnap.child("location").child("lat").getValue(String.class);
+                                                    String lng = producerSnap.child("location").child("lng").getValue(String.class);
+                                                    ProducerModel producerModel = new ProducerModel(id, name, number, imageUri, lat, lng);
+                                                    //// FIXME: LATER 11/19/2019 bad practice
+                                                    for (ProducerModel connectedProducer : connectedProducerArrayList) {
+                                                        if (connectedProducer.getId().equals(producerModel.getId())) {
+                                                            if (!producerModel.getImageUri().isEmpty()) {//if this producer has image then feed this iamge to the connected one too
+                                                                connectedProducer.setImageUri(producerModel.getImageUri());
+                                                                connectedProducersAdapter.notifyDataSetChanged();
+                                                            }
+                                                            connectedProducer.setLat(lat);
+                                                            connectedProducer.setLng(lng);
+                                                            producerModel.setStatus(ProducerModel.REQUEST_ACCEPTED);
+                                                        }
+                                                    }
+
+
+                                                    producerModelArrayList.add(producerModel);
+
                                                 }
-
-
-                                                producerModelArrayList.add(producerModel);
-
                                             }
                                         }
                                     }
-                                }
 
+                                }
+                                producersAdapter.notifyDataSetChanged();
+                            } else {
+                                Toast.makeText(getApplicationContext(), "No Producer Found.. Sorry", Toast.LENGTH_SHORT).show();
                             }
-                            producersAdapter.notifyDataSetChanged();
-                        } else {
-                            Toast.makeText(getApplicationContext(), "No Producer Found.. Sorry", Toast.LENGTH_SHORT).show();
+                            mAlertDialog.dismiss();
+
                         }
-                        mAlertDialog.dismiss();//fixme error
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
-                        mAlertDialog.dismiss();
-                        Toast.makeText(getApplicationContext(), "database error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                        if (ConsumerRequestsActivity.this != null) {
+                            mAlertDialog.dismiss();
+                            Toast.makeText(getApplicationContext(), "database error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
 

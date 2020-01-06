@@ -75,7 +75,7 @@
                 android:textAllCaps="false" />
 
 
-            <!--    fixme enable this button later adn add fucntionality-->
+
             <Button
                 android:id="@+id/bt_con_dash_off_delivery_days"
                 android:layout_width="0dp"
@@ -118,7 +118,6 @@
                 android:textAllCaps="false" />
 
 
-            <!--    fixme enable this button later adn add fucntionality-->
             <Button
                 android:id="@+id/bt_con_dash_my_profile"
                 android:layout_width="0dp"

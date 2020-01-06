@@ -79,4 +79,3 @@ public class ConsumerMarkersAdapter extends RecyclerView.Adapter<ConsumerMarkers
         }
     }
 }
-// TODO: 8/4/2019 LATER we will be deeling with the priorority of stops as its is a new thing to learn while side by side not necessary in the developemnt process

@@ -14,12 +14,10 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.android.example.gawala.Generel.AsyncTasks.GeoCoderAsyncTask;
 import com.android.example.gawala.Transporter.Interfaces.RequestsAdapterCallbacks;
 import com.android.example.gawala.Provider.Models.RequestModel;
 import com.android.example.gawala.R;
 import com.bumptech.glide.Glide;
-import com.google.android.gms.maps.model.LatLng;
 import com.mikhaellopez.circularimageview.CircularImageView;
 
 import java.text.SimpleDateFormat;
@@ -47,17 +45,17 @@ public class RequestsAdapter extends RecyclerView.Adapter<RequestsAdapter.Reques
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RequestViewHolder holder, final int i) {// FIXME: 7/13/2019 later find out the drawbacks of making it final
+    public void onBindViewHolder(@NonNull RequestViewHolder holder, final int i) {// FIXME: 7/13/2019 LATER find out the drawbacks of making it final
         RequestModel currentRequestModel = requestModelArrayList.get(i);
         String name = currentRequestModel.getName();
         double lat = Double.parseDouble(currentRequestModel.getLat());
         double lng = Double.parseDouble(currentRequestModel.getLng());
         if (!currentRequestModel.getImageUrl().isEmpty()) {
             Glide.with(context).load(currentRequestModel.getImageUrl()).into(holder.circularImageView);
-        }else {
+        } else {
             holder.circularImageView.setBackgroundResource(R.drawable.ic_person_black_24dp);
         }
-        if (currentRequestModel.getAddress() == null ||
+    /*    if (currentRequestModel.getAddress() == null ||
                 (currentRequestModel.getAddress() != null && currentRequestModel.getAddress().isEmpty())) {
             new GeoCoderAsyncTask(context) {
                 @Override
@@ -71,16 +69,15 @@ public class RequestsAdapter extends RecyclerView.Adapter<RequestsAdapter.Reques
 //                    holder.locationTextView.setText(currentRequestModel.getAddress());
                 }
             }.execute(new LatLng(lat, lng));
-        } else {
-            holder.locationTextView.setText(currentRequestModel.getAddress());
-        }
+        } else {*/
+        holder.locationTextView.setText(currentRequestModel.getAddress());
+//        }
         String timeinMilliSecStr = currentRequestModel.getTime_stamp();
         long time = Long.parseLong(timeinMilliSecStr);
         SimpleDateFormat formater = new SimpleDateFormat("dd, MMM yyyy\n hh:mm:ss a");
         String formattedTime = formater.format(time);
         holder.timestampTextView.setText(formattedTime);
         holder.nameTextView.setText(name);
-
 
 
     }

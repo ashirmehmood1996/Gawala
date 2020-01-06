@@ -15,7 +15,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.android.example.gawala.Generel.AsyncTasks.GeoCoderAsyncTask;
 import com.android.example.gawala.Provider.Models.ConsumerModel;
 import com.android.example.gawala.R;
 import com.bumptech.glide.Glide;
@@ -61,7 +60,7 @@ public class TransporterClientsFragment extends DialogFragment {
         return transporterClientsFragment;
     }
 
-    // FIXME: 12/26/2019 may be we should load the already loaded consumer in main activty here rather than fetching them again?
+    // FIXME: LATER if time 12/26/2019 may be we should load the already loaded consumer in main activty here rather than fetching them again?
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -123,23 +122,21 @@ public class TransporterClientsFragment extends DialogFragment {
                                 String lat = userSnapshot.child("location").child("lat").getValue(String.class);
                                 String lng = userSnapshot.child("location").child("lng").getValue(String.class);
 
-                                final ConsumerModel consumerModel = new ConsumerModel(id, name, number, timeStamp, lat, lng, imageUri,0);
-                                if (lat != null) {
-                                    new GeoCoderAsyncTask(getActivity()) {
-                                        @Override
-                                        protected void onPostExecute(Address address) {
-                                            if (address != null) {
-                                                consumerModel.setLocationName(address.getAddressLine(0));
-                                                clientsAdapter.notifyDataSetChanged();
-                                            }
+                                final ConsumerModel consumerModel = new ConsumerModel(id, name, number, timeStamp, lat, lng, imageUri, 0);
 
-                                            //call notify dataset cahnged if required
-                                        }
-                                    }.execute(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)));
+                                if (lat != null) {
+                                    String address = lat + "\n" + lng;
+                                    if (userSnapshot.child("location").hasChild("address")) {
+                                        address = userSnapshot.child("location").child("address").getValue(String.class);
+                                    }
+                                    consumerModel.setLocationName(address);
+
                                 }
+
 //                        consumerModel.setAmountOfMilk(milkDemand);
 
                                 consumerModelArrayList.add(consumerModel);
+                                clientsAdapter.notifyDataSetChanged();
 //                                if (lat != null) {
 //                                    createNewMarker(consumerModel);
 //                                }

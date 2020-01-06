@@ -1,8 +1,10 @@
 package com.android.example.gawala.Consumer.Activities;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
@@ -13,6 +15,7 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.android.example.gawala.Consumer.Adapters.AcquiredGoodsAdapter;
+import com.android.example.gawala.Consumer.fragments.AquiredGoodDetailFragment;
 import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 import com.android.example.gawala.Generel.Models.GoodModel;
 import com.android.example.gawala.R;
@@ -25,8 +28,11 @@ import java.util.ArrayList;
 
 import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
 
-public class AcquiredGoodsActivity extends AppCompatActivity implements AcquiredGoodsAdapter.Callback {
+public class AcquiredGoodsActivity extends AppCompatActivity implements AcquiredGoodsAdapter.Callback, AquiredGoodDetailFragment.Callback {
 
+    private static final int RC_AQUIRED_GOOD_DETAILS = 1211;
+    private static final String IS_CHANGED = "ischanged";
+    private static final String TAG_DETAILS_FRAGMENT = "detailsFragment";
     private String myId;
     private ArrayList<String> connectedProducersArrayList;
 
@@ -43,9 +49,11 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_consumer_acquired_goods);
 
-        getSupportActionBar().setTitle("My Services");
+        getSupportActionBar().setTitle("My Demand");
 
         initFields();
+        loadProducersListAndRespectiveServices();
+
     }
 
     private void initFields() {
@@ -57,17 +65,9 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
         acquiredGoodsAdapter = new AcquiredGoodsAdapter(acquiredGoodArrayList, this);
         acquiredGoodsRecyclerView.setAdapter(acquiredGoodsAdapter);
         emptyViewRelativeLayout = findViewById(R.id.rl_con_acquired_goods_empty_view_container);
-
         initializeDialog();
 
 
-    }
-
-    @Override
-    protected void onStart() {
-        // FIXME: 1/3/2020 avoid loading all data in on start rather on the calll backs of details activty or fragment we can simple change according to new data
-        loadProducersListAndRespectiveServices();//doing it here for data updation
-        super.onStart();
     }
 
     private void initializeDialog() {
@@ -80,43 +80,81 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
         acquiredGoodArrayList.clear();
         mAlertDialog.show();
         acquiredGoodsAdapter.notifyDataSetChanged();
-        // TODO: 10/6/2019  change this query in order toa avoid whole data fetching  or we can change the database schema
-        //later deal with query
-        rootRef.child("clients")/*.orderByChild("number").equalTo(FirebaseAuth.getInstance().getCurrentUser().getPhoneNumber())*/
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists() && AcquiredGoodsActivity.this != null) {
-                            for (DataSnapshot producerSnap : dataSnapshot.getChildren()) {
-                                for (DataSnapshot clientSnap : producerSnap.getChildren()) {
-                                    if (clientSnap.getKey().equals(myId)) {
 
-                                        connectedProducersArrayList.add(producerSnap.getKey());
 
-//                                        String name = producerSnap.child("name").getValue(String.class);
-//                                        String number = producerSnap.child("number").getValue(String.class);
-                                    }
-                                }
-                            }
-                            if (connectedProducersArrayList.size() == 0) {
-                                emptyViewRelativeLayout.setVisibility(View.VISIBLE);
-                                mAlertDialog.dismiss();
-                            } else {
-                                fetchMyAquiredServices();
-                            }
-
-                        } else {
-                            emptyViewRelativeLayout.setVisibility(View.VISIBLE);
-                            Toast.makeText(AcquiredGoodsActivity.this, "no producers found", Toast.LENGTH_SHORT).show();
-                            mAlertDialog.dismiss();
+        rootRef.child("connected_producers")
+                .child(myId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (AcquiredGoodsActivity.this != null) {
+                    if (dataSnapshot.exists()) {
+                        for (DataSnapshot providerSnap : dataSnapshot.getChildren()) {
+                            String providerId = providerSnap.getKey();
+//                            String providerName = providerSnap.child("name").getValue(String.class);
+                            connectedProducersArrayList.add(providerId);
                         }
-                    }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                        Toast.makeText(AcquiredGoodsActivity.this, "fetching producers step was cancelled due to error:" + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                        if (connectedProducersArrayList.size() == 0) {
+                            emptyViewRelativeLayout.setVisibility(View.VISIBLE);
+                            mAlertDialog.dismiss();
+                        } else {
+                            fetchMyAquiredServices();
+                        }
+
+                    } else {
+
+                        emptyViewRelativeLayout.setVisibility(View.VISIBLE);
+                        Toast.makeText(AcquiredGoodsActivity.this, "no producers found", Toast.LENGTH_SHORT).show();
+                        mAlertDialog.dismiss();
+                        //do something if needed to e.g. show a banner that indicated that [please connect o a producer
                     }
-                });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+
+//        // TO DO: 10/6/2019  change this query in order toa avoid whole data fetching  or we can change the database schema
+//        //later deal with query
+//        rootRef.child("clients")/*.orderByChild("number").equalTo(FirebaseAuth.getInstance().getCurrentUser().getPhoneNumber())*/
+//                .addListenerForSingleValueEvent(new ValueEventListener() {
+//                    @Override
+//                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                        if (dataSnapshot.exists() && AcquiredGoodsActivity.this != null) {
+//                            for (DataSnapshot producerSnap : dataSnapshot.getChildren()) {
+//                                for (DataSnapshot clientSnap : producerSnap.getChildren()) {
+//                                    if (clientSnap.getKey().equals(myId)) {
+//
+//                                        connectedProducersArrayList.add(producerSnap.getKey());
+//
+////                                        String name = producerSnap.child("name").getValue(String.class);
+////                                        String number = producerSnap.child("number").getValue(String.class);
+//                                    }
+//                                }
+//                            }
+//                            if (connectedProducersArrayList.size() == 0) {
+//                                emptyViewRelativeLayout.setVisibility(View.VISIBLE);
+//                                mAlertDialog.dismiss();
+//                            } else {
+//                                fetchMyAquiredServices();
+//                            }
+//
+//                        } else {
+//                            emptyViewRelativeLayout.setVisibility(View.VISIBLE);
+//                            Toast.makeText(AcquiredGoodsActivity.this, "no producers found", Toast.LENGTH_SHORT).show();
+//                            mAlertDialog.dismiss();
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void onCancelled(@NonNull DatabaseError databaseError) {
+//                        Toast.makeText(AcquiredGoodsActivity.this, "fetching producers step was cancelled due to error:" + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+//                    }
+//                });
 
     }
 
@@ -179,8 +217,31 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
 
     @Override
     public void onAcquiredGoodClicked(int pos) {
-        Intent intent = new Intent(this, AquiredGoodDetailActivity.class);
-        intent.putExtra("acquired_goods_model", acquiredGoodArrayList.get(pos));
-        startActivity(intent);
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        AquiredGoodDetailFragment aquiredGoodDetailFragment = (AquiredGoodDetailFragment) getSupportFragmentManager().findFragmentByTag(TAG_DETAILS_FRAGMENT);
+        if (aquiredGoodDetailFragment != null) {
+            fragmentTransaction.remove(aquiredGoodDetailFragment);
+        }
+        aquiredGoodDetailFragment = AquiredGoodDetailFragment.newInstance(acquiredGoodArrayList.get(pos), pos);
+        aquiredGoodDetailFragment.setCallback(this);
+        aquiredGoodDetailFragment.show(fragmentTransaction, TAG_DETAILS_FRAGMENT);
+
+    }
+
+    @Override
+    public void onItemUpdated(int position, AcquiredGoodModel acquiredGoodModel) {
+        acquiredGoodArrayList.set(position, acquiredGoodModel);
+        acquiredGoodsAdapter.notifyItemChanged(position);
+    }
+
+    @Override
+    public void onItemDeleted(int position) {
+        acquiredGoodArrayList.remove(position);
+        acquiredGoodsAdapter.notifyItemRemoved(position);
+        acquiredGoodsAdapter.notifyItemRangeChanged(position, acquiredGoodArrayList.size());
+        if (acquiredGoodArrayList.isEmpty()) {
+            emptyViewRelativeLayout.setVisibility(View.VISIBLE);
+        }
+
     }
 }

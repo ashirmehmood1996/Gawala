@@ -8,7 +8,8 @@
 
     <include layout="@layout/content_producer_map" />
 
-    <!--fixme later make margin top 33dp after making the map overlay android:layout_marginTop="33dp"-->
+    <!--todo LATER if needed make margin top 33dp after making the map overlay android:layout_marginTop="33dp"-->
+
     <!-- <androidx.appcompat.widget.Toolbar
          android:id="@+id/tb_producer_nav"
          android:layout_width="match_parent"

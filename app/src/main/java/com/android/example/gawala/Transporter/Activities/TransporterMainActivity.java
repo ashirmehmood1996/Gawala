@@ -27,7 +27,6 @@ import android.os.Bundle;
 import com.android.example.gawala.Generel.Activities.LoginActivity;
 import com.android.example.gawala.Generel.Activities.NotificationsActivity;
 import com.android.example.gawala.Generel.Activities.ProfileActivity;
-import com.android.example.gawala.Generel.AsyncTasks.GeoCoderAsyncTask;
 import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 import com.android.example.gawala.Generel.Models.GoodModel;
 import com.android.example.gawala.Generel.Utils.SharedPreferenceUtil;
@@ -217,7 +216,6 @@ public class TransporterMainActivity extends AppCompatActivity
         UtilsMessaging.initFCM();
 
 
-//        //// FIXME: 8/25/2019 for now setting the rate initially according to market later it will be changed
 //        initUserDataIfFirstTime();
 
 
@@ -341,7 +339,7 @@ public class TransporterMainActivity extends AppCompatActivity
 
 
         myID = FirebaseAuth.getInstance().getCurrentUser().getUid();
-//        providerId = getIntent().getStringExtra(PROVIDER_ID);
+//        providerId = getIntent().getStringExtra(PROVIDER_ID_ARRAY);
 
         myLocationNodeRef = rootRef.child("locationUpdates")
                 .child(myID);
@@ -419,7 +417,7 @@ public class TransporterMainActivity extends AppCompatActivity
         navigationView.getMenu().removeItem(R.id.nav_producer_map_share_code);
         navigationView.getMenu().removeItem(R.id.nav_producer_map_personal_info);
         navigationView.getMenu().removeItem(R.id.nav_producer_map_provider);
-        navigationView.getMenu().removeItem(R.id.nav_producer_map_notifications);//fixme what to do with notifitcations
+        navigationView.getMenu().removeItem(R.id.nav_producer_map_notifications);//fixme LATER if needed what to do with notifitcations
     }
 
     private void setUpCounterLayout() {
@@ -524,7 +522,6 @@ public class TransporterMainActivity extends AppCompatActivity
 
 
 //                mConsumerModelArrayList.get(RideService.activeStopPosition).setDelivered(true);
-            // TODO: 10/15/2019  send notification to relevent
 
 //            sendMessageToConsumer(mConsumerModelArrayList.get(activeStopPosition).getId());
 
@@ -580,7 +577,7 @@ public class TransporterMainActivity extends AppCompatActivity
         HashMap<String, Object> clientsMap = new HashMap<>();
         for (ConsumerModel consumerModel : mActiveRideArrayList) {
             String id = consumerModel.getId();
-//            String time_stamp=//fixme include later  //the time at which this stop was visited
+//            String time_stamp=
             String name = consumerModel.getName();
             float amounOfMilk = consumerModel.getAmountOfMilk();
             boolean status = consumerModel.isDelivered();
@@ -817,7 +814,6 @@ public class TransporterMainActivity extends AppCompatActivity
             Intent intent = new Intent(TransporterMainActivity.this, ProfileActivity.class);
             intent.putExtra(ProfileActivity.USER_ID, providerId);
             intent.putExtra(ProfileActivity.REQUEST_USER_TYPE, getResources().getString(R.string.transporter));
-            //fixme think about sending the provider id for the consuemr
             intent.putExtra(ProfileActivity.OTHER_USER, true);
             startActivity(intent);
         } else {
@@ -961,7 +957,7 @@ public class TransporterMainActivity extends AppCompatActivity
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
+                // TO DO: Consider calling
                 //    Activity#requestPermissions
                 // here to request the missing permissions, and then overriding
                 //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
@@ -978,7 +974,7 @@ public class TransporterMainActivity extends AppCompatActivity
 
         mMap.getUiSettings().setZoomControlsEnabled(true);
         //   mMap.getUiSettings().setCompassEnabled(true);
-        mMap.setPadding(0, 0, 0, 0); //todo this property may be pixed dependednt find a fix later
+        mMap.setPadding(0, 0, 0, 0); //to do this property may be pixed dependednt find a fix later
 
 
         createLocationRequest();
@@ -1119,7 +1115,7 @@ public class TransporterMainActivity extends AppCompatActivity
                     mCurrentLocationResult = locationResult;
                     if (FirebaseAuth.getInstance().getCurrentUser() == null) return;
                     rootRef.child("locationUpdates")
-                            .child(FirebaseAuth.getInstance().getCurrentUser().getUid())// FIXME: 9/8/2019 fix float to string cast exception
+                            .child(FirebaseAuth.getInstance().getCurrentUser().getUid())// FIXME: 9/8/2019 LATER if time  fix float to string cast exception
                             /*.push()*/.setValue(locationResult).addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             //                                Toast.makeText(TransporterMainActivity.this, "node updated", Toast.LENGTH_SHORT).show();
@@ -1128,7 +1124,7 @@ public class TransporterMainActivity extends AppCompatActivity
                         }
                     });
                 }
-            }, null);// FIXME: 8/8/2019 detach the listener when the user logs out or activity is teminated
+            }, null);// FIXME: 8/8/2019 LATER if time and needed detach the listener when the user logs out or activity is teminated
         } else {
             Toast.makeText(getApplicationContext(), "no permissions", Toast.LENGTH_SHORT).show();
         }
@@ -1180,23 +1176,17 @@ public class TransporterMainActivity extends AppCompatActivity
 
                                                         final ConsumerModel consumerModel = new ConsumerModel(id, name, number, timeStamp, lat, lng, imageUri, alertNotificationTime);
                                                         if (lat != null) {
-                                                            new GeoCoderAsyncTask(TransporterMainActivity.this) {
-                                                                @Override
-                                                                protected void onPostExecute(Address address) {
-                                                                    if (address != null) {
-                                                                        consumerModel.setLocationName(address.getAddressLine(0));
-                                                                    }
-                                                                    //call notify dataset cahnged if required
-                                                                }
-                                                            }.execute(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)));
-                                                        }
-//                        consumerModel.setAmountOfMilk(milkDemand);
+                                                            String address = lat + "\n" + lng;
+                                                            if (userSnapshot.child("location").hasChild("address")) {
+                                                                address = userSnapshot.child("location").child("address").getValue(String.class);
+                                                            }
+                                                            consumerModel.setLocationName(address);
 
+                                                        }
                                                         mConsumerModelArrayList.add(consumerModel);
                                                         if (lat != null) {
                                                             createNewMarker(consumerModel);
                                                         }
-
 
                                                         countDownLatch.countDown();
                                                         System.out.println("count: " + countDownLatch.getCount());
@@ -1260,8 +1250,6 @@ public class TransporterMainActivity extends AppCompatActivity
 
                     }
                 });
-
-// TODO: 11/22/2019 update the data when child changes his her location or may be the client should not because this will require the provider to rethink that of he/she wants to deliver to that new location or not
 
 //        rootRef.child("clients").child(myID)//prodcuer id
 //                .addChildEventListener(new ChildEventListener() {
@@ -1423,8 +1411,6 @@ public class TransporterMainActivity extends AppCompatActivity
             Toast.makeText(this, "location for this consumer is not set", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        // FIXME: 9/10/2019 later change the logic
         mFragmentManager.beginTransaction().remove(mFragmentManager.findFragmentByTag(TAG_FRAG_RIDE_INFO)).commit();
 //        getSupportActionBar().setTitle("Map");
         double lat = Double.parseDouble(mActiveRideArrayList.get(position).getLatitude());
@@ -1559,7 +1545,7 @@ public class TransporterMainActivity extends AppCompatActivity
                     System.out.println("response :" + s);
                     Snackbar.make(drawer, "riding now", Snackbar.LENGTH_LONG).show();
 
-                    // FIXME: 9/16/2019 crashes here as its still running while app is shi down
+                    // FI XME: 9/16/2019 crashes here as its still running while app is shi down
                     ProducerFirebaseHelper.updateStatus(getResources().getString(R.string.status_producer_onduty));
                     System.out.println("json string :" + s);
                     DistanceMatrixModel distanceMatrixModel = HttpRequestHelper.parseDistanceMatrixJson(s);
@@ -1618,7 +1604,7 @@ public class TransporterMainActivity extends AppCompatActivity
         new FetchURL(TransporterMainActivity.this, true).execute(getDirectionApiUrl(currentLocation, stopLocation, true), "driving");
     }
 
-    // TODO: 8/15/2019 create this one on your own and place in httphelper util class and add direction mode later if needed
+    // TO DO: 8/15/2019 create this one on your own and place in httphelper util class and add direction mode later if needed
     private String getDirectionApiUrl(LatLng origin, LatLng dest, boolean isFullRoute *//*, String directionMode*//*) {
         // Origin of route
         String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
@@ -1659,7 +1645,7 @@ public class TransporterMainActivity extends AppCompatActivity
     }
 
     private void sendNotificationToConsumer(String id, String title, String message, String type) {
-        // TODO: 8/4/2019  for now generating both  in current app and in customers app later only customer will be notified
+        // TO DO: 8/4/2019  for now generating both  in current app and in customers app later only customer will be notified
 
         HashMap<String, Object> notificationMap = new HashMap<>();
         notificationMap.put("title", title);
@@ -1686,7 +1672,7 @@ public class TransporterMainActivity extends AppCompatActivity
                 .setSmallIcon(R.drawable.ic_add_location_black_24dp)
                 .setContentTitle(title)
                 .setContentText(message)
-                .setPriority(NotificationManager.IMPORTANCE_DEFAULT)//fixme  if needed
+                .setPriority(NotificationManager.IMPORTANCE_DEFAULT)//fi xme  if needed
                 .setCategory(NotificationCompat.CATEGORY_PROGRESS)
                 .setContentIntent(contentIntent)
                 .setOnlyAlertOnce(true);
@@ -1775,8 +1761,6 @@ public class TransporterMainActivity extends AppCompatActivity
         ConsumerModel consumerModel = mConsumerModelArrayList.get(position);
 
         if (consumerModel.getLatitude() != null && consumerModel.getLongitude() != null) {//then we are updating an old position of the stop
-            // TODO: 9/14/2019 later  we may change the markers background to indicate that this marker is being changed and set the drag listner temporarily and only for the currunt marker and then remove the drag listener from map
-
             mMap.animateCamera(CameraUpdateFactory
                     .newLatLngZoom(new LatLng(Double.parseDouble(consumerModel.getLatitude()),
                             Double.parseDouble(consumerModel.getLongitude())), 16));
@@ -1815,7 +1799,7 @@ public class TransporterMainActivity extends AppCompatActivity
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     if (task.isSuccessful()) {
-                        // TODO: 9/14/2019 later remove this success toast
+                        // TO DO: 9/14/2019 later remove this success toast
                         Toast.makeText(TransporterMainActivity.this, "new Location is set to the database for this client ", Toast.LENGTH_SHORT).show();
 
                     } else {
@@ -1957,7 +1941,7 @@ public class TransporterMainActivity extends AppCompatActivity
 
                                             String goodID = goodSnap.getKey();
                                             String demandUnits = goodSnap.child("demand").getValue(String.class);
-                                            if (demandUnits.equals("0")) { // TODO: 10/14/2019 test this
+                                            if (demandUnits.equals("0")) {
                                                 countDownLatch.countDown();
                                                 continue;
                                             } else {
@@ -2016,7 +2000,7 @@ public class TransporterMainActivity extends AppCompatActivity
 //
 //                                    String good_id = goodSnap.getKey();
 //                                    String demandUnits = goodSnap.child("demand").getValue(String.class);
-//                                    if (demandUnits.equals("0")) { // TODO: 10/14/2019 test this
+//                                    if (demandUnits.equals("0")) {
 //                                        continue;
 //                                    } else {
 //                                        consumerModel.setHasDemand(true);
@@ -2097,7 +2081,7 @@ public class TransporterMainActivity extends AppCompatActivity
 //                                for (DataSnapshot goodSnap : dataSnapshot.getChildren()) {
 //                                    String good_id = goodSnap.getKey();
 //                                    String demandUnits = goodSnap.child("demand").getValue(String.class);
-//                                    if (demandUnits.equals("0")) { // TODO: 10/14/2019 test this
+//                                    if (demandUnits.equals("0")) {
 //                                        continue;
 //                                    } else {
 //                                        consumerModel.setHasDemand(true);
@@ -2143,7 +2127,7 @@ public class TransporterMainActivity extends AppCompatActivity
 
 //    private void fetchGoodDetailFromFireabse(String goodID, final String demand, final ArrayList<AcquiredGoodModel> demandArray, final boolean isFinalCall) {
 //
-//        // TODO: 10/14/2019 make some indicator that the data is being fetched
+//        // TO DO: 10/14/2019 make some indicator that the data is being fetched
 //        rootRef
 //                .child("goods").child(myID).child(goodID)
 //                .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -2303,7 +2287,7 @@ public class TransporterMainActivity extends AppCompatActivity
 //
 //                                            String goodID = goodSnap.getKey();
 //                                            String demandUnits = goodSnap.child("demand").getValue(String.class);
-//                                            if (demandUnits.equals("0")) { // TODO: 10/14/2019 test this
+//                                            if (demandUnits.equals("0")) {
 //                                                countDownLatch.countDown();
 //                                                continue;
 //                                            } else {
@@ -2363,7 +2347,7 @@ public class TransporterMainActivity extends AppCompatActivity
 ////
 ////                                    String good_id = goodSnap.getKey();
 ////                                    String demandUnits = goodSnap.child("demand").getValue(String.class);
-////                                    if (demandUnits.equals("0")) { // TODO: 10/14/2019 test this
+////                                    if (demandUnits.equals("0")) {
 ////                                        continue;
 ////                                    } else {
 ////                                        consumerModel.setHasDemand(true);
@@ -2444,7 +2428,7 @@ public class TransporterMainActivity extends AppCompatActivity
 //                                for (DataSnapshot goodSnap : dataSnapshot.getChildren()) {
 //                                    String good_id = goodSnap.getKey();
 //                                    String demandUnits = goodSnap.child("demand").getValue(String.class);
-//                                    if (demandUnits.equals("0")) { // TODO: 10/14/2019 test this
+//                                    if (demandUnits.equals("0")) {
 //                                        continue;
 //                                    } else {
 //                                        consumerModel.setHasDemand(true);
@@ -2490,7 +2474,7 @@ public class TransporterMainActivity extends AppCompatActivity
 
 //    private void fetchGoodDetailFromFireabse(String goodID, final String demand, final ArrayList<AcquiredGoodModel> demandArray, final boolean isFinalCall) {
 //
-//        // TODO: 10/14/2019 make some indicator that the data is being fetched
+//        // TO DO: 10/14/2019 make some indicator that the data is being fetched
 //        rootRef
 //                .child("goods").child(myID).child(goodID)
 //                .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -2600,7 +2584,7 @@ public class TransporterMainActivity extends AppCompatActivity
     };
 
     private void prepareForActiveRide() {
-        // TODO: 12/18/2019 there is more to do now
+        // TO DO: 12/18/2019 there is more to do now
         setPolyLine();
 
         mActiveRideArrayList = mRideService.getActiveRideArrayList();
@@ -2718,4 +2702,4 @@ public class TransporterMainActivity extends AppCompatActivity
 //        }
 //    }
 }
-//// TODO: 7/27/2019 for the purpose of Gps use a broadcast reciever for making changes as desired
+//// TO DO: 7/27/2019 for the purpose of Gps use a broadcast reciever for making changes as desired

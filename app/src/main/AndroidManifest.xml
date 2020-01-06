@@ -65,7 +65,7 @@
         <!-- <meta-data -->
         <!-- android:name="com.google.android.geo.API_KEY" -->
         <!-- android:value="@string/google_maps_key" /> -->
-        <activity android:name=".Consumer.Activities.AquiredGoodDetailActivity" />
+        <activity android:name=".Consumer.fragments.AquiredGoodDetailFragment" />
         <activity android:name=".Consumer.Activities.AcquiredGoodsActivity" />
         <activity
             android:name=".Consumer.Activities.ConProducerServiceDetailsActivty"
@@ -73,10 +73,6 @@
         <activity
             android:name=".Consumer.Activities.ProducerDetailActivty"
             android:label="@string/producer_details_activity_label" />
-        <!--
-todo   this detail activty is neing used in more than one palces and
-                parent activty does not cause any bad affect may be later or in other andorid versions it will do
-        -->
         <activity
             android:name=".Provider.Activities.ProducerServiceDetailsActivity"
             android:label="@string/service_details_title" />

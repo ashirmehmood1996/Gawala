@@ -112,7 +112,6 @@ public class ClientsDetailsFragment extends DialogFragment implements View.OnCli
 
     private void showMap() {
         Toast.makeText(getActivity(), "implement this ", Toast.LENGTH_SHORT).show();
-        // TODO: 11/17/2019  show map in a dialog fragment similar to this one
 
 
         FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();

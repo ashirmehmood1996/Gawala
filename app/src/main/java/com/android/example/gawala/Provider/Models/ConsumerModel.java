@@ -6,9 +6,7 @@ import com.google.android.gms.maps.model.Marker;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-public class ConsumerModel implements Serializable { // FIXME: 11/24/2019 there is a  saerialization problem when ever i open another actiivty while the dashboard fragment is open
-    // fixme later we will avoid doing it  by directly getting the arraylist from activity with a oublci method
-    // fixme !!!!!fixed it in ride fragment by making the makers null as they were indeed not needed there
+public class ConsumerModel implements Serializable {
     private String id;
     private String name;
     private String number;

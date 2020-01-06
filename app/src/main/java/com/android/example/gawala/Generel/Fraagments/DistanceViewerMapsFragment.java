@@ -34,14 +34,12 @@ import java.util.List;
 
 
 public class DistanceViewerMapsFragment extends DialogFragment implements OnMapReadyCallback {
-    // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String LAT = "lat";
     private static final String LNG = "lng";
     private static final String OTHERS_TITLE = "othersTitle";
 
 
-    // TODO: Rename and change types of parameters
 //    private RequestModel mRequestModel;
 
 //    private CallBack mListener;
@@ -66,7 +64,6 @@ public class DistanceViewerMapsFragment extends DialogFragment implements OnMapR
      * @param lng longitude of other party
      * @return A new instance of fragment DistanceViewerMapsFragment.
      */
-    // TODO: Rename and change types and number of parameters
     public static DistanceViewerMapsFragment newInstance(Double lat, Double lng, String othersTitle) {
         DistanceViewerMapsFragment fragment = new DistanceViewerMapsFragment();
 

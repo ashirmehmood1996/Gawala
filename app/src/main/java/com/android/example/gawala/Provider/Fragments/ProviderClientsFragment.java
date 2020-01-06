@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import android.content.Intent;
-import android.location.Address;
 import android.os.Bundle;
 
 import androidx.fragment.app.DialogFragment;
@@ -21,7 +20,7 @@ import android.widget.Toast;
 
 import com.android.example.gawala.Constants;
 import com.android.example.gawala.Generel.Activities.ProfileActivity;
-import com.android.example.gawala.Generel.AsyncTasks.GeoCoderAsyncTask;
+//import com.android.example.gawala.Generel.AsyncTasks.GeoCoderAsyncTask;
 import com.android.example.gawala.Provider.Activities.ProviderTransportersActivity;
 import com.android.example.gawala.Provider.Adapters.ConnectedConsumersAdapter;
 import com.android.example.gawala.Provider.Adapters.RequestsAdapter;
@@ -29,7 +28,6 @@ import com.android.example.gawala.Transporter.Interfaces.RequestsAdapterCallback
 import com.android.example.gawala.Provider.Models.ConsumerModel;
 import com.android.example.gawala.Provider.Models.RequestModel;
 import com.android.example.gawala.R;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -184,7 +182,15 @@ public class ProviderClientsFragment extends DialogFragment implements RequestsA
                         }
                         String lat = requestSnap.child("lat").getValue(String.class);
                         String lng = requestSnap.child("lng").getValue(String.class);
-                        requestModelArrayList.add(new RequestModel(senderID, name, number, timeStamp, lat, lng, imageUrl));
+                        RequestModel requestModel = new RequestModel(senderID, name, number, timeStamp, lat, lng, imageUrl);
+                        if (lat != null) {
+                            String address = lat + "\n" + lng;
+                            if (requestSnap.child("location").hasChild("address")) {
+                                address = requestSnap.child("location").child("address").getValue(String.class);
+                            }
+                            requestModel.setAddress(address);
+                        }
+                        requestModelArrayList.add(requestModel);
                     }
                     newRequestscontainer.setVisibility(View.VISIBLE);
                     if (emptyViewContainerRelativeLayout.getVisibility() == VISIBLE)
@@ -226,8 +232,17 @@ public class ProviderClientsFragment extends DialogFragment implements RequestsA
                                 String lat = userSnapshot.child("location").child("lat").getValue(String.class);
                                 String lng = userSnapshot.child("location").child("lng").getValue(String.class);
                                 final ConsumerModel consumerModel = new ConsumerModel(id, name, number, timeStamp, lat, lng, imageUri, 0);
+
+
                                 if (lat != null) {
-                                    new GeoCoderAsyncTask(getActivity()) {
+                                    String address = lat + "\n" + lng;
+                                    if (userSnapshot.child("location").hasChild("address")) {
+                                        address = userSnapshot.child("location").child("address").getValue(String.class);
+                                    }
+                                    consumerModel.setLocationName(address);
+
+
+                                    /*new GeoCoderAsyncTask(getActivity()) {
                                         @Override
                                         protected void onPostExecute(Address address) {
                                             if (address != null) {
@@ -237,11 +252,13 @@ public class ProviderClientsFragment extends DialogFragment implements RequestsA
 
                                             //call notify dataset cahnged if required
                                         }
-                                    }.execute(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)));
+                                    }.execute(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)));*/
                                 }
 //                        consumerModel.setAmountOfMilk(milkDemand);
 
                                 mConsumersArrayList.add(consumerModel);
+
+                                consumersAdapter.notifyDataSetChanged();
 //                                if (lat != null) {
 //                                    createNewMarker(consumerModel);
 //                                }
@@ -468,10 +485,10 @@ public class ProviderClientsFragment extends DialogFragment implements RequestsA
         Intent intent = new Intent(getActivity(), ProfileActivity.class);
         intent.putExtra(ProfileActivity.OTHER_USER, true);
         intent.putExtra(ProfileActivity.USER_ID, mConsumersArrayList.get(position).getId());
-        intent.putExtra(ProfileActivity.PROVIDER_ID, FirebaseAuth.getInstance().getCurrentUser().getUid());
+//        intent.putExtra(ProfileActivity.PROVIDER_ID_ARRAY, FirebaseAuth.getInstance().getCurrentUser().getUid());
         intent.putExtra(ProfileActivity.REQUEST_USER_TYPE, getResources().getString(R.string.provider));
         startActivity(intent);
     }
 }
 
-// TODO: 12/8/2019 show the loading indicator
+// TODO: 12/8/2019 LATER if time show the loading indicator

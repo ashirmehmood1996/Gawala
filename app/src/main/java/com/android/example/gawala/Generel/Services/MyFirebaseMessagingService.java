@@ -95,9 +95,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
 
 
-    // TODO: 8/17/2019 see ehat this link has to say
+    // TODO: 8/17/2019 LATER see ehat this link has to say
     //  https://firebase.google.com/docs/cloud-messaging/android/client#sample-play
-    // TODO: 8/17/2019 also see ehat this link has to say
+    // TODO: 8/17/2019 LATER also see ehat this link has to say
     //  https://firebase.google.com/docs/cloud-messaging/android/client#prevent-auto-init
     public void sendNotification(String title, String TransitionType) {
 

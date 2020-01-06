@@ -177,6 +177,7 @@ public class ProducerAddServiceActivity extends AppCompatActivity {
 //                            Glide.with(getApplicationContext())
 //                                    .load(downloadUri)
 //                                    .into(profileCircularImageView);
+                    finish();
                 } else {
                     // Handle failures
                     // ...
@@ -222,12 +223,7 @@ public class ProducerAddServiceActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle("Confirm")
                 .setMessage("Are you sure?")
-                .setPositiveButton("confirm", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        addNewGoodToFirebase(goodModel);
-                    }
-                })
+                .setPositiveButton("confirm", (dialog, which) -> addNewGoodToFirebase(goodModel))
                 .setNegativeButton("cancel", null).show();
     }
 
@@ -243,6 +239,7 @@ public class ProducerAddServiceActivity extends AppCompatActivity {
                 if (mBitmap != null) {
                     uploadImageInFireBaseCloudStorage(mBitmap, good_id);
                 } else {
+                    finish();
                     mProgressDialog.dismiss();
                 }
 

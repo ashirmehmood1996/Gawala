@@ -133,22 +133,18 @@ public class ManageVacationsActivity extends AppCompatActivity implements View.O
 
     private void showCalenderDatepickerDialog() {
 
-        OnSelectDateListener listener = new OnSelectDateListener() {
-            @Override
-            public void onSelect(List<Calendar> calendars) {
-                // TODO: 11/5/2019  get a list of selected dates here
-                daysOffList = calendars;
-                calendarView.setSelectedDates(calendars);
+        OnSelectDateListener listener = calendars -> {
+            daysOffList = calendars;
+            calendarView.setSelectedDates(calendars);
 //                Drawable drawable = CalendarUtils.getDrawableText(ManageVacationsActivity.this, "No Delivery", Typeface.DEFAULT, R.color.colorAccent, 10);
-                List<EventDay> eevents = new ArrayList<>();
-                for (Calendar calendar : calendars) {
-                    eevents.add(new EventDay(calendar, R.drawable.ic_do_not_disturb_red_24dp));
-                }
-
-                setDaysOffToFirebase(calendars);
-                calendarView.setEvents(eevents);
-                Toast.makeText(ManageVacationsActivity.this, String.format("%d number of dates selected ", calendars.size()), Toast.LENGTH_SHORT).show();
+            List<EventDay> eevents = new ArrayList<>();
+            for (Calendar calendar : calendars) {
+                eevents.add(new EventDay(calendar, R.drawable.ic_do_not_disturb_red_24dp));
             }
+
+            setDaysOffToFirebase(calendars);
+            calendarView.setEvents(eevents);
+            Toast.makeText(ManageVacationsActivity.this, String.format("%d number of dates selected ", calendars.size()), Toast.LENGTH_SHORT).show();
         };
         new DatePickerBuilder(this, listener)
                 .setDate(Calendar.getInstance()) // Initial date as Calendar object

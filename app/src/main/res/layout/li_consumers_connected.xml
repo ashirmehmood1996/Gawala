@@ -83,6 +83,5 @@
               android:text="Edit Location"/>-->
     </LinearLayout>
 
-    <!-- todo later add delete option-->
 
 </RelativeLayout>

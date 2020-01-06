@@ -14,6 +14,7 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -65,6 +66,7 @@ public class PickLocationMapsActivity extends FragmentActivity implements OnMapR
             android.Manifest.permission.ACCESS_FINE_LOCATION};
 
     private GeoCoderAsyncTask mGeocoderAsyncTask;
+    private String mAddressString;
 
 
     @Override
@@ -108,32 +110,29 @@ public class PickLocationMapsActivity extends FragmentActivity implements OnMapR
         return true;
     }
 
+    @Override
+    protected void onDestroy() {
+        if (mGeocoderAsyncTask.getStatus() == AsyncTask.Status.RUNNING ||
+                mGeocoderAsyncTask.getStatus() == AsyncTask.Status.PENDING) {
+            mGeocoderAsyncTask.cancel(true);
+        }
+        super.onDestroy();
+    }
+
     private void attachListeners() {
-        proceedButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        proceedButton.setOnClickListener(v -> {
 //                if (from.equals(getResources().getString(R.string.from_consumer_dash_board))) {
-                Intent intent = new Intent();
-                intent.putExtra("lat", mcurrentLocation.latitude);
-                intent.putExtra("lng", mcurrentLocation.longitude);
-                setResult(RESULT_OK, intent);
-
-                if (!mGeocoderAsyncTask.isCancelled()) {
-                    mGeocoderAsyncTask.cancel(true);
-                }
-
-                finish();
+            Intent intent = new Intent();
+            intent.putExtra("lat", mcurrentLocation.latitude);
+            intent.putExtra("lng", mcurrentLocation.longitude);
+            intent.putExtra("address", mAddressString);
+            setResult(RESULT_OK, intent);
+            finish();
 //                }
 
-            }
         });
 
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showCancelEditLocationAlertDialog();
-            }
-        });
+        cancelButton.setOnClickListener(v -> showCancelEditLocationAlertDialog());
     }
 
     private void requestAllPermissions() {
@@ -172,19 +171,14 @@ public class PickLocationMapsActivity extends FragmentActivity implements OnMapR
                         startActivityForResult(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS), RC_LOCAION_ON);
                     }
                 })
-                .setNegativeButton("Exit", new DialogInterface.OnClickListener() {
-                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                        dialog.cancel();
-                        Toast.makeText(PickLocationMapsActivity.this, "location is not enabled app will shut down shortly", Toast.LENGTH_SHORT).show();
-                        final Handler handler = new Handler();
-                        handler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                //Do something after 100ms
-                                finish();
-                            }
-                        }, 2000);
-                    }
+                .setNegativeButton("Exit", (dialog, id) -> {
+                    dialog.cancel();
+                    Toast.makeText(PickLocationMapsActivity.this, "location is not enabled app will shut down shortly", Toast.LENGTH_SHORT).show();
+                    final Handler handler = new Handler();
+                    handler.postDelayed(() -> {
+                        //Do something after 100ms
+                        finish();
+                    }, 2000);
                 });
         android.app.AlertDialog alert = builder.create();
         alert.show();
@@ -219,12 +213,9 @@ public class PickLocationMapsActivity extends FragmentActivity implements OnMapR
             if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 Toast.makeText(this, "location is not enabled app will shut down shortly", Toast.LENGTH_SHORT).show();
                 final Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        //Do something after 100ms
-                        finish();
-                    }
+                handler.postDelayed(() -> {
+                    //Do something after 100ms
+                    finish();
                 }, 2000);
             } else {
                 recreate();
@@ -294,15 +285,27 @@ public class PickLocationMapsActivity extends FragmentActivity implements OnMapR
         markerImageView = findViewById(R.id.iv_pick_location_map_pick_marker);
         dotImageView = findViewById(R.id.iv_pick_location_map_centre_dot);
 
-        mGeocoderAsyncTask = new GeoCoderAsyncTask(PickLocationMapsActivity.this) {
+        mGeocoderAsyncTask = assignNewAsyncTask();
+
+    }
+
+    private GeoCoderAsyncTask assignNewAsyncTask() {
+        return new GeoCoderAsyncTask(PickLocationMapsActivity.this) {
+            @Override
+            protected void onPreExecute() {
+                proceedButton.setEnabled(false);
+                super.onPreExecute();
+            }
+
             @Override
             protected void onPostExecute(Address address) {
-
-
-                placesFragment.setText(address.getAddressLine(0));
+                proceedButton.setEnabled(true);
+                if (placesFragment != null && address != null) {
+                    mAddressString = address.getAddressLine(0);
+                    placesFragment.setText(mAddressString);
+                }
             }
         };
-
     }
 
 
@@ -319,26 +322,19 @@ public class PickLocationMapsActivity extends FragmentActivity implements OnMapR
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        mMap.setOnCameraMoveStartedListener(new GoogleMap.OnCameraMoveStartedListener() {
-            @Override
-            public void onCameraMoveStarted(int i) {
-                dotImageView.setVisibility(View.VISIBLE);
-                markerImageView.startAnimation(AnimationUtils.loadAnimation(PickLocationMapsActivity.this, R.anim.scale_zoom_out));
-                markerImageView.setVisibility(View.GONE);
+        mMap.setOnCameraMoveStartedListener(i -> {
+            dotImageView.setVisibility(View.VISIBLE);
+            markerImageView.startAnimation(AnimationUtils.loadAnimation(PickLocationMapsActivity.this, R.anim.scale_zoom_out));
+            markerImageView.setVisibility(View.GONE);
 
-            }
         });
         mMap.setOnCameraIdleListener(() -> {
             mPosition = mMap.getCameraPosition();
             mcurrentLocation = mPosition.target;
-            mGeocoderAsyncTask = new GeoCoderAsyncTask(PickLocationMapsActivity.this) {
-                @Override
-                protected void onPostExecute(Address address) {
-                    if (placesFragment != null && address != null) {
-                        placesFragment.setText(address.getAddressLine(0));
-                    }
-                }
-            };
+            if (mGeocoderAsyncTask.getStatus() == AsyncTask.Status.RUNNING) {
+                mGeocoderAsyncTask.cancel(true);
+            }
+            mGeocoderAsyncTask = assignNewAsyncTask();
             mGeocoderAsyncTask.execute(mcurrentLocation);
 
             dotImageView.setVisibility(View.INVISIBLE);
@@ -360,19 +356,24 @@ public class PickLocationMapsActivity extends FragmentActivity implements OnMapR
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setCompassEnabled(false);
         mMap.setMyLocationEnabled(true);
-        mMap.setPadding(0, 250, 0, 0); //todo this property may be pixed dependednt find a fix later
+        mMap.setPadding(0, 250, 0, 0); //todo LATER this property may be pixed dependednt find a fix later
 
     }
 
     private void animateUserLocation(boolean hasPreviousLocation) {
 
         if (hasPreviousLocation) {
-            new GeoCoderAsyncTask(PickLocationMapsActivity.this) {
+            /*new GeoCoderAsyncTask(PickLocationMapsActivity.this) {
                 @Override
                 protected void onPostExecute(Address address) {
                     placesFragment.setText(address.getAddressLine(0));
                 }
-            }.execute(mcurrentLocation);
+            }.execute(mcurrentLocation);*/
+            if (mGeocoderAsyncTask.getStatus() == AsyncTask.Status.RUNNING) {
+                mGeocoderAsyncTask.cancel(true);
+            }
+            mGeocoderAsyncTask = assignNewAsyncTask();
+            mGeocoderAsyncTask.execute(mcurrentLocation);
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mcurrentLocation, 16.0f));
 
 
@@ -384,30 +385,28 @@ public class PickLocationMapsActivity extends FragmentActivity implements OnMapR
             } else {
                 if ((ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) &&
                         (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
-//                ActivityCompat.requestPermissions(this, new String[]{
-//                        Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
                 } else {
                     // Permissions ok, we get last location
-                    LocationServices.getFusedLocationProviderClient(this).getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Location> task) {
-                            Location location = task.getResult();
-                            if (location != null && PickLocationMapsActivity.this != null) {
-                                mcurrentLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                                new GeoCoderAsyncTask(PickLocationMapsActivity.this) {
-                                    @Override
-                                    protected void onPostExecute(Address address) {
-                                        if (PickLocationMapsActivity.this != null && address != null)
-                                            placesFragment.setText(address.getAddressLine(0));
-                                    }
-                                }.execute(mcurrentLocation);
-                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mcurrentLocation, 16.0f));
-
-
-//                            Toast.makeText(MapsActivity.this, "FusedLocationProviderClient Last known Location and provider is " + location.getProvider() + "\n" + "Latitude : " + location.getLatitude() + "\nLongitude : " + location.getLongitude(), Toast.LENGTH_SHORT).show();
+                    LocationServices.getFusedLocationProviderClient(this).getLastLocation().addOnCompleteListener(task -> {
+                        Location location = task.getResult();
+                        if (location != null && PickLocationMapsActivity.this != null) {
+                            mcurrentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                      /*      new GeoCoderAsyncTask(PickLocationMapsActivity.this) {
+                                @Override
+                                protected void onPostExecute(Address address) {
+                                    if (PickLocationMapsActivity.this != null && address != null)
+                                        placesFragment.setText(address.getAddressLine(0));
+                                }
+                            }.execute(mcurrentLocation);*/
+                            if (mGeocoderAsyncTask.getStatus() == AsyncTask.Status.RUNNING) {
+                                mGeocoderAsyncTask.cancel(true);
                             }
-
+                            mGeocoderAsyncTask = assignNewAsyncTask();
+                            mGeocoderAsyncTask.execute(mcurrentLocation);
+                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mcurrentLocation, 16.0f));
+//                            Toast.makeText(MapsActivity.this, "FusedLocationProviderClient Last known Location and provider is " + location.getProvider() + "\n" + "Latitude : " + location.getLatitude() + "\nLongitude : " + location.getLongitude(), Toast.LENGTH_SHORT).show();
                         }
+
                     });
 
                 }
@@ -421,15 +420,7 @@ public class PickLocationMapsActivity extends FragmentActivity implements OnMapR
                 .setIcon(R.drawable.ic_warning_black_24dp)
                 .setTitle("CANCEL?")
                 .setMessage("are you sure to cancel editing? No progress will be saved")
-                .setPositiveButton("Proceed", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        finish();
-                    }
-                })
+                .setPositiveButton("Proceed", (dialog, which) -> finish())
                 .setNegativeButton("Stay Here", null).show();
     }
 }
-//let the user set up the area of delivery by typing cities names and this may be asked at the time the time when the main activty is startted and leter we can set things up to a new angle
-//after that we shall let the user upload pictures
-//then we shall keep the integrity of locaton and then UI i guess

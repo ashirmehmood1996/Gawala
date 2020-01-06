@@ -55,29 +55,23 @@
     </RelativeLayout>
 
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/bt_pick_location_map_confirm"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@id/bt_pick_location_map_cancel"
         android:layout_centerHorizontal="true"
-        android:background="@drawable/bg_button_solid"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
-        android:text="confirm Location"
-        android:textColor="#fff" />
+        android:text="confirm Location" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/bt_pick_location_map_cancel"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_margin="16dp"
+        android:layout_marginBottom="16dp"
         android:background="@drawable/bg_button_solid_red"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
-        android:text="cancel Editing"
-        android:textColor="#fff" />
+        android:text="cancel Editing" />
 
 </RelativeLayout>

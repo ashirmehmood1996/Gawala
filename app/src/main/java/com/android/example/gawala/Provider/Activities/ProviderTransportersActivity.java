@@ -9,10 +9,8 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -24,8 +22,6 @@ import com.android.example.gawala.Provider.Adapters.TransportersAdapter;
 import com.android.example.gawala.Provider.Models.TransportersModel;
 import com.android.example.gawala.R;
 import com.bumptech.glide.Glide;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
@@ -85,7 +81,6 @@ public class ProviderTransportersActivity extends AppCompatActivity implements T
         transportersChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                // TODO: 12/11/2019  laod transporter here
                 String transporterId = dataSnapshot.getKey();
                 rootRef.child("users").child(transporterId)
                         .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -138,7 +133,6 @@ public class ProviderTransportersActivity extends AppCompatActivity implements T
         addNewTransporterButton.setOnClickListener(v -> {
             showAddTransporterdialog();
         });
-        // TODO: 12/11/2019   a dialog that will seach and display the transporter to be added and then add the transporter
     }
 
     private void showAddTransporterdialog() {
@@ -204,7 +198,6 @@ public class ProviderTransportersActivity extends AppCompatActivity implements T
             searchContainer.setVisibility(View.GONE);
             progressBar.setVisibility(View.VISIBLE);
             titleTextView.setText("searching...");
-            // TODO: 12/11/2019  fetch transporter
         });
 
 
@@ -233,7 +226,7 @@ public class ProviderTransportersActivity extends AppCompatActivity implements T
         Intent intent = new Intent(this, ProfileActivity.class);
         intent.putExtra(ProfileActivity.USER_ID, transportersModelArrayList.get(position).getId());
         intent.putExtra(ProfileActivity.REQUEST_USER_TYPE, getResources().getString(R.string.provider));
-        intent.putExtra(ProfileActivity.PROVIDER_ID, FirebaseAuth.getInstance().getCurrentUser().getUid());
+//        intent.putExtra(ProfileActivity.PROVIDER_ID_ARRAY, FirebaseAuth.getInstance().getCurrentUser().getUid());
         intent.putExtra(ProfileActivity.OTHER_USER, true);
         startActivity(intent);
     }

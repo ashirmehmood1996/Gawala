@@ -347,7 +347,7 @@ public class TransporterRideInfoFragment extends DialogFragment implements StopM
 //                    }
 //                });
 //
-//// TODO: 11/22/2019 update the data when child changes his her location or may be the client should not because this will require the provider to rethink that of he/she wants to deliver to that new location or not
+//// TO DO: 11/22/2019 update the data when child changes his her location or may be the client should not because this will require the provider to rethink that of he/she wants to deliver to that new location or not
 //
 ////        rootRef.child("clients").child(myID)//prodcuer id
 ////                .addChildEventListener(new ChildEventListener() {
@@ -543,7 +543,7 @@ public class TransporterRideInfoFragment extends DialogFragment implements StopM
 //
 //                                            String goodID = goodSnap.getKey();
 //                                            String demandUnits = goodSnap.child("demand").getValue(String.class);
-//                                            if (demandUnits.equals("0")) { // TODO: 10/14/2019 test this
+//                                            if (demandUnits.equals("0")) {
 //                                                countDownLatch.countDown();
 //                                                continue;
 //                                            } else {
@@ -602,7 +602,7 @@ public class TransporterRideInfoFragment extends DialogFragment implements StopM
 ////
 ////                                    String good_id = goodSnap.getKey();
 ////                                    String demandUnits = goodSnap.child("demand").getValue(String.class);
-////                                    if (demandUnits.equals("0")) { // TODO: 10/14/2019 test this
+////                                    if (demandUnits.equals("0")) {
 ////                                        continue;
 ////                                    } else {
 ////                                        consumerModel.setHasDemand(true);
@@ -683,7 +683,7 @@ public class TransporterRideInfoFragment extends DialogFragment implements StopM
 ////                                for (DataSnapshot goodSnap : dataSnapshot.getChildren()) {
 ////                                    String good_id = goodSnap.getKey();
 ////                                    String demandUnits = goodSnap.child("demand").getValue(String.class);
-////                                    if (demandUnits.equals("0")) { // TODO: 10/14/2019 test this
+////                                    if (demandUnits.equals("0")) {
 ////                                        continue;
 ////                                    } else {
 ////                                        consumerModel.setHasDemand(true);
@@ -729,7 +729,7 @@ public class TransporterRideInfoFragment extends DialogFragment implements StopM
 //
 ////    private void fetchGoodDetailFromFireabse(String goodID, final String demand, final ArrayList<AcquiredGoodModel> demandArray, final boolean isFinalCall) {
 ////
-////        // TODO: 10/14/2019 make some indicator that the data is being fetched
+////        // TO DO: 10/14/2019 make some indicator that the data is being fetched
 ////        rootRef
 ////                .child("goods").child(myID).child(goodID)
 ////                .addListenerForSingleValueEvent(new ValueEventListener() {

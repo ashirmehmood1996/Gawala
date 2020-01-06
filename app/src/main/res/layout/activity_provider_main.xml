@@ -71,7 +71,6 @@
                 android:textAllCaps="false" />
 
 
-            <!--    fixme enable this button later adn add fucntionality-->
             <Button
                 android:id="@+id/bt_provider_main_services"
                 android:layout_width="0dp"
@@ -114,7 +113,6 @@
                 android:textAllCaps="false" />
 
 
-            <!--    fixme enable this button later adn add fucntionality-->
             <Button
                 android:id="@+id/bt_provider_main_profile"
                 android:layout_width="0dp"

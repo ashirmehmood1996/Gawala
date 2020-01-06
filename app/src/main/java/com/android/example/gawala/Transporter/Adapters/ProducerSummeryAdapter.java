@@ -46,7 +46,6 @@ public class ProducerSummeryAdapter extends RecyclerView.Adapter<ProducerSummery
         simpleDateFormat.format(producerSummeryModel.getTimeStamp());
         holder.dateTV.setText(simpleDateFormat.format(producerSummeryModel.getTimeStamp()));
 
-        // TODO: 9/23/2019 need to send to another fragemt for session details
 
     }
 

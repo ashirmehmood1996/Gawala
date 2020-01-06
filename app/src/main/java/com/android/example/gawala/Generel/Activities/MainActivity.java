@@ -72,8 +72,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void sendUserToRelevantActiviy() {
-//fixme whenever user logs in he she shall store its usertype in shared pref may be i guess
-
         FirebaseUser curuntUser = FirebaseAuth.getInstance().getCurrentUser();
         if (curuntUser != null) {//now user is logged in
             //we check that user type and send the user to its respective activity
@@ -142,30 +140,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 }
+//  this link will be used for consumer to send request only to the nearest consumer if needed https://www.youtube.com/watch?v=jvhD7-q45_w&list=PLaoF-xhnnrRULoWAGjWJ79-BwD1mAMwB0&index=8
 // TODO: 11/23/2019
-//  done !!!! 1) add pictures to the profiles and products add picture to the producer details activty and the to the services
+//   1)!!! done add pictures to the profiles and products add picture to the producer details activty and the to the services
 //  4) !!! done show customers in real time that the request is accepted or rejected
 //  6) !!! done before starting the ride. Producer should be able to see what he has to carry in dashboard fragment. the name can also be changed
 //  8) !!! done set the manage vacations disable issue
-//  9) improve the UI i.e. add animations plus fine tune coloring add Image to makers
-//  2) later  take the repetitive notiofications module take help from the previous hints that were created by you few lines above in previous to do
-//  5) later  make record of all notifitcations for both consumers and producers
+//  9) !!!done improve the UI i.e. add animations plus fine tune coloring add Image to makers
 //  7) !!!done  you must make the ride up and running in background
-//  3) !!? partially done make the records summery more robust like an option to fetch the monthly or yearly summery can also add the payment recived or not module also
-//  10) make the notification batch working and to other places like notification button and app oicon too
-//  11) add rating feature
-//  12) add Categories of products add the unit of products hence make it a full fledge e commerce app
-//      the admin will be the main thing that consumer will deal the rider are juts delivery boys so nithing has changed I guess
-//      so we may start it quickly and make it worth it but yes we need to make a copy of this current state
-//  partially done!! fourth once the milk (good)  has been delivered both parties should confirm the delivery on devices
-//  later third we add repeated notifications for the approaching provider to the consumer with in the time or distance consumer wants the notificatiosn to be delivered
-//      logic for third can be that we have a fixed number of notification to be send each be represented by integer and each time a variable is set/incremented that defines whihc notfifications conition is required to be checked and how many are already sent
-//      e.g. 0 represents no notification sent,1 represent initial notification is sent 2 represents half way notification is sent , 3 represents 5 minutes for approach etc
-//      repeated notifications can have a number of user options e.g. frequency, volume, tune selection , caller like activity alert  for final alert that has a mute option init
-//  this link will be used for consumer to send request only to the nearest consumer if needed https://www.youtube.com/watch?v=jvhD7-q45_w&list=PLaoF-xhnnrRULoWAGjWJ79-BwD1mAMwB0&index=8
+//  11) !!!done add rating feature
 
-
-// TODO: 12/5/2019 Latest
+// TODO: 12/5/2019
 //  2) First we see the provider side.
 //  2.1)  !!!done place profile module
 //  2.2)  !!!done place notification module
@@ -185,19 +170,19 @@ public class MainActivity extends AppCompatActivity {
 //  4.7)  !!! done show shummery for consumer
 //  4.8) !!! done show shummery for provider
 //  4.9) !!! done show shummery for rider
+//  !!!done partially done make the records summery more robust like an option to fetch the monthly or yearly summery
 
-// TODO: 12/17/2019
-//  after that we will perform the remianing task above or may include them here
-// fixme cloud functions are not in place for new data structure we can either remove the old data or we can simply keep this new node and add more cloud functions
-//  fixme should make a separate activty or class for permissions asking  and send the user there each time a pemission is needed
-//  fixme allow the provider in real time that client locvation has changes
-//  fixme do Geocoding the names only one time when the location is changes for the users only and retrieve both latlng and strings then
-
-
-//  1) later if said so show the consumer top items and a search option to avail new Item for which ofcourse we have to provide rge categoris and change the schema a little bit and learn some good seraching techniques good luck
-//  2) later if said so should show the statistic on top like amazon does wich will have an initila hard codded values of clients riders earnings etc
 
 
 // TODO: 12/31/2019
-//    towards the minor bug fixings nd fixmes and then shif to the colors
+//fixme find aother todos and  fixmes in app
+//fixme allow the provider in real time that client location has changes
+//fixme make the notification batch working and to other places like notification button and app oicon too
+// TODO: 8/6/2019  put a braod cast receiver when GPs is turned on adn off and then trigger the location api
+// TODO: 11/16/2019  test by adding more producers
+//// FIXME: 1/2/2020 the bug of no city in edit cities fragment
+// FIXME: 1/6/2020 fix the bug of polyline not removed when ride was finished not happens all the times
+// FIXME: 1/6/2020 on what basis the priority of stops is getting defined ?? rethink that concept and present the solution
 
+//  1) later if said so show the consumer top items and a search option to avail new Item for which ofcourse we have to provide rge categoris and change the schema a little bit and learn some good seraching techniques good luck
+//  2) later if said so should show the statistic on top like amazon does wich will have an initila hard codded values of clients riders earnings etc

@@ -226,7 +226,7 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         requestMap.put("number", currentUser.getPhoneNumber());
         requestMap.put("name", currentUser.getDisplayName());
-        requestMap.put("time_stamp", Calendar.getInstance().getTimeInMillis() + "");// // TODO: 8/8/2019  later deal with time zones
+        requestMap.put("time_stamp", Calendar.getInstance().getTimeInMillis() + "");// // TODO: 8/8/2019  LATER deal with time zones
         Uri profileImageUri = FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl();
         if (profileImageUri != null) {
             requestMap.put("profile_image_uri", String.valueOf(profileImageUri));

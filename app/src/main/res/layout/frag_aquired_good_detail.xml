@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    tools:context=".Consumer.Activities.AquiredGoodDetailActivity">
+    tools:context=".Consumer.fragments.AquiredGoodDetailFragment">
 
     <ImageView
         android:id="@+id/iv_con_acquired_goods_detail_picture"

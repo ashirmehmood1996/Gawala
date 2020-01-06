@@ -86,7 +86,7 @@ public class ProducerServicesActivty extends AppCompatActivity implements GoodsA
                 for (int i = 0; i < goodModelArrayList.size(); i++) {
                     GoodModel goodModel = goodModelArrayList.get(i);
                     if (goodModel.getId().equals(newGoodModel.getId())) {
-                        goodModelArrayList.set(i, newGoodModel); //// TODO: 10/5/2019  check wether this logic is good enough
+                        goodModelArrayList.set(i, newGoodModel); //// TODO: 10/5/2019 LATER if time check wether this logic is good enough
                         break;
                     }
                 }
@@ -101,7 +101,7 @@ public class ProducerServicesActivty extends AppCompatActivity implements GoodsA
                 for (int i = 0; i < goodModelArrayList.size(); i++) {
                     GoodModel goodModel = goodModelArrayList.get(i);
                     if (goodModel.getId().equals(newGoodModel.getId())) {
-                        goodModelArrayList.remove(goodModel);//// TODO: 10/5/2019  check wether this logic is good enough
+                        goodModelArrayList.remove(goodModel);//// TODO: 10/5/2019 LATER if time check wether this logic is good enough
                         break;
                     }
                 }

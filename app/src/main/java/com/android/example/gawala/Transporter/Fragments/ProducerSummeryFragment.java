@@ -13,10 +13,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.example.gawala.Generel.Fraagments.MonthYearPickerDialog;
 import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 import com.android.example.gawala.Generel.Models.ClientSummeryModel;
 import com.android.example.gawala.Transporter.Adapters.ProducerSummeryAdapter;
@@ -38,17 +41,25 @@ public class ProducerSummeryFragment extends DialogFragment implements ProducerS
 
     private static final String ARG_PROVIDER_ID = "proId";
     private static final String ARG_FROM_PROVIDER = "fromProvider";
+    private static final String TAG_MONTH_YEAR_PICKER = "monthPicker";
     private Dialog mProgressDialog;
     private String myId;
 
     private ArrayList<ProducerSummeryModel> producerSummeryModelArrayList;
     private ProducerSummeryAdapter producerSummeryAdapter;
     private RecyclerView recyclerView;
+    private LinearLayout summeryContainerLinearLayout;
+    RelativeLayout emptyViewContainer;
     private String DIALOG_PRODUCER_SUMMERY_DETAILS = "SummeryDetailsDialogFagment";
+
+    private ImageButton monthPickerButton;
 
     private TextView monthTextView;
     private String providerId;
     private boolean isFromProvider;
+
+    private Calendar selectedMonthCalendar;
+
 
     public ProducerSummeryFragment() {
         // Required empty public constructor
@@ -79,12 +90,44 @@ public class ProducerSummeryFragment extends DialogFragment implements ProducerS
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_producer_summery, container, false);
         initFields(rootView);
+        attachListeners();
         initializeDialog();
+
+        selectedMonthCalendar = Calendar.getInstance();//this calender object contains this month
+        selectedMonthCalendar.set(Calendar.MILLISECOND, 0);
+        selectedMonthCalendar.set(Calendar.SECOND, 0);
+        selectedMonthCalendar.set(Calendar.MINUTE, 0);
+        selectedMonthCalendar.set(Calendar.HOUR_OF_DAY, 0);
+        selectedMonthCalendar.set(Calendar.DAY_OF_MONTH, 1);//if we keep day of month to 0 then the last day of previous month is also retrieved because the new day hasnot been startted yet
         loadThisMonthSummary();
         return rootView;
     }
 
+    private void attachListeners() {
+        monthPickerButton.setOnClickListener(v -> {
+            FragmentTransaction fragmentTransaction = getChildFragmentManager().beginTransaction();
+            MonthYearPickerDialog monthYearPickerDialog = (MonthYearPickerDialog) getChildFragmentManager().findFragmentByTag(TAG_MONTH_YEAR_PICKER);
+
+            if (monthYearPickerDialog != null) {
+                fragmentTransaction.remove(monthYearPickerDialog);
+            }
+
+            monthYearPickerDialog = MonthYearPickerDialog.newInstance(selectedMonthCalendar.get(Calendar.MONTH), selectedMonthCalendar.get(Calendar.YEAR));
+            monthYearPickerDialog.setListener((month, year) -> {
+                selectedMonthCalendar.set(Calendar.MONTH, month);
+                selectedMonthCalendar.set(Calendar.YEAR, year);
+                loadThisMonthSummary();
+            });
+
+            monthYearPickerDialog.show(fragmentTransaction, TAG_MONTH_YEAR_PICKER);
+
+        });
+    }
+
     private void initFields(View rootView) {
+        monthPickerButton = rootView.findViewById(R.id.ib_prod_summery_change_month);
+        summeryContainerLinearLayout = rootView.findViewById(R.id.ll_li_prod_summery_container);
+        emptyViewContainer = rootView.findViewById(R.id.rl_frag_client_summery_empty_view_container);
         recyclerView = rootView.findViewById(R.id.rv_li_prod_summery);
         producerSummeryModelArrayList = new ArrayList<>();
         producerSummeryAdapter = new ProducerSummeryAdapter(getActivity(), producerSummeryModelArrayList, this);
@@ -95,32 +138,42 @@ public class ProducerSummeryFragment extends DialogFragment implements ProducerS
 
     private void loadThisMonthSummary() {
         mProgressDialog.show();
-        Calendar calendar = Calendar.getInstance();//this calender object contains this month
-        calendar.set(Calendar.MILLISECOND, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.DAY_OF_MONTH, 1);//if we keep day of month to 0 then the last day of previous month is also retrieved because the new day hasnot been startted yet
+        Calendar endMonthCalendar = Calendar.getInstance();
+        endMonthCalendar.set(Calendar.MILLISECOND, 0);
+        endMonthCalendar.set(Calendar.SECOND, 0);
+        endMonthCalendar.set(Calendar.MINUTE, 0);
+        endMonthCalendar.set(Calendar.HOUR_OF_DAY, 0);
+        endMonthCalendar.set(Calendar.DAY_OF_MONTH, 1);//if we keep day of month to 0 then the last day of previous month is also retrieved because the new day hasnot been startted yet
+
+        endMonthCalendar.set(Calendar.MONTH, selectedMonthCalendar.get(Calendar.MONTH) + 1);
+        endMonthCalendar.set(Calendar.YEAR, selectedMonthCalendar.get(Calendar.YEAR));
+
+
         //fetch this month data only
-        monthTextView.setText(new SimpleDateFormat("MMMM, yyyy").format(calendar.getTimeInMillis()));
-        // FIXME: 12/16/2019 show the transporter info too if this fragment is called for the provider
+        monthTextView.setText(new SimpleDateFormat("MMMM, yyyy").format(selectedMonthCalendar.getTimeInMillis()));
         rootRef.child("data")
                 .child(providerId)//providerID
                 .child("permanent_data")
                 .orderByChild("time_stamp")
-                .startAt(calendar.getTimeInMillis())
+                .startAt(selectedMonthCalendar.getTimeInMillis())//restricts the data to the values starting  from the specifiend and greater
+                .endAt(endMonthCalendar.getTimeInMillis())
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
                         if (ProducerSummeryFragment.this != null) {
+                            producerSummeryModelArrayList.clear();
+
                             if (dataSnapshot.exists()) {
+                                summeryContainerLinearLayout.setVisibility(View.VISIBLE);
+                                emptyViewContainer.setVisibility(View.GONE);
                                 for (DataSnapshot data : dataSnapshot.getChildren()) {
+
 
                                     String sessionId = data.getKey();
                                     long timeStamp = data.child("time_stamp").getValue(Long.class);
 
-                                    // FIXME: 12/16/2019 bad practice we are fetching all he producer data and for no reason at all so we beed to change the data structure in firebase
+                                    // FIXME: 12/16/2019 LATER if in production level  bad practice we are fetching all he producer data and for no reason at all so we beed to change the data structure in firebase
                                     if (!isFromProvider) {
 
                                         if (data.child("transporter_id").getValue(String.class).equals(myId)) {
@@ -159,18 +212,20 @@ public class ProducerSummeryFragment extends DialogFragment implements ProducerS
                                     }
                                 }
                                 producerSummeryAdapter.notifyDataSetChanged();
-                                mProgressDialog.dismiss();
                             } else {
-                                mProgressDialog.dismiss();
+
+                                summeryContainerLinearLayout.setVisibility(View.GONE);
+                                emptyViewContainer.setVisibility(View.VISIBLE);
                                 Toast.makeText(getContext(), "there was no summary for this month", Toast.LENGTH_LONG).show();
-                                dismiss();
                             }
+                            mProgressDialog.dismiss();
                         }
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
-                        mProgressDialog.dismiss();
+                        if (ProducerSummeryFragment.this != null)
+                            mProgressDialog.dismiss();
 
                     }
                 });
