@@ -1,146 +1,170 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="#fff"
+    android:layout_height="match_parent"
+
+    android:fillViewport="true"
     tools:context=".Consumer.Activities.ConsumerMainActivity">
 
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:animateLayoutChanges="true"
-        android:gravity="center"
-        android:id="@+id/ll_consumer_main_container"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_height="wrap_content">
 
         <LinearLayout
+            android:id="@+id/ll_consumer_main_container"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="horizontal">
+            android:layout_height="match_parent"
+            android:animateLayoutChanges="true"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="16dp">
 
             <Button
-                android:id="@+id/bt_con_dash_my_providers"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
+                android:id="@+id/bt_con_dash_see_transporters_on_map"
+                android:layout_width="match_parent"
+                android:enabled="false"
+                android:layout_height="wrap_content"
                 android:layout_margin="8dp"
-                android:layout_weight="1"
-
-                android:background="@drawable/bg_button_solid_white"
-                android:drawableTop="@drawable/ic_people_black_100dp"
-                android:text="Providers"
-                android:textAllCaps="false" />
-
-            <Button
-                android:id="@+id/bt_con_dash_my_services"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:layout_margin="8dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_button_solid_white"
-                android:drawableTop="@drawable/ic_shopping_cart_black_100dp"
-                android:paddingLeft="16dp"
-                android:paddingTop="16dp"
                 android:paddingRight="16dp"
-                android:text="My Demand"
-                android:textAllCaps="false" />
+
+                android:drawableRight="@drawable/ic_remove_red_eye_black_24dp"
+                android:background="@drawable/bg_button_solid_white"
+                android:text="See Transporters On Map"
+                android:textAllCaps="false"
+                android:textColor="@color/colorAccent" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/bt_con_dash_my_providers"
+                    android:layout_width="0dp"
+
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_margin="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_solid_white"
+                    android:drawableTop="@drawable/ic_people_black_100dp"
+                    android:text="Providers"
+                    android:textAllCaps="false" />
+
+                <Button
+                    android:id="@+id/bt_con_dash_my_services"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_margin="8dp"
+
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_solid_white"
+                    android:drawableTop="@drawable/ic_shopping_cart_black_100dp"
+                    android:paddingLeft="16dp"
+                    android:paddingTop="16dp"
+                    android:paddingRight="16dp"
+                    android:text="My Demand"
+                    android:textAllCaps="false" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/bt_con_dash_show_summery"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_margin="8dp"
+
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_solid_white"
+                    android:drawableTop="@drawable/ic_history_black_100dp"
+                    android:maxWidth="10dp"
+                    android:paddingLeft="16dp"
+                    android:paddingTop="16dp"
+                    android:paddingRight="16dp"
+                    android:text="Show Summery"
+                    android:textAllCaps="false" />
+
+
+                <Button
+                    android:id="@+id/bt_con_dash_off_delivery_days"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_margin="8dp"
+                    android:layout_weight="1"
+
+                    android:background="@drawable/bg_button_solid_white"
+                    android:drawableTop="@drawable/ic_event_note_black_100dp"
+                    android:paddingLeft="16dp"
+                    android:paddingTop="16dp"
+                    android:paddingRight="16dp"
+
+                    android:text="Manage Vacations"
+                    android:textAllCaps="false" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+
+                <Button
+                    android:id="@+id/bt_con_dash_notifications"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_margin="8dp"
+
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_solid_white"
+                    android:drawableTop="@drawable/ic_notifications_active_black_100dp"
+                    android:paddingLeft="16dp"
+                    android:paddingTop="16dp"
+                    android:paddingRight="16dp"
+
+                    android:text="Notifications"
+                    android:textAllCaps="false" />
+
+
+                <Button
+                    android:id="@+id/bt_con_dash_my_profile"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_margin="8dp"
+
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_solid_white"
+                    android:drawableTop="@drawable/ic_person_black_100dp"
+                    android:paddingLeft="16dp"
+                    android:paddingTop="16dp"
+
+                    android:paddingRight="16dp"
+                    android:text="Profile"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+
 
         </LinearLayout>
 
-        <LinearLayout
+        <FrameLayout
+            android:id="@+id/consumer_dash_board_fragment_container"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="horizontal">
+            android:layout_height="match_parent" />
 
-            <Button
-                android:id="@+id/bt_con_dash_show_summery"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:layout_margin="8dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_button_solid_white"
-                android:drawableTop="@drawable/ic_history_black_100dp"
-                android:paddingLeft="16dp"
-                android:paddingTop="16dp"
-                android:paddingRight="16dp"
-                android:text="Show Summery"
-                android:textAllCaps="false" />
-
-
-
-            <Button
-                android:id="@+id/bt_con_dash_off_delivery_days"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:layout_margin="8dp"
-                android:layout_weight="1"
-
-                android:background="@drawable/bg_button_solid_white"
-                android:drawableTop="@drawable/ic_event_note_black_100dp"
-                android:paddingLeft="16dp"
-                android:paddingTop="16dp"
-                android:paddingRight="16dp"
-                android:text="Manage Vacations"
-                android:textAllCaps="false" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="horizontal">
-
-
-            <Button
-                android:id="@+id/bt_con_dash_notifications"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:layout_margin="8dp"
-
-                android:layout_weight="1"
-                android:background="@drawable/bg_button_solid_white"
-                android:drawableTop="@drawable/ic_notifications_active_black_100dp"
-                android:paddingLeft="16dp"
-                android:paddingTop="16dp"
-                android:paddingRight="16dp"
-                android:text="Notifications"
-                android:textAllCaps="false" />
-
-
-            <Button
-                android:id="@+id/bt_con_dash_my_profile"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:layout_margin="8dp"
-
-                android:layout_weight="1"
-                android:background="@drawable/bg_button_solid_white"
-                android:drawableTop="@drawable/ic_person_black_100dp"
-                android:paddingLeft="16dp"
-                android:paddingTop="16dp"
-                android:paddingRight="16dp"
-                android:text="Profile"
-                android:textAllCaps="false" />
-        </LinearLayout>
-
-
-    </LinearLayout>
-
-    <FrameLayout
-        android:id="@+id/consumer_dash_board_fragment_container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-</RelativeLayout>
+    </RelativeLayout>
+</ScrollView>

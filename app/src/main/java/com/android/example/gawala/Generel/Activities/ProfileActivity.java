@@ -29,6 +29,7 @@ import android.widget.Toast;
 
 import com.android.example.gawala.Generel.Fraagments.ImageViewerFragment;
 import com.android.example.gawala.Generel.Fraagments.RatingFragment;
+import com.android.example.gawala.Generel.Utils.RatingBarUtils;
 import com.android.example.gawala.Generel.Utils.SharedPreferenceUtil;
 import com.android.example.gawala.Provider.Activities.ProviderTransportersActivity;
 import com.android.example.gawala.Provider.Fragments.EditCitiesFragment;
@@ -105,6 +106,7 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_personal_info);
+        getSupportActionBar().setTitle("Profile");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         initFields();
@@ -405,9 +407,9 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
 
             } else {
                 mProgressDialog.dismiss();
-                final Throwable cropError = UCrop.getError(data);
-                Toast.makeText(this, "operation unsuccessfull" + cropError.getMessage(), Toast.LENGTH_SHORT).show();
-                System.out.println("errorCrop: " + cropError.getMessage());
+//                final Throwable cropError = UCrop.getError(data);
+//                Toast.makeText(this, "operation unsuccessfull" /*+ cropError.getMessage()*/, Toast.LENGTH_SHORT).show();
+//                System.out.println("errorCrop: " + cropError.getMessage());
             }
         } else if (requestCode == RC_SELECT_TRANSPORTER) {
             if (resultCode == RESULT_OK) {
@@ -490,6 +492,10 @@ public class ProfileActivity extends AppCompatActivity implements EditCitiesFrag
                             float numberOfRating = dataSnapshot.child("rating").child("total_number").getValue(Float.class);
                             averageRatings = overAllRating / numberOfRating;
                             ratingBar.setRating(averageRatings);
+                            //use later the below code if needed
+//                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//                                RatingBarUtils.setAppropriatecolor(ratingBar,averageRatings);
+//                            }
                         }
 
 

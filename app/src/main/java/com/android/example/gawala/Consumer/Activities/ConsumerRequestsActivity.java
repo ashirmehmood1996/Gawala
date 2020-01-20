@@ -296,7 +296,15 @@ public class ConsumerRequestsActivity extends AppCompatActivity implements Produ
                             } else {
                                 Toast.makeText(getApplicationContext(), "No Producer Found.. Sorry", Toast.LENGTH_SHORT).show();
                             }
-                            mAlertDialog.dismiss();
+                            try {
+
+
+                                if (mAlertDialog != null && mAlertDialog.isShowing()) {
+                                    mAlertDialog.dismiss();//// FIXME: 1/10/2020 crashed view not attached to window
+                                }
+                            }catch (Exception ignored){
+
+                            }
 
                         }
                     }

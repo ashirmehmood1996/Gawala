@@ -36,7 +36,7 @@ public class AquiredGoodDetailFragment extends DialogFragment {
 
     private TextView nameTextView, descTextView, priceTextView, typeTextView, demandTextView;
     private Button removeItemFromDemandButton;
-    private ImageButton editDemandImageButton;
+    private ImageButton editDemandImageButton,backButton;
     private ImageView goodPictureImageView;
 
     private int mDemand = 0;
@@ -82,7 +82,7 @@ public class AquiredGoodDetailFragment extends DialogFragment {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
+        if (item.getItemId() == android.R.id.home || item.getItemId() == R.id.ib_con_acquired_goods_detail_back) {
             dismiss();
             return true;
         } else {
@@ -96,8 +96,10 @@ public class AquiredGoodDetailFragment extends DialogFragment {
         priceTextView = rootView.findViewById(R.id.tv_con_acquired_goods_detail_price);
         typeTextView = rootView.findViewById(R.id.tv_con_acquired_goods_detail_type);
 
+
         demandTextView = rootView.findViewById(R.id.tv_acquired_goods_demand);
         editDemandImageButton = rootView.findViewById(R.id.ib_acquired_goods_edit_demand);
+        backButton = rootView.findViewById(R.id.ib_con_acquired_goods_detail_back);
         goodPictureImageView = rootView.findViewById(R.id.iv_con_acquired_goods_detail_picture);
 
         removeItemFromDemandButton = rootView.findViewById(R.id.bt_con_acquired_goods_remove);

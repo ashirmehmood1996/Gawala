@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -50,6 +51,7 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
         setContentView(R.layout.activity_consumer_acquired_goods);
 
         getSupportActionBar().setTitle("My Demand");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         initFields();
         loadProducersListAndRespectiveServices();
@@ -68,6 +70,16 @@ public class AcquiredGoodsActivity extends AppCompatActivity implements Acquired
         initializeDialog();
 
 
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
     }
 
     private void initializeDialog() {

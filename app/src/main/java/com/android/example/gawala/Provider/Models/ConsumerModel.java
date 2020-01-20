@@ -1,5 +1,7 @@
 package com.android.example.gawala.Provider.Models;
 
+import android.net.Uri;
+
 import com.android.example.gawala.Generel.Models.AcquiredGoodModel;
 import com.google.android.gms.maps.model.Marker;
 
@@ -29,6 +31,7 @@ public class ConsumerModel implements Serializable {
 
 
     private ArrayList<AcquiredGoodModel> demandArray;
+    private Uri imageUri;
 
 
     public ConsumerModel(String id, String name, String numeber, String time_stamp, String lat, String lng, String imageUrl, long alertNotificationTime) {
@@ -162,5 +165,14 @@ public class ConsumerModel implements Serializable {
 
     public void setAlertNotificationTime(long alertNotificationTime) {
         this.alertNotificationTime = alertNotificationTime;
+    }
+
+
+    public void setImageUri(Uri imageUri) {
+        this.imageUri = imageUri;
+    }
+
+    public Uri getImageUri() {
+        return imageUri;
     }
 }

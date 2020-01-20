@@ -14,12 +14,20 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Property;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import com.android.example.gawala.Transporter.Interfaces.LatLngInterpolator;
@@ -28,6 +36,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -35,15 +44,20 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
+import com.mikhaellopez.circularimageview.CircularImageView;
 
 import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef;
+import static com.android.example.gawala.Transporter.Activities.TransporterMainActivity.createDrawableFromView;
 
 public class ConsumerMapActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int RC_PERMISSION_ALL = 1212;
+    public static final String TRANSPORTER_NAME = "Transportername";
+    public static final String PROVIDER_NAME = "providerName";
+    public static final String TRANSPORTER_ID = "providerId";
     private GoogleMap mMap;
-    private Marker mProducerLocationMarker;
-    private String producerId;
+    private Marker mTransporterLocationMarker;
+    private String transporterId;
     private String[] PERMISSIONS = {
             android.Manifest.permission.WRITE_EXTERNAL_STORAGE,//NOTE when we make it read external storage we get the permissions but may be there is a bug that does make errors or permissions denied but by asking write permissions we get passed by that bug
             android.Manifest.permission.ACCESS_FINE_LOCATION};
@@ -55,7 +69,7 @@ public class ConsumerMapActivity extends AppCompatActivity implements OnMapReady
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_consumer_map);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         if (!hasPermissions(this, PERMISSIONS)) {
             requestAllPermissions();
@@ -72,9 +86,9 @@ public class ConsumerMapActivity extends AppCompatActivity implements OnMapReady
     }
 
     private void initfields() {
-        producerId = getIntent().getStringExtra("producer_id");
+        transporterId = getIntent().getStringExtra(TRANSPORTER_ID);
         mLocationUpdateNodeRef = rootRef.child("locationUpdates")
-                .child(producerId);
+                .child(transporterId);
         mLocationListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -140,7 +154,7 @@ public class ConsumerMapActivity extends AppCompatActivity implements OnMapReady
     }
 
     private void showAlerDialogForGPS() {
-        final android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Enable Location !")
                 .setMessage("Location must be enabled in settings in order to use this app." +
                         "Want to enable Location?")
@@ -164,7 +178,7 @@ public class ConsumerMapActivity extends AppCompatActivity implements OnMapReady
                         }, 2000);
                     }
                 });
-        android.app.AlertDialog alert = builder.create();
+        AlertDialog alert = builder.create();
         alert.show();
     }
 
@@ -243,12 +257,25 @@ public class ConsumerMapActivity extends AppCompatActivity implements OnMapReady
 
         LatLng latLng = new LatLng(lat, lng);
 
-        if (mProducerLocationMarker == null) {
-            mProducerLocationMarker = mMap.addMarker(new MarkerOptions().title("Producer").position(latLng).draggable(true));
+        if (mTransporterLocationMarker == null) {
+            View markerLayout = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_layout, null);
+            CircularImageView circularImageView = markerLayout.findViewById(R.id.civ_custom_marker);
+            circularImageView.setBorderColor(getResources().getColor(R.color.colorAccent));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                markerLayout.findViewById(R.id.v_custom_marker).getBackground().setTint(getResources().getColor(R.color.colorAccent));
+            }
+            mTransporterLocationMarker = mMap.addMarker(new MarkerOptions()
+                    .position(latLng)
+                    .title(getIntent().getStringExtra(TRANSPORTER_NAME))
+                    .snippet(String.format("serving under: %s", getIntent().getStringExtra(PROVIDER_NAME)))
+                    .icon(BitmapDescriptorFactory.fromBitmap(/*getMarkerBitmapFromView(markerLayout)*/createDrawableFromView(this, markerLayout))));
+
+
+//            mTransporterLocationMarker = mMap.addMarker(new MarkerOptions().title("Producer").position(latLng).draggable(true));
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16.0f));
         } else {
-//            mProducerLocationMarker.setPosition(location);
-            animateMarkerToICS(mProducerLocationMarker, latLng, new LatLngInterpolator.LinearFixed()/*, currentChild.getChildChanginInfoModel().isSelected()*/);
+//            mTransporterLocationMarker.setPosition(location);
+            animateMarkerToICS(mTransporterLocationMarker, latLng, new LatLngInterpolator.LinearFixed()/*, currentChild.getChildChanginInfoModel().isSelected()*/);
         }
 //        for (Marker marker : mMarkers.values()) {
 //            builder.include(marker.getPosition());
@@ -298,6 +325,71 @@ public class ConsumerMapActivity extends AppCompatActivity implements OnMapReady
         });
     }
 
+    /* private void createNewMarker(String  url, double lat, double lon) {
+         Bitmap child_pic = null;
+         if (url != null) {
+             child_pic = BitmapFactory.decodeFile(currentChild.getUri().getPath());
+         } else {
+             child_pic = BitmapFactory.decodeResource(getResources(), R.drawable.kid);
+         }
+
+         //child_pic = BitmapFactory.decodeResource(currentChild.getUri());
+         // adjusting the picture
+
+         child_pic = loadBitmapFromView(scaleDown(child_pic, 230.0f, true));
+
+         MarkerOptions currentMarkerOptions = new MarkerOptions().position(new LatLng(lat, lon))
+                 .icon(BitmapDescriptorFactory.fromBitmap(child_pic))
+
+                 .title("asdasd");
+         currentMarkerOptions.infoWindowAnchor(0.5f, 0.05f);
+ //        CustomeMarkerInfoAdapter currentChildCustomeMarkerInfoAdapter = new CustomeMarkerInfoAdapter(this, currentChild);
+
+
+         Marker currentMarker = mMap.addMarker(currentMarkerOptions);
+
+ //        currentChild.setMarker(currentMarker);
+         //childsMarkerArrayList.add(currentMarker);
+ //        mMap.setInfoWindowAdapter(currentChildCustomeMarkerInfoAdapter); //todo  now  make separate info window fr each adapter if possible
+
+         //currentMarker.showInfoWindow();
+ //        String currentMarkerId = currentMarker.getId();
+ //        currentChild.getChildChanginInfoModel().setMarkerID(currentMarkerId);
+     }*/
+    //markerOptions related
+    public static Bitmap loadBitmapFromView(Bitmap b1) {
+        Bitmap b = Bitmap.createBitmap(b1.getWidth(), b1.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(b);
+        //v.layout(0, 0,b1.getWidth(), b1.getHeight());
+        // for creating round image
+        final int color = 0xff424242;
+        final Paint paint = new Paint();
+        final Rect rect = new Rect(0, 0, b1.getWidth(), b1.getHeight());
+
+        paint.setAntiAlias(true);
+        canvas.drawARGB(0, 0, 0, 0);
+        paint.setColor(color);
+        // canvas.drawRoundRect(rectF, roundPx, roundPx, paint);
+        canvas.drawCircle(b1.getWidth() / 2, b1.getHeight() / 2,
+                b1.getWidth() / 2, paint);
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        canvas.drawBitmap(b1, rect, rect, paint);
+
+        return b;
+    }
+
+    public Bitmap scaleDown(Bitmap realImage, float maxImageSize, boolean filter) {
+        float ratio = Math.min(
+                maxImageSize / 60,
+                maxImageSize / 60);
+        int width = Math.round(ratio * 55);
+        int height = Math.round(ratio * 70);
+
+        Bitmap newBitmap = Bitmap.createScaledBitmap(realImage, width, height, filter);
+        return newBitmap;
+    }
+
+
     @Override
     public void onBackPressed() {
 
@@ -306,7 +398,9 @@ public class ConsumerMapActivity extends AppCompatActivity implements OnMapReady
 
     @Override
     protected void onDestroy() {
-        mLocationUpdateNodeRef.removeEventListener(mLocationListener);
+        if (mLocationListener != null) {
+            mLocationUpdateNodeRef.removeEventListener(mLocationListener);
+        }
         super.onDestroy();
     }
 

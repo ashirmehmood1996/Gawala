@@ -3,9 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:requiresFadingEdge="vertical"
-    android:fadingEdgeLength="30dp"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#fff"
+    tools:context=".Consumer.Activities.ProducerDetailActivty"
+    android:fadingEdgeLength="15dp"
+    android:requiresFadingEdge="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,7 +15,7 @@
         android:orientation="vertical"
         android:paddingTop="16dp"
         android:paddingBottom="16dp"
-        tools:context=".Consumer.Activities.ProducerDetailActivty">
+     >
 
         <com.mikhaellopez.circularimageview.CircularImageView
             android:id="@+id/civ_prod_detail_picture"
@@ -38,19 +40,32 @@
 
         <TextView
             android:id="@+id/tv_prod_detail_number"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-condensed-light"
-            android:gravity="center"
+            android:layout_gravity="center"
             android:paddingTop="8dp"
 
             android:text="+92 123 4567890 "
             android:textColor="#000000"
             android:textSize="18sp" />
 
+        <com.google.android.material.button.MaterialButton
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:id="@+id/bt_prod_detail_profile"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textAllCaps="false"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:text="See Profile"
+            android:textColor="#3949AB"/>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
@@ -58,20 +73,20 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
-                android:layout_margin="16dp"
-                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
                 android:background="@drawable/bg_button_solid"
                 android:enabled="false"
                 android:text="send request" />
 
             <com.google.android.material.button.MaterialButton
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:id="@+id/bt_prod_detail_see_on_map"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
-                android:layout_margin="16dp"
-                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:layout_marginLeft="8dp"
                 android:background="@drawable/bg_button_solid"
                 android:text="see on map" />
         </LinearLayout>
@@ -80,13 +95,12 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:background="#e9e9e9"
-            android:elevation="2dp"
-            android:fontFamily="sans-serif-condensed-light"
+            android:elevation="4dp"
             android:padding="16dp"
             android:text="Services"
-            android:textColor="#000000" />
+            android:textColor="#000"
+            android:textSize="22sp"
+            android:textStyle="bold" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_prod_detail"
@@ -95,7 +109,8 @@
             android:layout_weight="1"
             android:nestedScrollingEnabled="false"
             android:orientation="vertical"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:ignore="UnusedAttribute" />
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

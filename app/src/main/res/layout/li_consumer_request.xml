@@ -10,8 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/contacts_list_item_background"
-        android:clickable="true"
-        >
+        android:clickable="true">
 
         <com.mikhaellopez.circularimageview.CircularImageView
             android:id="@+id/civ_li_request_picture"
@@ -62,24 +61,21 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/bt_li_request_accept"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="5dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_button_solid"
-                    android:textColor="#fff"
-                    android:text="Accept" />
-
-                <Button
+                    android:layout_marginRight="6dp"
                     android:background="@drawable/bg_button_solid_red"
-                    android:textColor="#fff"
+                    android:text="Accept"/>
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/bt_li_request_reject"
-                    android:layout_width="0dp"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="5dp"
-                    android:layout_weight="1"
+
+                    android:background="@drawable/bg_button_solid_red"
                     android:text="Reject" />
             </LinearLayout>
 
@@ -91,11 +87,11 @@
             android:id="@+id/tv_li_request_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAlignment="center"
             android:layout_gravity="top"
+            android:layout_margin="16dp"
             android:layout_marginTop="8dp"
             android:text=" 00:00"
-            android:layout_margin="16dp"
+            android:textAlignment="center"
             android:textColor="@color/text_light"
             android:textSize="12sp" />
     </LinearLayout>

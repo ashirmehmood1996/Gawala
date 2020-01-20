@@ -56,6 +56,7 @@ public class ProviderTransportersActivity extends AppCompatActivity implements T
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_provider_transporters);
+        getSupportActionBar().setTitle("Transporters");
         initFields();
         attachListeners();
         transportersRef.addChildEventListener(transportersChildEventListener);

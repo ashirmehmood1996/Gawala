@@ -13,3 +13,28 @@
     <color name="text_dark">#2B3D4D</color>
     <color name="colorRed">#ff0000</color>
 </resources>
+<!--new look-->
+<!--
+<resources>
+<color name="colorPrimary">#424242</color>
+<color name="bgColor">#202020</color>
+<color name="colorPrimaryDark">#424242</color>
+<color name="colorAccent">#9C7B0A</color>
+&lt;!&ndash;<color name="colorAccent">#C2A52B</color>&ndash;&gt;
+
+
+&lt;!&ndash;<color name="colorPrimary">#21242C</color>
+<color name="bgColor">#636364</color>
+<color name="colorPrimaryDark">#232324</color>
+<color name="colorAccent">#9C7B0A</color>&ndash;&gt;
+
+&lt;!&ndash;<color name="colorPrimary">#00BCD4</color>
+  <color name="colorPrimaryDark">#0099AF</color>
+  <color name="colorAccent">#D81B60</color>&ndash;&gt;
+
+<color name="text_light">#B4BAC0</color>
+<color name="text_dark">#2B3D4D</color>
+<color name="colorRed">#ff0000</color>
+</resources>
+-->
+

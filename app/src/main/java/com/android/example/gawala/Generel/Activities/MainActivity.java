@@ -167,22 +167,25 @@ public class MainActivity extends AppCompatActivity {
 //  4.6.1) !!!done show clients only in one fragment and do all the data fatching there
 //  4.6.2) !!! done fethc fresh data in ride fragment and start ride as it was before in a map fragment may be
 //  4.6.3)!!!done  shift the functionality in a service
-//  4.7)  !!! done show shummery for consumer
-//  4.8) !!! done show shummery for provider
-//  4.9) !!! done show shummery for rider
+//  4.7)  !!! done show summery for consumer
+//  4.8) !!! done show summery for provider
+//  4.9) !!! done show summery for rider
 //  !!!done partially done make the records summery more robust like an option to fetch the monthly or yearly summery
+// FIXME: done 1/8/2020 show the real time tracking button for consumer
 
 
 
-// TODO: 12/31/2019
-//fixme find aother todos and  fixmes in app
-//fixme allow the provider in real time that client location has changes
-//fixme make the notification batch working and to other places like notification button and app oicon too
-// TODO: 8/6/2019  put a braod cast receiver when GPs is turned on adn off and then trigger the location api
+/// // TODO: 1/13/2020  add the items that are being carried in the
 // TODO: 11/16/2019  test by adding more producers
-//// FIXME: 1/2/2020 the bug of no city in edit cities fragment
-// FIXME: 1/6/2020 fix the bug of polyline not removed when ride was finished not happens all the times
-// FIXME: 1/6/2020 on what basis the priority of stops is getting defined ?? rethink that concept and present the solution
+//// todo test this using 10 or more consumer putNearestStopInPosition() in the ride service
+
+
+
+//TODO: LATER 8/6/2019  put a braod cast receiver when GPs is turned on adn off and then trigger the location api
+//fixme: LATER if time allow the provider in real time that client location has changes
+//fixme: LATER if time make the notification batch working and to other places like notification button and app oicon too
+// FIXME: 1/6/2020 LATER if needed fix the bug of polyline not removed when ride was finished not happens all the times
+// FIXME: 1/12/2020 LATER one transporter should not be added by multiple providers and one provider should be shown a dialog that transporter already added
 
 //  1) later if said so show the consumer top items and a search option to avail new Item for which ofcourse we have to provide rge categoris and change the schema a little bit and learn some good seraching techniques good luck
 //  2) later if said so should show the statistic on top like amazon does wich will have an initila hard codded values of clients riders earnings etc

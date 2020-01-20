@@ -74,9 +74,11 @@
                     style="?android:attr/ratingBarStyleIndicator"
                     android:isIndicator="true"
                     android:layout_height="wrap_content"
+                    android:progressTint="@color/colorPrimary"
                     android:numStars="5"
-                    android:rating="5"
-                    android:saveEnabled="true" />
+                    android:rating="0"
+                    android:saveEnabled="true"
+                    tools:ignore="UnusedAttribute" />
             </FrameLayout>
 
             <ImageButton

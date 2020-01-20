@@ -1,211 +1,233 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center"
-    android:orientation="vertical"
-    tools:context=".Consumer.fragments.AquiredGoodDetailFragment">
+    android:layout_height="match_parent">
 
-    <ImageView
-        android:id="@+id/iv_con_acquired_goods_detail_picture"
-
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="@color/colorPrimary"
-        android:padding="16dp"
-
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_broken_image_black_24dp" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="2dp"
-        android:background="@drawable/bg_containers"
-        android:elevation="1dp"
-        android:orientation="horizontal"
-        android:padding="8dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top"
-            android:padding="6dp"
-            android:text="Title"
-            android:textColor="#000"
-            android:textStyle="bold" />
-
-
-        <TextView
-            android:id="@+id/tv_con_acquired_goods_detail_name"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top"
-            android:layout_weight="1"
-
-            android:maxLines="1"
-            android:padding="6dp"
-            android:text="Milk" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-
-        android:layout_height="wrap_content"
-        android:layout_margin="2dp"
-        android:background="@drawable/bg_containers"
-        android:elevation="1dp"
-        android:orientation="horizontal"
-        android:padding="8dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top"
-            android:padding="6dp"
-            android:text="Detail"
-            android:textColor="#000"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tv_con_acquired_goods_detail_desc"
-
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top"
-            android:layout_weight="1"
-            android:maxLines="5"
-            android:padding="6dp"
-            android:text="e.g. this is a dairy product adn freshly picked up healthy product" />
-
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-
-        android:layout_height="wrap_content"
-        android:layout_margin="2dp"
-        android:background="@drawable/bg_containers"
-        android:elevation="1dp"
-        android:orientation="horizontal"
-        android:padding="8dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top"
-            android:padding="6dp"
-            android:text="Price"
-            android:textColor="#000"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tv_con_acquired_goods_detail_price"
-
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top"
-            android:layout_weight="1"
-            android:maxLines="1"
-            android:padding="6dp"
-            android:text="e.g. 100" />
-
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-
-        android:layout_height="wrap_content"
-        android:layout_margin="2dp"
-        android:background="@drawable/bg_containers"
-        android:elevation="1dp"
-        android:orientation="horizontal"
-        android:padding="8dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top"
-            android:padding="6dp"
-            android:text="Type"
-            android:textColor="#000"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tv_con_acquired_goods_detail_type"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top"
-            android:layout_weight="1"
-            android:maxLines="1"
-            android:padding="6dp"
-            android:text="e.g. dairy" />
-
-
-    </LinearLayout>
-
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="2dp"
-        android:background="@drawable/bg_containers"
-        android:elevation="1dp"
-        android:orientation="horizontal"
-        android:padding="8dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:padding="6dp"
-            android:text="Demand"
-            android:textColor="#000"
-            android:textStyle="bold" />
-
-
-        <TextView
-            android:id="@+id/tv_acquired_goods_demand"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:textSize="18sp"
-            android:textStyle="bold|italic"
-            tools:text="1 unit(s)" />
-
-        <ImageButton
-            android:id="@+id/ib_acquired_goods_edit_demand"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="6dp"
-            android:background="@drawable/bg_bt_round"
-            android:contentDescription="edit litres of milk to order today and onwards"
-            android:elevation="4dp"
-            android:padding="10dp"
-            android:src="@drawable/ic_mode_edit_black_24dp" />
-    </LinearLayout>
-
-    <Button
-        android:id="@+id/bt_con_acquired_goods_remove"
-
+    <ImageButton
+        android:contentDescription="back button"
+        android:id="@+id/ib_con_acquired_goods_detail_back"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:background="@drawable/bg_button_solid_red"
-        android:drawableLeft="@drawable/ic_delete_forever_black_24dp"
-        android:drawablePadding="6dp"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
-        android:text="Remove Item"
-        android:textColor="#ffffff" />
+        android:background="?attr/selectableItemBackground"
+        android:elevation="2dp"
+        android:padding="10dp"
+        android:src="@drawable/ic_keyboard_backspace_white_24dp"/>
 
-</LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        tools:context=".Consumer.fragments.AquiredGoodDetailFragment">
+
+        <ImageView
+            android:id="@+id/iv_con_acquired_goods_detail_picture"
+
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@color/colorPrimary"
+            android:padding="16dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_broken_image_black_24dp"
+            android:contentDescription="Item Picture" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="2dp"
+            android:background="@drawable/bg_containers"
+            android:elevation="1dp"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:padding="6dp"
+                android:text="Title"
+                android:minEms="3"
+                android:textColor="#000"
+                android:textStyle="bold" />
+
+
+            <TextView
+                android:id="@+id/tv_con_acquired_goods_detail_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:layout_weight="1"
+
+                android:maxLines="1"
+                android:padding="6dp"
+                android:text="Milk" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:minEms="3"
+
+            android:layout_height="wrap_content"
+            android:layout_margin="2dp"
+            android:background="@drawable/bg_containers"
+            android:elevation="1dp"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:padding="6dp"
+                android:text="Detail"
+                android:textColor="#000"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_con_acquired_goods_detail_desc"
+
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:layout_weight="1"
+                android:maxLines="5"
+                android:padding="6dp"
+                android:text="e.g. this is a dairy product adn freshly picked up healthy product" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+
+
+            android:layout_height="wrap_content"
+            android:layout_margin="2dp"
+            android:background="@drawable/bg_containers"
+            android:elevation="1dp"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:minEms="3"
+                android:padding="6dp"
+                android:text="Price"
+                android:textColor="#000"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_con_acquired_goods_detail_price"
+
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:padding="6dp"
+                android:text="e.g. 100" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+
+            android:layout_height="wrap_content"
+            android:layout_margin="2dp"
+            android:background="@drawable/bg_containers"
+            android:elevation="1dp"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:padding="6dp"
+                android:text="Type"
+                android:textColor="#000"
+                android:minEms="3"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_con_acquired_goods_detail_type"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:padding="6dp"
+                android:text="e.g. dairy" />
+
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="2dp"
+            android:background="@drawable/bg_containers"
+            android:elevation="1dp"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:padding="6dp"
+                android:text="Demand"
+                android:textColor="#000"
+                android:minEms="3"
+                android:textStyle="bold" />
+
+
+            <TextView
+                android:id="@+id/tv_acquired_goods_demand"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textSize="18sp"
+
+                android:textStyle="bold|italic"
+                tools:text="1 unit(s)" />
+
+            <ImageButton
+                android:id="@+id/ib_acquired_goods_edit_demand"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:background="@drawable/bg_bt_round"
+                android:contentDescription="edit litres of milk to order today and onwards"
+                android:elevation="4dp"
+                android:padding="10dp"
+                android:src="@drawable/ic_mode_edit_black_24dp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/bt_con_acquired_goods_remove"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:background="@drawable/bg_button_solid_red"
+            android:drawableLeft="@drawable/ic_delete_forever_black_24dp"
+            android:drawablePadding="6dp"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:text="Remove Item"
+            android:textColor="#ffffff" />
+
+    </LinearLayout>
+
+</RelativeLayout>

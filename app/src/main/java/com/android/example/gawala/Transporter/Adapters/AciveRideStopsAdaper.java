@@ -2,6 +2,8 @@ package com.android.example.gawala.Transporter.Adapters;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,7 +28,6 @@ public class AciveRideStopsAdaper extends RecyclerView.Adapter<AciveRideStopsAda
 //    private Callbacks callbacks;
 
     /**
-     *
      * @param context
      * @param consumerModelArrayList the llist of consumers to which goods are needed to be sent
      */
@@ -49,32 +50,60 @@ public class AciveRideStopsAdaper extends RecyclerView.Adapter<AciveRideStopsAda
         String name = consumerModel.getName();
         String location;
 
-        if (consumerModel.getLocationName()==null || consumerModel.getLocationName().isEmpty()){
+        if (consumerModel.getLocationName() == null || consumerModel.getLocationName().isEmpty()) {
             location = consumerModel.getLatitude() + " " + consumerModel.getLongitude();
-        }else {
+        } else {
             location = consumerModel.getLocationName();
         }
 
 
-
-        holder.priorityTextView.setText((position+1)+"");
+        holder.priorityTextView.setText((position + 1) + "");
 
         holder.nameTextView.setText(name);
         holder.locationTextView.setText(location);
 
         boolean status = consumerModel.isDelivered();
+
+        GradientDrawable gradientDrawable = (GradientDrawable) holder.priorityTextView.getBackground();
+
         if (RideService.activeStopPosition != position) {
+
             if (status) {
-                holder.statusTextView.setText(String.format("%.1f litre(s)\nDelivered",milkAmount));
+                holder.statusTextView.setText("Delivered");
+
                 holder.statusTextView.setTextColor(Color.BLUE);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    gradientDrawable.setTint(Color.BLUE);
+                }
             } else {
-                holder.statusTextView.setText(String.format("%.1f litre(s)\nPending",milkAmount));
+                holder.statusTextView.setText("Pending");
                 holder.statusTextView.setTextColor(Color.GRAY);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    gradientDrawable.setTint(Color.GRAY);
+                }
             }
-        }else {
-            holder.statusTextView.setText(String.format("%.1f litre(s)\nCarrying",milkAmount));
+
+        } else {
+            holder.statusTextView.setText("Carrying");
             holder.statusTextView.setTextColor(Color.GREEN);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                gradientDrawable.setTint(Color.GREEN);
+            }
         }
+
+
+//        if (RideService.activeStopPosition != position) {
+//            if (status) {
+//                holder.statusTextView.setText(String.format("%.1f litre(s)\nDelivered",milkAmount));
+//                holder.statusTextView.setTextColor(Color.BLUE);
+//            } else {
+//                holder.statusTextView.setText(String.format("%.1f litre(s)\nPending",milkAmount));
+//                holder.statusTextView.setTextColor(Color.GRAY);
+//            }
+//        }else {
+//            holder.statusTextView.setText(String.format("%.1f litre(s)\nCarrying",milkAmount));
+//            holder.statusTextView.setTextColor(Color.GREEN);
+//        }
 
     }
 
@@ -85,7 +114,7 @@ public class AciveRideStopsAdaper extends RecyclerView.Adapter<AciveRideStopsAda
 
     class ActiverideViewHolder extends RecyclerView.ViewHolder {
         LinearLayout containerLinearLayout;
-        TextView nameTextView, locationTextView, statusTextView,priorityTextView;
+        TextView nameTextView, locationTextView, statusTextView, priorityTextView;
 
 
         ActiverideViewHolder(@NonNull View itemView) {
@@ -95,7 +124,7 @@ public class AciveRideStopsAdaper extends RecyclerView.Adapter<AciveRideStopsAda
             nameTextView = itemView.findViewById(R.id.tv_li_active_ride_client_name);
             locationTextView = itemView.findViewById(R.id.tv_li_active_ride_client_address);
             statusTextView = itemView.findViewById(R.id.tv_li_active_ride_client_status);
-            priorityTextView=itemView.findViewById(R.id.tv_li_active_ride_priority);
+            priorityTextView = itemView.findViewById(R.id.tv_li_active_ride_priority);
             atachListeners();
         }
 

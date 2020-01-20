@@ -44,9 +44,11 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
+import com.google.maps.android.SphericalUtil;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -77,8 +79,8 @@ import static com.android.example.gawala.Generel.Activities.MainActivity.rootRef
 public class RideService extends Service {
     private final IBinder binder = new MyLocalBinder();
     private Callbacks callbacks;
-    private static final long FASTEST_INTERVAL = 5000; //change back to 100000
     private static final long REQUEST_INTERVAL = 3000;//change back to 15000
+    private static final long FASTEST_INTERVAL = 5000; //change back to 100000
     public static final String RIDE_ARRAY_LIST_KEY = "rideArray";
     public static final String PROVIDER_ID = "providerId";
 
@@ -97,6 +99,7 @@ public class RideService extends Service {
     private int DISTANCE_MATRIX_MIN_INTRVAL_DISTANCE = 50; // in meters
     private long MINIMUM_TIME_FOR_AGGRESIVE_ALERT = 100; //seconds
 
+    private boolean isListSortedFirstTime = false;
     private FusedLocationProviderClient client;
     private LocationCallback mLocationcallback = new LocationCallback() {
         @Override
@@ -105,7 +108,12 @@ public class RideService extends Service {
 
             if (FirebaseAuth.getInstance().getCurrentUser() == null) return;
 
+
             if (mActiveRideArrayList != null) { // to make sure that on start command has been called
+                if (!isListSortedFirstTime) {
+                    putNearestStopInPosition();
+                    isListSortedFirstTime = true;
+                }
 
                 if (currentStopPolylineOptions == null) { //will be null in the beginning and when the new stop is assigned
                     callForPolylineApi();
@@ -126,6 +134,40 @@ public class RideService extends Service {
         }
     };
 
+    // todo test this using 10 or more consumer s
+    private void putNearestStopInPosition() {
+        double latitude = mCurrentLocationResult.getLocations().get(0).getLatitude();
+        double longitude = mCurrentLocationResult.getLocations().get(0).getLongitude();
+        LatLng currentLatLang = new LatLng(latitude, longitude);
+        double lastDistance = 0.0;
+        int minDistanceIndex = 0;
+        for (int i = 0; i < mActiveRideArrayList.size(); i++) {
+            if (mActiveRideArrayList.get(i).isDelivered()) continue;
+            double conLat = Double.parseDouble(mActiveRideArrayList.get(i).getLatitude());
+            double conLng = Double.parseDouble(mActiveRideArrayList.get(i).getLongitude());
+            LatLng conLatLng = new LatLng(conLat, conLng);
+            double currentDistance = SphericalUtil.computeDistanceBetween(currentLatLang, conLatLng);
+            if (lastDistance == 0) {// this means it is the first iteration
+                lastDistance = currentDistance;
+                minDistanceIndex = i;
+            } else if (currentDistance < lastDistance) {//it menas  that it is nearer than the previous near stop
+                minDistanceIndex = i;
+            }
+        } //after this for lop we found the index of stop that is nearest to the current location
+        // now we need a point nearer to this index and does not need to iterate
+
+        for (int i = 0; i < mActiveRideArrayList.size(); i++) {
+            ConsumerModel consumerModel = mActiveRideArrayList.get(i);
+            if (consumerModel.isDelivered())
+                continue;// the ones that are delivered are in initial positions
+            if (minDistanceIndex == i)
+                break;// no need to swap // first undelivered position is the nearest then no ned to swap
+            Collections.swap(mActiveRideArrayList, minDistanceIndex, minDistanceIndex);// swap minimum stop with the current stop
+            break;
+        }
+
+    }
+
     @Override
     public void onCreate() {
         createLocationRequest();
@@ -142,8 +184,12 @@ public class RideService extends Service {
         startForeground(1, createNotification().build());
         mActiveRideArrayList = (ArrayList<ConsumerModel>) intent.getSerializableExtra(RIDE_ARRAY_LIST_KEY);
         providerId = intent.getStringExtra(PROVIDER_ID);
+        setRideActive(true);
         return super.onStartCommand(intent, flags, startId);
+
+
     }
+
 
     //location related
     private void createLocationRequest() {
@@ -387,6 +433,7 @@ public class RideService extends Service {
     public void deliveredToCurrentStop() {
         mActiveRideArrayList.get(activeStopPosition).setDelivered(true);
         sendMessageToConsumer(mActiveRideArrayList.get(activeStopPosition).getId());
+        putNearestStopInPosition();
         activeStopPosition++;
         if (activeStopPosition >= mActiveRideArrayList.size()) { //then there are no stops further and we need to finish journey
             abortJourney();
@@ -525,6 +572,7 @@ public class RideService extends Service {
 
     @Override
     public void onDestroy() {
+        setRideActive(false);
         if (client != null) {
             client.removeLocationUpdates(mLocationcallback);
         }
@@ -560,5 +608,10 @@ public class RideService extends Service {
 
         void abortJourney();
 
+    }
+
+    private void setRideActive(boolean isRideActvie) {
+        rootRef.child(Constants.Ride.IS_RIDING)
+                .child(myID).setValue(isRideActvie);
     }
 }

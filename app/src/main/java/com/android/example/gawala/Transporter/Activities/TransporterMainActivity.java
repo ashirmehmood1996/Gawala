@@ -4,6 +4,7 @@ import android.Manifest;
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.animation.TypeEvaluator;
+import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
@@ -14,8 +15,11 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
 import android.location.LocationManager;
@@ -24,6 +28,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 
+import com.android.example.gawala.Consumer.Activities.ConsumerMapActivity;
 import com.android.example.gawala.Generel.Activities.LoginActivity;
 import com.android.example.gawala.Generel.Activities.NotificationsActivity;
 import com.android.example.gawala.Generel.Activities.ProfileActivity;
@@ -43,6 +48,11 @@ import com.android.example.gawala.Generel.Utils.UtilsMessaging;
 import com.android.example.gawala.Transporter.Fragments.ProducerSummeryFragment;
 import com.android.example.gawala.R;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.Target;
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -74,12 +84,15 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Property;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -90,6 +103,9 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.mikhaellopez.circularimageview.CircularImageView;
 
 import androidx.core.view.MenuItemCompat;
@@ -110,6 +126,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -976,7 +993,21 @@ public class TransporterMainActivity extends AppCompatActivity
         //   mMap.getUiSettings().setCompassEnabled(true);
         mMap.setPadding(0, 0, 0, 0); //to do this property may be pixed dependednt find a fix later
 
-
+//        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+//            @Override
+//            public void onInfoWindowClick(Marker marker) {
+//                String markerTitle = marker.getTitle();
+//                if (!markerTitle.equals("you")) {
+////                    for (ConsumerModel consumerModel : mConsumerModelArrayList) {//matching the child to markerOptions and calling info window for related child
+////                        if (markerTitle.equals(consumerModel.getId())) {
+////                            Toast.makeText(mRideService, "Consumer is clicked", Toast.LENGTH_SHORT).show();
+////                            break;
+////                        }
+////                    }
+//                    Toast.makeText(mRideService, "Consumer is clicked", Toast.LENGTH_SHORT).show();
+//                }
+//            }
+//        });
         createLocationRequest();
         listenTomyLocation();
 //        loadAllConsumers();
@@ -1032,8 +1063,64 @@ public class TransporterMainActivity extends AppCompatActivity
 
         LatLng location = new LatLng(lat, lng);
 
+        if (mMap == null) return;
         if (myCurrentLocationMarker == null) {
-            myCurrentLocationMarker = mMap.addMarker(new MarkerOptions().title("my position").position(location).draggable(true));
+
+
+            View markerLayout = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_layout, null);
+
+            CircularImageView circularImageView = markerLayout.findViewById(R.id.civ_custom_marker);
+            circularImageView.setBorderColor(Color.BLACK);
+            circularImageView.setImageDrawable((getResources().getDrawable(R.drawable.ic_person_black_24dp)));
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//                markerLayout.findViewById(R.id.v_custom_marker).getBackground().setTint(Color.BLACK);
+                markerLayout.findViewById(R.id.v_custom_marker).setVisibility(View.INVISIBLE);//because there is already a dot below
+            }
+
+
+            /*Uri uri = FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl();
+            if (uri != null) {
+                myCurrentLocationMarker = mMap.addMarker(new MarkerOptions()
+                        .position(location)
+                        .title("You")
+//                    .snippet(mLo)
+                        .icon(BitmapDescriptorFactory.fromBitmap(*//*getMarkerBitmapFromView(markerLayout)*//*createDrawableFromView(TransporterMainActivity.this, markerLayout))));
+
+             *//*Glide.with(this).load(FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl())
+//                        .apply(RequestOptions.skipMemoryCacheOf(true))
+                        .addListener(new RequestListener<Drawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                Toast.makeText(TransporterMainActivity.this, "failed", Toast.LENGTH_SHORT).show();
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                Toast.makeText(TransporterMainActivity.this, "Loaded", Toast.LENGTH_LONG).show();
+                                circularImageView.setImageDrawable(resource);
+                                myCurrentLocationMarker = mMap.addMarker(new MarkerOptions()
+                                        .position(location)
+                                        .title("You")
+//                    .snippet(mLo)
+                                        .icon(BitmapDescriptorFactory.fromBitmap(*//**//*getMarkerBitmapFromView(markerLayout)*//**//*createDrawableFromView(TransporterMainActivity.this, markerLayout))));
+                                return false;
+                            }
+                        }).submit();*//*
+
+
+//            circularImageView.setImageDrawable(getResources().getDrawable(R.drawable.kid));
+            } else {*/
+            myCurrentLocationMarker = mMap.addMarker(new MarkerOptions()
+                    .position(location)
+                    .title("You")
+//                    .snippet(mLo)
+                    .icon(BitmapDescriptorFactory.fromBitmap(/*getMarkerBitmapFromView(markerLayout)*/createDrawableFromView(TransporterMainActivity.this, markerLayout))));
+
+//            }
+
+//            myCurrentLocationMarker = mMap.addMarker(new MarkerOptions().title("You").position(location)/*.draggable(true)*/);
         } else {
 //            myCurrentLocationMarker.setPosition(location);
             animateMarkerToICS(myCurrentLocationMarker, location, new LatLngInterpolator.LinearFixed()/*, currentChild.getChildChanginInfoModel().isSelected()*/);
@@ -1186,6 +1273,10 @@ public class TransporterMainActivity extends AppCompatActivity
                                                         mConsumerModelArrayList.add(consumerModel);
                                                         if (lat != null) {
                                                             createNewMarker(consumerModel);
+//                                                            if (!imageUri.isEmpty()) {
+//                                                                downloadImageForChild(consumerModel);
+//                                                            }
+
                                                         }
 
                                                         countDownLatch.countDown();
@@ -1250,6 +1341,7 @@ public class TransporterMainActivity extends AppCompatActivity
 
                     }
                 });
+
 
 //        rootRef.child("clients").child(myID)//prodcuer id
 //                .addChildEventListener(new ChildEventListener() {
@@ -1317,13 +1409,51 @@ public class TransporterMainActivity extends AppCompatActivity
 
     }
 
+    private void downloadImageForChild(final ConsumerModel consumerModel) {
+        //defining the location of downloads
+        File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "ITSfurt Kids Tracker");
+        if (!dir.exists()) {//if directory is not available
+            dir.mkdir();    //then create a new directory
+        }
+
+        //File file = new File(dir, consumerModel.getUserID()+".jpg");
+        //final File localFile = File.createTempFile("" + consumerModel.getUserID(), ".jpg", dir);
+        final File localFile = new File(dir, "" + consumerModel.getId() + ".jpg");
+        StorageReference profilepicRef = FirebaseStorage.getInstance().getReferenceFromUrl(consumerModel.getImageUrl());
+
+//        if (!localFile.exists()) {//// FIXME: 1/11/2020 not considering a new image from firebase
+        profilepicRef.getFile(localFile)
+                .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                        int a = 10;
+                        Uri imageUri = Uri.fromFile(localFile);
+                        consumerModel.setImageUri(imageUri);
+                        createNewMarker(consumerModel);
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                // Handle failed download
+                // ...
+                Toast.makeText(TransporterMainActivity.this, "cant download image  " + exception.toString(), Toast.LENGTH_SHORT).show();
+            }
+        });
+//        } else {
+//            Uri imageUri = Uri.fromFile(localFile);
+//            consumerModel.setImageUri(imageUri);
+//            createNewMarker(consumerModel);
+//        }
+
+    }
+
     //this method is only valid if it is called for the last posiioned object of array list
     private void createNewMarker(ConsumerModel consumerModel) {
-        Bitmap flag = BitmapFactory.decodeResource(getResources(), R.drawable.iconfinder_map_marker_flag_left_azure_73041_64px);
+        /*Bitmap flag = BitmapFactory.decodeResource(getResources(), R.drawable.iconfinder_map_marker_flag_left_azure_73041_64px);
 
-        flag = /*loadBitmapFromView(*/scaleDown(flag, 180.0f, true)/*)*/;
+//        flag = ConsumerMapActivity.loadBitmapFromView(scaleDown(flag, 180.0f, true));
 
-        consumerModel.getId();
+//        consumerModel.getId();
 
         MarkerOptions markerOptions = new MarkerOptions();
         //added array list size to indicate the number of marker
@@ -1336,10 +1466,124 @@ public class TransporterMainActivity extends AppCompatActivity
         markerOptions.position(new LatLng(Double.parseDouble(consumerModel.getLatitude()),
                 Double.parseDouble(consumerModel.getLongitude())));
         Marker marker = mMap.addMarker(markerOptions);
-        consumerModel.setMarker(marker);
+        consumerModel.setMarker(marker);*/
+
+
+//        if (consumerModel.getImageUri() != null) {
+//            Bitmap bitmap = BitmapFactory.decodeFile(consumerModel.getImageUri().getPath());
+//            CircularImageView circularImageView = markerLayout.findViewById(R.id.civ_custom_marker);
+////            circularImageView.setImageBitmap(bitmap);
+//            Glide.with(this).load(bitmap).into(circularImageView);
+//        }
+
+//        TextView numTxt = markerLayout.findViewById(R.id.num_txt);
+//        numTxt.setText("27");
+
+//        if (consumerModel.getMarker() != null) {
+//            consumerModel.getMarker().remove();
+//        }
+
+
+        /*if (consumerModel.getImageUrl() != null) {
+            Glide.with(this).load(consumerModel.getImageUrl())
+                    .apply(RequestOptions.skipMemoryCacheOf(true))
+                    .addListener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            Toast.makeText(TransporterMainActivity.this, "failed", Toast.LENGTH_SHORT).show();
+                            return true;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                            View markerLayout = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_layout, null);
+                            CircularImageView circularImageView = markerLayout.findViewById(R.id.civ_custom_marker);
+                            circularImageView.setBorderColor(getResources().getColor(R.color.colorAccent));
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                markerLayout.findViewById(R.id.v_custom_marker).getBackground().setTint(getResources().getColor(R.color.colorAccent));
+                            }
+                            circularImageView.setImageDrawable(resource);
+                            Marker customMarker = mMap.addMarker(new MarkerOptions()
+                                    .position(new LatLng(Double.parseDouble(consumerModel.getLatitude()),
+                                            Double.parseDouble(consumerModel.getLongitude())))
+                                    .title(consumerModel.getName())
+                                    .snippet(consumerModel.getLocationName())
+                                    .icon(BitmapDescriptorFactory.fromBitmap(*//*getMarkerBitmapFromView(markerLayout)*//*createDrawableFromView(TransporterMainActivity.this, markerLayout))));
+                            consumerModel.setMarker(customMarker);
+                            return true;
+                        }
+                    }).submit();
+//            circularImageView.setImageDrawable(getResources().getDrawable(R.drawable.kid));
+        } else {
+            View markerLayout = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_layout, null);
+            CircularImageView circularImageView = markerLayout.findViewById(R.id.civ_custom_marker);
+            circularImageView.setBorderColor(getResources().getColor(R.color.colorAccent));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                markerLayout.findViewById(R.id.v_custom_marker).getBackground().setTint(getResources().getColor(R.color.colorAccent));
+            }
+            Marker customMarker = mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(Double.parseDouble(consumerModel.getLatitude()),
+                            Double.parseDouble(consumerModel.getLongitude())))
+                    .title(consumerModel.getName())
+                    .snippet(consumerModel.getLocationName())
+                    .icon(BitmapDescriptorFactory.fromBitmap(*//*getMarkerBitmapFromView(markerLayout)*//*createDrawableFromView(this, markerLayout))));
+            consumerModel.setMarker(customMarker);
+        }
+
+*/
+        // FIXME: 1/12/2020 because above code is misbehaving I am just relying to the simple static layouts
+        View markerLayout = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_layout, null);
+        CircularImageView circularImageView = markerLayout.findViewById(R.id.civ_custom_marker);
+        circularImageView.setBorderColor(getResources().getColor(R.color.colorAccent));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            markerLayout.findViewById(R.id.v_custom_marker).getBackground().setTint(getResources().getColor(R.color.colorAccent));
+        }
+        Marker customMarker = mMap.addMarker(new MarkerOptions()
+                .position(new LatLng(Double.parseDouble(consumerModel.getLatitude()),
+                        Double.parseDouble(consumerModel.getLongitude())))
+                .title(consumerModel.getName())
+                .snippet(consumerModel.getLocationName())
+                .icon(BitmapDescriptorFactory.fromBitmap(/*getMarkerBitmapFromView(markerLayout)*/createDrawableFromView(this, markerLayout))));
+        consumerModel.setMarker(customMarker);
+
 //        mConsumerModelArrayList.get(mConsumerModelArrayList.size() - 1).setMarker(marker);
     }
 
+
+    // Convert a view to bitmap
+    public static Bitmap createDrawableFromView(Context context, View view) {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        ((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        view.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        view.measure(displayMetrics.widthPixels, displayMetrics.heightPixels);
+        view.layout(0, 0, displayMetrics.widthPixels, displayMetrics.heightPixels);
+        view.buildDrawingCache();
+        Bitmap bitmap = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+
+        Canvas canvas = new Canvas(bitmap);
+        view.draw(canvas);
+
+        return bitmap;
+    }
+
+    private Bitmap getMarkerBitmapFromView(View customMarkerView) {
+//why not happening if does not happen move forward may be Is should because there is not much time
+//        View customMarkerView = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.view_custom_marker, null);
+//        ImageView markerImageView = (ImageView) customMarkerView.findViewById(R.id.profile_image);
+//        markerImageView.setImageResource(resId);
+        customMarkerView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        customMarkerView.layout(0, 0, customMarkerView.getMeasuredWidth(), customMarkerView.getMeasuredHeight());
+        customMarkerView.buildDrawingCache();
+        Bitmap returnedBitmap = Bitmap.createBitmap(customMarkerView.getMeasuredWidth(), customMarkerView.getMeasuredHeight(),
+                Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(returnedBitmap);
+        canvas.drawColor(Color.WHITE, PorterDuff.Mode.SRC_IN);
+        Drawable drawable = customMarkerView.getBackground();
+        if (drawable != null)
+            drawable.draw(canvas);
+        customMarkerView.draw(canvas);
+        return returnedBitmap;
+    }
 
     public Bitmap scaleDown(Bitmap realImage, float maxImageSize, boolean filter) {
         float ratio;

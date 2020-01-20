@@ -17,7 +17,6 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,6 +34,7 @@ import com.android.example.gawala.Generel.Activities.LoginActivity;
 import com.android.example.gawala.Generel.Activities.NotificationsActivity;
 import com.android.example.gawala.Generel.Activities.ProfileActivity;
 import com.android.example.gawala.Generel.Activities.PickLocationMapsActivity;
+import com.android.example.gawala.Generel.Models.ConTransporterModel;
 import com.android.example.gawala.Generel.Utils.SharedPreferenceUtil;
 import com.android.example.gawala.R;
 import com.android.example.gawala.Generel.Utils.UtilsMessaging;
@@ -59,12 +59,13 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
     private static final String CLIENT_SUMMERY_FRAGMENT_TAG = "ClientsummeryFragment";
     private static final String TAG_SETTINGS_FRAGMENT = "settingFragment";
     private Button manageVacationsButton, showSummeryButton, myProvidesButton,
-            myServicesButton, /*showMapButton,*/
+            myServicesButton, showTransportersOnMapButton,
             myProfilebutton, notificationsButton;
 
     //firbase related
     private String myId;
 
+    private ArrayList<ConTransporterModel> conTransporterModelArrayList;
     private HashMap<String, String> providerIdNameMap;//provider key/ name
 //    private ArrayList<String> providerIdArrayList;
 //    private String providerId;
@@ -79,7 +80,6 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
     private final String[] PERMISSIONS = {
             android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
             android.Manifest.permission.ACCESS_FINE_LOCATION};
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,16 +112,18 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
         showSummeryButton = findViewById(R.id.bt_con_dash_show_summery);
         myProvidesButton = findViewById(R.id.bt_con_dash_my_providers);
         myServicesButton = findViewById(R.id.bt_con_dash_my_services);
-//        showMapButton = findViewById(R.id.bt_con_show_map);
+        showTransportersOnMapButton = findViewById(R.id.bt_con_dash_see_transporters_on_map);
         myProfilebutton = findViewById(R.id.bt_con_dash_my_profile);
         notificationsButton = findViewById(R.id.bt_con_dash_notifications);
 
 
 //        providerIdArrayList = new ArrayList<>();
+        conTransporterModelArrayList = new ArrayList<>();
         providerIdNameMap = new HashMap<>();
         //date related
         myId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         initializeDialog();
+
     }
 
     private void attachListeners() {
@@ -129,7 +131,7 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
         showSummeryButton.setOnClickListener(this);
         myProvidesButton.setOnClickListener(this);
         myServicesButton.setOnClickListener(this);
-//        showMapButton.setOnClickListener(this);
+        showTransportersOnMapButton.setOnClickListener(this);
         myProfilebutton.setOnClickListener(this);
         notificationsButton.setOnClickListener(this);
     }
@@ -220,6 +222,8 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
                             providerIdNameMap.put(providerId, providerName);
                         }
 
+                        loadAssociatedTransporters(providerIdNameMap);
+
                     } else {
                         //do something if needed to e.g. show a banner that indicated that [please connect o a producer
                     }
@@ -267,6 +271,32 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
 //                    public void onCancelled(@NonNull DatabaseError databaseError) {
 //                    }
 //                });
+    }
+
+    private void loadAssociatedTransporters(HashMap<String, String> providerIdNameMap) {
+
+        for (String key : providerIdNameMap.keySet()) {
+            rootRef.child("clients").child(key).child(myId)
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.exists()) {
+                                String transporterId = dataSnapshot.child("transporter_id").getValue(String.class);
+                                String transporterName = dataSnapshot.child("transporter_name").getValue(String.class);
+                                String providerName = providerIdNameMap.get(key);
+                                String providerId = key;
+                                conTransporterModelArrayList.add(new ConTransporterModel(transporterId, transporterName, providerId, providerName));
+                                showTransportersOnMapButton.setEnabled(true);
+                            }
+
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+        }
     }
 
 //    private void upDateUiForNoProducerConnection() {
@@ -500,11 +530,9 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
             case R.id.bt_con_dash_my_services:
                 startActivity(new Intent(this, AcquiredGoodsActivity.class));
                 break;
-//            case R.id.bt_con_show_map:
-//                Intent intent = new Intent(this, ConsumerMapActivity.class);
-//                intent.putExtra("producer_id", providerId);
-//                startActivity(intent);
-//                break;
+            case R.id.bt_con_dash_see_transporters_on_map:
+                showAlertToChooseProvider();
+                break;
             case R.id.bt_con_dash_my_profile:
                 Intent intent1 = new Intent(this, ProfileActivity.class);
 //                intent1.putStringArrayListExtra(ProfileActivity.PROVIDER_ID_ARRAY, providerIdArrayList);
@@ -517,13 +545,45 @@ public class ConsumerMainActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
+    private void showAlertToChooseProvider() {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Select Provider to see respective transporter");
+        builder.setNegativeButton("cancel", null);
+
+        LinearLayout linearLayout = new LinearLayout(this);
+        linearLayout.setPadding(16, 16, 16, 16);
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        builder.setView(linearLayout);
+        AlertDialog alertDialog = builder.create();
+        alertDialog.getWindow().getAttributes().windowAnimations = R.style.dialogtheme; //style id
+
+
+        for (ConTransporterModel conTransporterModel : conTransporterModelArrayList) {
+            RelativeLayout producerLayout = (RelativeLayout) getLayoutInflater().inflate(R.layout.li_producers, null);
+            ((TextView) producerLayout.findViewById(R.id.tv_li_prod_name)).setText(conTransporterModel.getProviderName());
+            producerLayout.findViewById(R.id.ll_li_prod_container).setOnClickListener(v -> {
+                Intent intent = new Intent(this, ConsumerMapActivity.class);
+                intent.putExtra(ConsumerMapActivity.TRANSPORTER_ID, conTransporterModel.getTransporterId());
+                intent.putExtra(ConsumerMapActivity.TRANSPORTER_NAME, conTransporterModel.getTransporterName());
+                intent.putExtra(ConsumerMapActivity.PROVIDER_NAME, conTransporterModel.getProviderName());
+                startActivity(intent);
+                alertDialog.cancel();
+            });
+            linearLayout.addView(producerLayout);
+        }
+        alertDialog.show();
+
+
+    }
+
     private void showFragmentToPickSummeryForEachProvider() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Select Provider ");
         builder.setNegativeButton("cancel", null);
 
         LinearLayout linearLayout = new LinearLayout(this);
-        linearLayout.setPadding(16,16,16,16);
+        linearLayout.setPadding(16, 16, 16, 16);
         linearLayout.setOrientation(LinearLayout.VERTICAL);
         builder.setView(linearLayout);
         AlertDialog alertDialog = builder.create();

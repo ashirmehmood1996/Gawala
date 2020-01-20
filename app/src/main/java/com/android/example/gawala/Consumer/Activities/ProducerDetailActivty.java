@@ -61,7 +61,7 @@ public class ProducerDetailActivty extends AppCompatActivity implements GoodsAda
     private String MAP_TAG = "mapTAG";
     private String lat, lng;
     private boolean isConneted = false;
-
+//implemnet see profile button
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

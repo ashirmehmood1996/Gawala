@@ -10,4 +10,10 @@ public final class Constants {
         public static final String TYPE_REQUEST_ACCEPTED="requestAccepted";
         public static final String TYPE_ALERT ="alert";
     }
+
+    public static final class Ride {
+        public static final String IS_RIDING ="is_riding";
+    }
+
+
 }
