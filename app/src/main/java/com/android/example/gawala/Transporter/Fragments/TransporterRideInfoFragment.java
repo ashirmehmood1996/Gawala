@@ -195,9 +195,12 @@ public class TransporterRideInfoFragment extends DialogFragment implements StopM
                     subMap.put("name", acquiredGoodModel.getGoodModel().getName());
                     subMap.put("image", acquiredGoodModel.getGoodModel().getImage_uri());
                     subMap.put("demand", Integer.parseInt(acquiredGoodModel.getDemand()));
+                    subMap.put("unit", acquiredGoodModel.getGoodModel().getUnit());
                     goodsToCarryHashMap.put(key, subMap);
                 }
             }
+
+
             callbacks.onStartRiding(goodsToCarryHashMap);
             dismiss();
         });

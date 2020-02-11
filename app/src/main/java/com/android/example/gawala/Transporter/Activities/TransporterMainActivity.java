@@ -136,6 +136,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 
 import static androidx.annotation.Dimension.SP;
@@ -1724,9 +1725,10 @@ public class TransporterMainActivity extends AppCompatActivity
         goodsToCarryContainerLinearLayout.setPadding(16, 16, 16, 16);
         for (String key : goodsToCarryHashMap.keySet()) {
             HashMap<String, Object> subMap = (HashMap<String, Object>) goodsToCarryHashMap.get(key);
-            String name = (String) subMap.get("name");
+            String name = (String) Objects.requireNonNull(subMap).get("name");
             String image = (String) subMap.get("image");
             Integer demand = (Integer) subMap.get("demand");
+            String unit = (String) subMap.get("unit");
             LinearLayout linearLayout = (LinearLayout) getLayoutInflater().inflate(R.layout.li_good_to_carry, null);
 
             ImageView imageView = linearLayout.findViewById(R.id.iv_li_good_to_carry_image);
@@ -1734,7 +1736,7 @@ public class TransporterMainActivity extends AppCompatActivity
             TextView demandTextView = linearLayout.findViewById(R.id.tv_li_good_to_carry_units);
             Glide.with(this).load(image).into(imageView);
             nameTextView.setText(name);
-            demandTextView.setText(String.format("%d item(s)", demand));
+            demandTextView.setText(String.format("%d %s", demand, unit));
             goodsToCarryContainerLinearLayout.addView(linearLayout);
         }
 //        String message = "Total milk Volume : " + mTotalMilkDemand + "\n are you all set? Press Go to proceed";

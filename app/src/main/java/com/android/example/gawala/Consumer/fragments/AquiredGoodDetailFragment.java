@@ -36,7 +36,7 @@ public class AquiredGoodDetailFragment extends DialogFragment {
 
     private TextView nameTextView, descTextView, priceTextView, typeTextView, demandTextView;
     private Button removeItemFromDemandButton;
-    private ImageButton editDemandImageButton,backButton;
+    private ImageButton editDemandImageButton, backButton;
     private ImageView goodPictureImageView;
 
     private int mDemand = 0;
@@ -112,7 +112,7 @@ public class AquiredGoodDetailFragment extends DialogFragment {
         descTextView.setText(acquiredGoodModel.getGoodModel().getDescription());
         priceTextView.setText(String.format("%s PKR", acquiredGoodModel.getGoodModel().getPrice()));
         mDemand = Integer.parseInt(acquiredGoodModel.getDemand());
-        demandTextView.setText(String.format("%d Unit(s)", mDemand));
+        demandTextView.setText(mDemand + " " + acquiredGoodModel.getGoodModel().getUnit());
 
         if (acquiredGoodModel.getGoodModel().getImage_uri() != null
                 && !acquiredGoodModel.getGoodModel().getImage_uri().isEmpty()) {
@@ -125,6 +125,7 @@ public class AquiredGoodDetailFragment extends DialogFragment {
         removeItemFromDemandButton.setOnClickListener(v -> showRemoveWarning());
 
         editDemandImageButton.setOnClickListener(v -> openEditDialog());
+        backButton.setOnClickListener(v -> dismiss());
     }
 
     private void showRemoveWarning() {

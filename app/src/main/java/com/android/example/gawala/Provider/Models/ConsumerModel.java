@@ -50,7 +50,7 @@ public class ConsumerModel implements Serializable {
     }
 
     /**
-     * @return a model that has all basic fields
+     * @return a duplicate model that has all basic fields
      */
     public ConsumerModel getConsumerModel() {
         ConsumerModel consumerModel = new ConsumerModel(this.id, this.name, this.number, this.time_stamp, this.lat, this.lng, this.imageUrl, this.alertNotificationTime);

@@ -172,10 +172,9 @@ public class MainActivity extends AppCompatActivity {
 //  4.9) !!! done show summery for rider
 //  !!!done partially done make the records summery more robust like an option to fetch the monthly or yearly summery
 // FIXME: done 1/8/2020 show the real time tracking button for consumer
+// TODO: !!!done 1/13/2020  add the items that are being carried in the
 
 
-
-/// // TODO: 1/13/2020  add the items that are being carried in the
 // TODO: 11/16/2019  test by adding more producers
 //// todo test this using 10 or more consumer putNearestStopInPosition() in the ride service
 
