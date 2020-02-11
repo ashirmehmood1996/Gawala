@@ -9,6 +9,8 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputFilter;
+import android.text.Spanned;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -137,6 +139,18 @@ public class ProviderTransportersActivity extends AppCompatActivity implements T
     }
 
     private void showAddTransporterdialog() {
+        String blockCharacterSet = ".#$[]";
+        InputFilter filter = new InputFilter() {// tO
+
+            @Override
+            public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+
+                if (source != null && blockCharacterSet.contains(("" + source))) {
+                    return "";
+                }
+                return null;
+            }
+        };
 
         LinearLayout linearLayout = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_add_transporter, null);
 
@@ -144,6 +158,7 @@ public class ProviderTransportersActivity extends AppCompatActivity implements T
         TextView titleTextView = linearLayout.findViewById(R.id.tv_dialog_add_transporter_title);
 
         TextInputEditText editText = linearLayout.findViewById(R.id.et_dialog_add_transporter_edit_field);
+        editText.setFilters(new InputFilter[]{filter});
         ImageButton searchImageButton = linearLayout.findViewById(R.id.ib_dialog_add_transporter_search);
 
         ProgressBar progressBar = linearLayout.findViewById(R.id.pb_dialog_add_transporter);

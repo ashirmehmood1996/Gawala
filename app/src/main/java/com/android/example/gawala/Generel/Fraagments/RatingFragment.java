@@ -314,6 +314,11 @@ public class RatingFragment extends DialogFragment {
         this.callbacks = callbacks;
     }
 
+    /*@Override
+    public void onAttach(@NonNull Context context) {
+        callbacks = (Callbacks) context;
+        super.onAttach(context);
+    }*/
 
     private class RatingAdapter extends RecyclerView.Adapter<RatingHolder> {
         private Context context;

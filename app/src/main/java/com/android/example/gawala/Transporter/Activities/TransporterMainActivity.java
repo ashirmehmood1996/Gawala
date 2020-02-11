@@ -5,6 +5,7 @@ import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.animation.TypeEvaluator;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
@@ -19,6 +20,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
@@ -87,6 +89,7 @@ import androidx.core.view.GravityCompat;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.StrictMode;
 import android.speech.tts.TextToSpeech;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -127,6 +130,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -841,10 +845,51 @@ public class TransporterMainActivity extends AppCompatActivity
     }
 
     private void shareTransporterCode() {
-        ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        assert clipboardManager != null;
-        clipboardManager.setPrimaryClip(ClipData.newPlainText("providerCode", myID));
-        Toast.makeText(this, "Copied to clip board", Toast.LENGTH_LONG).show();
+
+        final Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialogue_circle_code);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+        final TextView circle_code_textview = dialog.findViewById(R.id.tv_connection_code);
+
+        circle_code_textview.setText(myID);
+
+        Button btn_share_multimedia = dialog.findViewById(R.id.btn_share_multimedia);
+        Button buttonCopy = dialog.findViewById(R.id.btn_copy);
+        buttonCopy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("connectionCode", myID);
+                assert clipboard != null;
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(TransporterMainActivity.this, "Copied to clipboard", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            }
+        });
+
+        btn_share_multimedia.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent sharingIntent = new Intent(Intent.ACTION_SEND);
+                sharingIntent.setType("text/*");
+                sharingIntent.putExtra(Intent.EXTRA_TEXT, circle_code_textview.getText().toString());
+                sharingIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                sharingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                if (Build.VERSION.SDK_INT >= 24) {
+                    try {
+                        Method m = StrictMode.class.getMethod("disableDeathOnFileUriExposure");
+                        m.invoke(null);
+                        startActivity(Intent.createChooser(sharingIntent, "Share Using"));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    startActivity(Intent.createChooser(sharingIntent, "Share Using"));
+                }
+            }
+        });
+        dialog.show();
     }
 
 
